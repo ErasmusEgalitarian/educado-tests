@@ -1,8 +1,10 @@
 % !TEX root = ../main.tex
 \section{Execução da Suíte de Testes}
 
-Nesta seção devem ser apresentados os resultados obtidos pela
-equipe ao executar a suíte de testes do projeto.
+Nesta seção são apresentados os resultados obtidos pela 
+equipe ao executar a suíte de testes dos repositórios
+educado-web e educado-api. 
+
 
 
 % ----------------------------------------------------------------------------
@@ -11,9 +13,14 @@ equipe ao executar a suíte de testes do projeto.
 
 \subsection{Configuração do Ambiente}
 
-Descreva as etapas realizadas para configurar o ambiente.
-
-Apresente as versões das principais ferramentas utilizadas.
+\begin{itemize}
+    \item educado-web: Após a clonagem e acesso do repositório as dependências 
+    do projeto foram instaladas usando \texttt{npm ci}, no entando não apresentava
+    o pacote necessário para ver a cobertura, então foi preciso ser instalado por
+    \texttt{npm install -D @vitest/coverage-v8}.
+    \item educado-api: Após a clonagem e acesso do repositório apenas o \texttt{npm install}
+    foi o suficiente para instalar todas as dependências necessárias
+\end{itemize}
 
 \begin{table}[H]
 \centering
@@ -23,12 +30,12 @@ Apresente as versões das principais ferramentas utilizadas.
 \toprule
 \textbf{Componente} & \textbf{Versão} \\
 \midrule
-Sistema operacional & -- \\
-Linguagem & -- \\
-Framework & -- \\
-Ferramenta de build & -- \\
-Banco de dados & -- \\
-Outros & -- \\
+Sistema operacional & Windows 11 Home Single Language - 25H2 \\
+Linguagem & TypeScript com Node.js 20 e npm 11.6.0 \\
+Frameworks & Express 5 no educado-api \\
+Ferramenta de build & vite 7.3 no web e Nixpacks para deploy da api \\
+Banco de dados & PostgreSQL 16 na api;\\
+Outros & Jest 30.3.0 para testes na api e Vitest 4.1.10 no web \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -40,14 +47,25 @@ Outros & -- \\
 
 \subsection{Procedimento de Execução}
 
-Descreva como a suíte de testes foi executada.
+A execução da suíte foi realizada separadamente em cada repositório, 
+conforme os comandos abaixo.
 
-Apresente os comandos utilizados.
+\begin{lstlisting}[language=bash]
+# educado-web
+cd educado-web
+npm ci
+npm install -D @vitest/coverage-v8
+npx vitest --coverage --run
 
-\begin{lstlisting}
-# Exemplo
-./gradlew test
+# educado-api
+cd educado-api
+npm install
+npm run test:coverage
 \end{lstlisting}
+
+No ambiente executado, o comando do frontend retornou 
+1 arquivo  de teste aprovado e o comando do backend 
+retornou 31 suítes aprovadas (506 testes).
 
 
 % ----------------------------------------------------------------------------
@@ -56,29 +74,42 @@ Apresente os comandos utilizados.
 
 \subsection{Resultados da Execução}
 
-Informe:
+Os resultados obtidos na execução dos dois projetos foram:
 
 \begin{itemize}
-    \item quantidade total de testes;
-    \item testes aprovados;
-    \item testes falhos;
-    \item testes ignorados/skipped;
-    \item tempo de execução;
-    \item erros encontrados.
+    \item \textbf{API:}
+    \begin{itemize}
+        \item total de testes executados: 506;
+        \item testes aprovados: 506;
+        \item testes falhos: 0;
+        \item testes ignorados: 0;
+        \item tempo total de execução: 8,20 segundos;
+        \item erros encontrados: 0.
+    \end{itemize}
+
+    \item \textbf{WEB:}
+    \begin{itemize}
+        \item total de testes executados: 1;
+        \item testes aprovados: 1;
+        \item testes falhos: 0;
+        \item testes ignorados: 0;
+        \item tempo total de execução: 2,56 segundos;
+        \item erros encontrados: 0.
+    \end{itemize}
 \end{itemize}
 
 \begin{table}[H]
 \centering
 \caption{Resultado da execução da suíte de testes.}
 \label{tab:execucao}
-\begin{tabular}{lr}
+\begin{tabular}{lrr}
 \toprule
-\textbf{Indicador} & \textbf{Quantidade} \\
+\textbf{Indicador} & \textbf{API}  & \textbf{WEB}\\
 \midrule
-Testes executados & -- \\
-Testes aprovados & -- \\
-Testes falhos & -- \\
-Testes ignorados & -- \\
+Testes executados & 506 & 1 \\
+Testes aprovados & 506 & 1 \\
+Testes falhos & 0 & 0 \\
+Testes ignorados & 0 & 0 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -90,37 +121,40 @@ Testes ignorados & -- \\
 
 \subsection{Cobertura de Código}
 
-Apresente os resultados de cobertura obtidos.
-
-Informe, quando disponível:
-
-\begin{itemize}
-    \item cobertura de linhas;
-    \item cobertura de branches;
-    \item cobertura de métodos/funções;
-    \item cobertura de classes;
-    \item outras métricas.
-\end{itemize}
+A cobertura foi coletada usando: plugin \texttt{@vitest/coverage-v8} 
+no frontend e o backend utilizou o Jest.
 
 \begin{table}[H]
 \centering
 \caption{Cobertura de código.}
 \label{tab:cobertura}
-\begin{tabular}{lc}
+\begin{tabular}{lcc}
 \toprule
-\textbf{Métrica} & \textbf{Cobertura} \\
+\textbf{Métrica} & \textbf{API} & \textbf{WEB} \\
 \midrule
-Linhas & --\% \\
-Branches & --\% \\
-Métodos/Funções & --\% \\
-Classes & --\% \\
+Linhas & 78,90\% & 0,40\% \\
+Branches & 69,26\% & 0,26\% \\
+Métodos/Funções & 78,00\% & 0,73\% \\
+Statements & 79,36\% & 0,39\%  \\
+Classes & --\% & --\% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Se o projeto não possuir uma ferramenta de cobertura,
-registre explicitamente essa informação.
+\subsubsection{Comprovação da Cobertura de Código}
+\begin{figure}[H]
+    \centering
+    \label{fig:cobertura-api}
+    \includegraphics[width=\textwidth, trim=0 8cm 0 0,clip]{figuras/cobertura_inicial_api.pdf}
+    \caption{Cobertura de testes da API}
+\end{figure}
 
+\begin{figure}[H]
+    \centering
+    \label{fig:cobertura-web}
+    \includegraphics[width=\textwidth, trim=0 2cm 0 0,clip]{figuras/cobertura_inicial_web.pdf}
+    \caption{Cobertura de testes do Web}
+\end{figure}
 
 % ----------------------------------------------------------------------------
 % 4.5 PROBLEMAS
@@ -128,15 +162,13 @@ registre explicitamente essa informação.
 
 \subsection{Problemas Encontrados Durante a Execução}
 
-Descreva dificuldades encontradas para configurar o ambiente
-ou executar os testes.
-
-Diferencie:
+O único "problema" encontrado foi a falta da dependência \texttt{@vitest/coverage-v8}
+necessária para visualizar a cobertura dos testes do educado-web.
 
 \begin{itemize}
-    \item problemas de configuração;
-    \item problemas de dependências;
-    \item problemas relacionados ao ambiente;
-    \item testes que falharam;
-    \item possíveis defeitos do projeto.
+    \item \textbf{Problemas de configuração:} foi necessário instalar o pacote \texttt{@vitest/coverage-v8} para habilitar a coleta de cobertura no educado-web;
+    \item \textbf{Problemas de dependências:} ao executar \texttt{npm install} no educado-api, dos 205 pacotes foram encontradas 8 vulnerabilidades, 1 de risco baixo, 5 médio e 2 de alto risco;
+    \item \textbf{Problemas relacionados ao ambiente:} nenhum;
+    \item \textbf{Testes que falharam:} nenhum;
+    \item \textbf{Possíveis defeitos do projeto:} baixa cobertura do educado-web indica que grande parte do código não tem validação automatizada.
 \end{itemize}
