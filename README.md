@@ -65,6 +65,8 @@ scripts/novo-relatorio.sh cria a pasta do próximo relatório
 
 Quem escreve o quê e como abrir PR: [CONTRIBUTING.md](CONTRIBUTING.md).
 
+**Primeira vez aqui?** O [Guia do Repositório](docs/Guia_do_Repositorio_educado-tests.pdf) cobre o caminho inteiro em PDF: clone, setup, contribuição, padrão de commit, regras de PR e como gerar a versão de entrega.
+
 ## Começar um relatório novo
 
 ```bash
@@ -85,3 +87,10 @@ git push origin entrega-01-estrategia-de-testes
 ```
 
 O trecho depois de `entrega-` é o nome da pasta em `relatorios/`. O CI compila **aquele** relatório e cria uma Release com o PDF anexado, já com o nome definido em `entrega.txt`. É esse arquivo que vai pro Moodle.
+
+Precisa reentregar depois de feedback? Acrescente o sufixo de versão. O CI entende o `-v2` como versão, acha a mesma pasta e cria uma Release separada, mantendo a anterior recuperável:
+
+```bash
+git tag entrega-01-estrategia-de-testes-v2
+git push origin entrega-01-estrategia-de-testes-v2
+```

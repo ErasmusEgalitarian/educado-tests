@@ -1,8 +1,13 @@
 name: Publicar entrega
 
 # Cria uma release com o PDF de UM relatório, o nomeado na tag.
-# Ex.: git tag entrega-01-estrategia-de-testes && git push origin --tags
-# O trecho depois de "entrega-" tem que ser o nome da pasta em relatorios/.
+#
+#   git tag entrega-01-estrategia-de-testes        primeira entrega
+#   git tag entrega-01-estrategia-de-testes-v2     reentrega, versão 2
+#   git push origin <a tag>
+#
+# O trecho depois de "entrega-" e antes do sufixo "-vN" opcional tem que ser
+# o nome da pasta em relatorios/.
 
 on:
   push:
@@ -20,7 +25,11 @@ jobs:
       - name: Identificar o relatório pela tag
         id: alvo
         run: |
-          relatorio="${GITHUB_REF_NAME#entrega-}"
+          alvo="${GITHUB_REF_NAME#entrega-}"
+          # sufixo -vN e versao de reentrega, nao faz parte do nome da pasta
+          relatorio="$(printf '%s' "$alvo" | sed -E 's/-v[0-9]+$//')"
+          versao="$(printf '%s' "$alvo" | sed -nE 's/.*-v([0-9]+)$/\1/p')"
+          echo "versao=${versao:-1}" >> "$GITHUB_OUTPUT"
           if [ ! -f "relatorios/$relatorio/main.tex" ]; then
             echo "::error::A tag aponta para 'relatorios/$relatorio', que não existe."
             echo "Relatórios disponíveis:"
@@ -48,5 +57,6 @@ jobs:
       - name: Criar release com o PDF
         uses: softprops/action-gh-release@v2
         with:
+          name: ${{ steps.pdf.outputs.nome }} (v${{ steps.alvo.outputs.versao }})
           files: ${{ steps.pdf.outputs.nome }}.pdf
           generate_release_notes: true

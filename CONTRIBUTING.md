@@ -31,18 +31,68 @@ Figura vai em `figuras/` do **próprio** relatório, nunca em `comum/`. `comum/`
 
 ```bash
 git checkout main && git pull
-git checkout -b secao/04-estrategia
+git checkout -b docs/rel01-estrategia-de-testes
 # escreve
 ./build.sh 01-estrategia-de-testes    # se você compila local; se não, deixa o CI conferir
 git add relatorios/01-estrategia-de-testes/secoes/04-estrategia-de-testes.tex
-git commit -m "docs(secao-4): niveis de teste e evidencias"
-git push -u origin secao/04-estrategia
+git commit -m "docs(rel01): descrever niveis de teste com evidencia"
+git push -u origin docs/rel01-estrategia-de-testes
 gh pr create --fill
 ```
 
+No PR, o CI compila. Se ficar vermelho, o LaTeX quebrou: abra o log da execução, ele aponta o arquivo e a linha.
+
 Trabalhando em relatórios diferentes, vocês não se cruzam: pastas separadas, zero conflito.
 
-No PR, o CI compila. Se ficar vermelho, o LaTeX quebrou: abra o log da execução, ele aponta o arquivo e a linha.
+## Nome de branch
+
+Formato `tipo/relNN-assunto`, minúsculo e com hífen.
+
+| Situação | Branch |
+|---|---|
+| Escrever uma seção | `docs/rel01-estrategia-de-testes` |
+| Corrigir erro no texto | `fix/rel01-tabela-cobertura` |
+| Começar um relatório novo | `feat/rel02-plano-de-testes` |
+| Mexer em CI ou tooling | `ci/matrix-de-relatorios` |
+
+Sempre parta de uma `main` atualizada. Branch criada de `main` velha gera conflito que não precisava existir.
+
+## Padrão de commit
+
+**Conventional Commits**: `tipo(escopo): descricao no imperativo`.
+
+| Tipo | Quando |
+|---|---|
+| `docs` | Conteúdo do relatório: escrever, reescrever, completar seção |
+| `fix` | Corrigir erro no texto, número errado, referência quebrada |
+| `feat` | Estrutura nova: relatório novo, seção nova, comando novo |
+| `style` | Só formatação LaTeX, sem mudar o que o texto diz |
+| `ci` | Workflows do GitHub Actions |
+| `chore` | Manutenção: gitignore, devcontainer, dependência |
+| `refactor` | Reorganizar arquivos sem mudar o PDF resultante |
+
+Escopo é o relatório (`rel01`, `rel02`). Mudança que não é de um relatório específico usa `comum` ou nenhum escopo.
+
+Descrição no imperativo ("adicionar", não "adicionado"), minúscula, sem ponto final, até 72 caracteres. Descreva a mudança, não o arquivo.
+
+```
+docs(rel01): descrever niveis de teste com evidencia do repo
+fix(rel01): corrigir cobertura de branches na tabela 4
+feat(rel02): criar estrutura do plano de testes
+ci: compilar todos os relatorios em matrix
+```
+
+Use o corpo do commit pro "porquê" quando não for óbvio. Se o commit muda um número ou uma conclusão do relatório, o corpo é onde se diz de onde veio o dado.
+
+## Regras de PR
+
+Um PR cobre **uma seção**. PR que toca cinco seções não é revisável e trava o trabalho dos outros.
+
+Título no mesmo padrão do commit. Marque **um revisor**: revisão de colega é o filtro que pega afirmação sem fonte antes do professor pegar.
+
+**Barra o merge:** CI vermelho, ausência de revisor, afirmação sem fonte apontada, ou mudança em `comum/preambulo.tex` sem aviso no grupo (afeta relatório já entregue).
+
+Use **squash merge** e apague a branch depois. Não faça `force push` em branch já em revisão: quebra os comentários do revisor.
 
 ## Regras de escrita que valem nota
 

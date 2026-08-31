@@ -2,6 +2,9 @@
 build/
 relatorios/*/build/
 *.pdf
+
+# o guia da equipe e versionado de proposito
+!docs/*.pdf
 *.aux
 *.log
 *.out
