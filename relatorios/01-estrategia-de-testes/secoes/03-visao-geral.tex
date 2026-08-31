@@ -63,8 +63,18 @@ Esses valores são aproximados e incluem comentários, linhas em branco e dados 
 
 \subsection{Processo de Desenvolvimento}
 
-Descreva, quando houver evidências disponíveis, como o projeto
-é desenvolvido e mantido.
+O Educado é desenvolvido de forma colaborativa por equipes vinculadas a universidades e organizações de diferentes países.
+Segundo a proposta do projeto, o trabalho utiliza práticas ágeis, com ciclos quinzenais, revisões internacionais e comunicação contínua entre as equipes.
+O código-fonte é mantido publicamente no GitHub sob a licença Apache 2.0.
 
-Considere informações disponíveis no README, documentação,
-issues, pull requests, workflows e outros artefatos do repositório.
+No \texttt{educado-web}, a documentação de contribuição estabelece a branch \texttt{main} para versões estáveis e a branch \texttt{dev} para integração das alterações.
+Novas contribuições devem partir da \texttt{dev} e utilizar branches identificadas por prefixos como \texttt{feat/}, \texttt{fix/}, \texttt{docs/} e \texttt{chore/}.
+Os commits seguem a convenção \textit{Conventional Commits}, facilitando a identificação do tipo e do propósito de cada mudança.
+
+As contribuições são submetidas por meio de \textit{pull requests}.
+O modelo disponibilizado pelo projeto solicita a descrição da alteração, a associação com issues, os procedimentos utilizados para testá-la e, no caso de mudanças visuais, capturas de tela ou gravações.
+O checklist também inclui verificações de compilação, internacionalização, navegação, comunicação com a API e tratamento seguro dos dados inseridos na interface.
+
+O repositório utiliza GitHub Actions para executar automaticamente, a cada \textit{pull request}, a instalação das dependências, a verificação estática do TypeScript, os testes automatizados e a compilação da aplicação.
+O projeto também fornece modelos específicos para o registro de defeitos e a solicitação de funcionalidades, além dos documentos \texttt{README.md}, \texttt{CONTRIBUTING.md}, \texttt{CODE\_OF\_CONDUCT.md} e \texttt{SECURITY.md}.
+Esses artefatos orientam a configuração do ambiente, a contribuição de código e a comunicação de problemas técnicos ou de segurança.
