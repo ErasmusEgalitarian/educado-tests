@@ -3,24 +3,63 @@
 
 \subsection{Descrição do Projeto}
 
-Descreva o propósito do projeto, suas principais funcionalidades,
-seus usuários e seu contexto de utilização.
+O Educado é uma plataforma educacional gamificada e mobile-first, criada para oferecer cursos curtos e acessíveis a catadores de materiais recicláveis.
+O projeto é desenvolvido por uma colaboração internacional entre universidades e organizações de quatro países, com participação de catadores no processo de criação da solução.
+
+A plataforma atende três grupos principais: os catadores, que acessam os conteúdos educacionais; as equipes universitárias, responsáveis pela criação e curadoria dos cursos; e os administradores, que gerenciam usuários, instituições e informações da plataforma.
+Entre suas funcionalidades estão a organização de cursos em seções e atividades, o acompanhamento do progresso dos estudantes, a gamificação, a emissão de certificados e a apresentação de indicadores de uso.
+
+O projeto está distribuído em quatro repositórios públicos: educado-web, educado-api, educado-app e educado-docs.
+Por recomendação da disciplina, este trabalho terá como objeto principal o educado-web, responsável pela interface web utilizada por criadores de conteúdo e administradores.
+Entretanto, algumas atividades poderão envolver o educado-api, pois funcionalidades e testes de integração da interface dependem dos serviços fornecidos pelo backend.
 
 \subsection{Características Técnicas}
 
-Apresente as principais características técnicas do projeto,
-tais como:
+O Educado é organizado em quatro repositórios, cada um responsável por uma parte da plataforma.
+Essa separação permite que o backend, as interfaces de usuário e a documentação sejam desenvolvidos e implantados de forma independente.
 
-\begin{itemize}
-    \item linguagem(ns) de programação;
-    \item frameworks;
-    \item bibliotecas;
-    \item arquitetura;
-    \item banco de dados;
-    \item ferramentas utilizadas;
-    \item tamanho aproximado do projeto;
-    \item outras informações relevantes.
-\end{itemize}
+\begin{table}[H]
+\centering
+\caption{Repositórios que compõem o projeto Educado.}
+\label{tab:repositorios}
+\begin{tabularx}{\textwidth}{l X X}
+\toprule
+\textbf{Repositório} & \textbf{Responsabilidade} & \textbf{Tecnologias principais} \\
+\midrule
+educado-web & Interface web para criadores de conteúdo e administradores & TypeScript, Vite, CSS e Vitest \\
+educado-api & API REST, regras de negócio e persistência dos dados & Node.js, Express, PostgreSQL e Jest \\
+educado-app & Aplicativo móvel utilizado pelos estudantes & React Native, Expo e Jest \\
+educado-docs & Documentação do produto e de sua arquitetura & MkDocs e Python \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+O educado-web, foco deste relatório, é uma aplicação de página única (Single Page Application -- SPA) desenvolvida em TypeScript, sem a utilização de frameworks de interface como React, Vue ou Angular.
+A renderização das páginas é realizada diretamente por funções que manipulam o HTML e registram os eventos necessários.
+O projeto também possui implementações próprias para o roteamento da aplicação e para a internacionalização das interfaces em português e inglês.
+
+A aplicação utiliza o Vite como servidor de desenvolvimento e ferramenta de compilação.
+Os estilos são escritos em CSS puro e organizados de acordo com as funcionalidades do sistema.
+Entre as dependências de execução estão o Axios e o Flatpickr, embora o cliente HTTP utilizado atualmente seja baseado na API nativa fetch.
+O TypeScript está configurado em modo estrito, incluindo verificações de parâmetros, variáveis não utilizadas e fluxos incompletos em estruturas condicionais.
+
+O código-fonte segue uma organização modular por funcionalidades.
+Os módulos de autenticação, cursos, mídia, administração, dashboard, páginas públicas e interface do estudante encontram-se no diretório \texttt{src/features}.
+Os recursos compartilhados, como comunicação HTTP, sessão de autenticação, internacionalização e componentes de interface, estão concentrados em \texttt{src/shared}.
+O roteamento e os estilos globais ficam em \texttt{src/app}.
+
+O frontend não possui banco de dados próprio.
+A persistência e as regras de negócio são fornecidas pelo educado-api, acessado por meio de requisições HTTP.
+A URL do serviço é configurada pela variável de ambiente \texttt{VITE\_API\_URL}, enquanto a autenticação utiliza um token JWT fornecido pela API e armazenado no \texttt{localStorage} do navegador.
+Essa dependência poderá exigir a utilização ou modificação da API durante a criação de alguns testes de integração.
+
+Para execução local, o projeto requer Node.js 20 ou superior e o gerenciador de pacotes npm.
+A instalação reprodutível das dependências é feita por meio do arquivo \texttt{package-lock.json}.
+Em produção, a aplicação pode ser compilada em uma imagem Docker de múltiplos estágios e disponibilizada por um servidor Nginx, configurado para atender às rotas da SPA e armazenar recursos estáticos em cache.
+
+Na versão analisada, o diretório \texttt{src} possui aproximadamente 81 arquivos TypeScript e CSS, totalizando cerca de 34 mil linhas.
+A maior parte do código está escrita em TypeScript, com aproximadamente 21 mil linhas, enquanto os arquivos de estilo somam aproximadamente 14 mil linhas.
+Esses valores são aproximados e incluem comentários, linhas em branco e dados de internacionalização.
 
 \subsection{Processo de Desenvolvimento}
 
