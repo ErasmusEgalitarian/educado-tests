@@ -1,0 +1,63 @@
+\usepackage[brazil]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{geometry}
+\geometry{
+    a4paper,
+    top=2.5cm,
+    bottom=2.5cm,
+    left=3cm,
+    right=2cm
+}
+
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{microtype}
+\usepackage{setspace}
+
+% ============================================================================
+% CONFIGURAÇÕES
+% ============================================================================
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=blue,
+    pdftitle={Relatório de Estratégia de Testes},
+    pdfauthor={}
+}
+
+\onehalfspacing
+
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+
+\setlist[itemize]{noitemsep,topsep=4pt}
+\setlist[enumerate]{noitemsep,topsep=4pt}
+
+% ============================================================================
+% CÓDIGO-FONTE
+% ============================================================================
+
+\definecolor{codegray}{gray}{0.95}
+
+\lstset{
+    backgroundcolor=\color{codegray},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    showstringspaces=false,
+    tabsize=2
+}

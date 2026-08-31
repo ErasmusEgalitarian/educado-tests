@@ -1,0 +1,35 @@
+name: Compilar relatório
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: pdflatex
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compilar main.tex
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+          latexmk_use_lualatex: false
+          args: -pdf -interaction=nonstopmode -halt-on-error -file-line-error
+
+      - name: Renomear PDF para o nome da entrega
+        run: mv build/main.pdf FGA0314_Relatorio_1.pdf
+
+      - name: Publicar PDF como artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-pdf
+          path: FGA0314_Relatorio_1.pdf
+          if-no-files-found: error
+          retention-days: 30

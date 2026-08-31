@@ -1,0 +1,429 @@
+\section{Estratégia de Testes}
+
+Esta seção deve apresentar os aspectos relacionados a testes
+identificados no projeto.
+
+A análise deve utilizar como fontes de evidência:
+
+\begin{itemize}
+    \item documentação do projeto;
+    \item código-fonte;
+    \item código dos testes;
+    \item arquivos de configuração;
+    \item issues;
+    \item pull requests;
+    \item workflows de CI/CD;
+    \item resultados da execução dos testes;
+    \item outros artefatos relevantes.
+\end{itemize}
+
+\subsection*{Importante: evidência, avaliação e recomendação}
+
+Ao longo desta seção, diferencie claramente:
+
+\begin{description}
+
+\item[Evidência encontrada:]
+informação efetivamente observada no projeto. Sempre que possível,
+indique a fonte da evidência, como arquivo, diretório, issue,
+pull request, workflow ou trecho de código.
+
+\item[Avaliação da equipe:]
+interpretação da equipe sobre a adequação da prática identificada,
+utilizando os conceitos estudados na disciplina.
+
+\item[Recomendação:]
+melhoria proposta pela equipe. Uma recomendação não deve ser
+apresentada como se fosse uma prática atualmente utilizada
+pelo projeto.
+
+\end{description}
+
+
+% ============================================================================
+% 3.1 TABELA-RESUMO
+% ============================================================================
+
+\subsection{Resumo da Estratégia de Testes}
+
+Preencha a tabela abaixo antes de apresentar o detalhamento
+dos elementos da estratégia.
+
+A coluna ``Evidência'' deve indicar onde a informação foi
+encontrada. Não basta afirmar, por exemplo, que ``o projeto
+possui testes unitários''; indique como essa conclusão foi obtida.
+
+\begin{longtable}{p{3.0cm} p{4.2cm} p{4.2cm} p{2.5cm}}
+\caption{Resumo da estratégia de testes identificada.}
+\label{tab:estrategia-resumo}\\
+\toprule
+\textbf{Elemento}
+&
+\textbf{O que foi identificado}
+&
+\textbf{Evidência}
+&
+\textbf{Avaliação inicial}
+\\
+\midrule
+\endfirsthead
+
+\toprule
+\textbf{Elemento}
+&
+\textbf{O que foi identificado}
+&
+\textbf{Evidência}
+&
+\textbf{Avaliação inicial}
+\\
+\midrule
+\endhead
+
+Objetivos de teste
+&
+Descreva os objetivos identificados.
+&
+Arquivo, documentação, issue etc.
+&
+Adequado / Parcial / Ausente
+\\
+
+Níveis de teste
+&
+Unitário, integração, sistema etc.
+&
+Arquivos/diretórios de testes.
+&
+Adequado / Parcial / Ausente
+\\
+
+Tipos de teste
+&
+Funcional, regressão, segurança etc.
+&
+Evidências encontradas.
+&
+Adequado / Parcial / Ausente
+\\
+
+Automação
+&
+Ferramentas e frameworks.
+&
+Scripts/configurações.
+&
+Adequado / Parcial / Ausente
+\\
+
+Organização da suíte
+&
+Estrutura e organização.
+&
+Diretórios/código.
+&
+Adequado / Parcial / Ausente
+\\
+
+Ambiente
+&
+Ambiente necessário para testes.
+&
+README/configuração.
+&
+Adequado / Parcial / Ausente
+\\
+
+Regressão
+&
+Como regressões são tratadas.
+&
+Issues, testes, CI etc.
+&
+Adequado / Parcial / Ausente
+\\
+
+Integração contínua
+&
+Execução dos testes no CI.
+&
+Workflow/configuração.
+&
+Adequado / Parcial / Ausente
+\\
+
+Pull requests
+&
+Relação entre testes e PRs.
+&
+PRs/configuração.
+&
+Adequado / Parcial / Ausente
+\\
+
+Code review
+&
+Práticas relacionadas a testes.
+&
+PRs/documentação.
+&
+Adequado / Parcial / Ausente
+\\
+
+Defeitos/issues
+&
+Uso de testes na investigação de bugs.
+&
+Issues/PRs.
+&
+Adequado / Parcial / Ausente
+\\
+
+Critérios de teste
+&
+Critérios de entrada/saída ou aprovação.
+&
+Documentação/CI.
+&
+Adequado / Parcial / Ausente
+\\
+
+Cobertura
+&
+Métricas e metas de cobertura.
+&
+Relatórios/configuração.
+&
+Adequado / Parcial / Ausente
+\\
+
+\bottomrule
+\end{longtable}
+
+
+% ============================================================================
+% 3.2 OBJETIVOS DE TESTE
+% ============================================================================
+
+\subsection{Objetivos de Teste}
+
+Descreva quais são os objetivos de teste identificados no projeto.
+
+Caso não exista uma definição explícita, deixe isso claro e
+explique quais objetivos podem ser inferidos a partir das evidências.
+
+\subsubsection*{Evidências}
+
+Apresente as evidências encontradas.
+
+\subsubsection*{Avaliação}
+
+Avalie se os objetivos de teste estão claramente definidos e
+se são adequados ao contexto do projeto.
+
+
+% ============================================================================
+% 3.3 NÍVEIS DE TESTE
+% ============================================================================
+
+\subsection{Níveis de Teste}
+
+Identifique os níveis de teste utilizados pelo projeto.
+
+Considere, quando aplicável:
+
+\begin{itemize}
+    \item teste unitário;
+    \item teste de integração;
+    \item teste de sistema;
+    \item teste de aceitação;
+    \item teste end-to-end;
+    \item outros.
+\end{itemize}
+
+Para cada nível identificado, apresente evidências.
+
+\begin{table}[H]
+\centering
+\caption{Níveis de teste identificados.}
+\label{tab:niveis}
+\begin{tabularx}{\textwidth}{l X X}
+\toprule
+\textbf{Nível} & \textbf{Evidência} & \textbf{Avaliação} \\
+\midrule
+Unitário & -- & -- \\
+Integração & -- & -- \\
+Sistema & -- & -- \\
+Aceitação & -- & -- \\
+End-to-end & -- & -- \\
+Outro & -- & -- \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+% ============================================================================
+% 3.4 TIPOS DE TESTE
+% ============================================================================
+
+\subsection{Tipos de Teste}
+
+Identifique os tipos de teste utilizados pelo projeto.
+
+Considere, quando aplicável:
+
+\begin{itemize}
+    \item testes funcionais;
+    \item testes estruturais;
+    \item testes de regressão;
+    \item testes de desempenho;
+    \item testes de segurança;
+    \item testes de API;
+    \item testes de compatibilidade;
+    \item outros.
+\end{itemize}
+
+Para cada tipo identificado, apresente evidências e avaliação.
+
+
+% ============================================================================
+% 3.5 AUTOMAÇÃO
+% ============================================================================
+
+\subsection{Automação de Testes}
+
+Descreva como os testes são automatizados.
+
+Informe:
+
+\begin{itemize}
+    \item frameworks;
+    \item ferramentas;
+    \item scripts;
+    \item comandos;
+    \item geração de relatórios;
+    \item outras características relevantes.
+\end{itemize}
+
+
+% ============================================================================
+% 3.6 ORGANIZAÇÃO DA SUÍTE
+% ============================================================================
+
+\subsection{Organização da Suíte de Testes}
+
+Descreva como os testes estão organizados no projeto.
+
+Considere:
+
+\begin{itemize}
+    \item estrutura de diretórios;
+    \item nomenclatura;
+    \item organização por componente;
+    \item organização por funcionalidade;
+    \item fixtures;
+    \item mocks e stubs;
+    \item dados de teste.
+\end{itemize}
+
+
+% ============================================================================
+% 3.7 AMBIENTE
+% ============================================================================
+
+\subsection{Ambiente de Teste}
+
+Descreva o ambiente necessário para executar os testes.
+
+Inclua, quando aplicável:
+
+\begin{itemize}
+    \item sistema operacional;
+    \item versão da linguagem;
+    \item dependências;
+    \item banco de dados;
+    \item serviços externos;
+    \item containers;
+    \item configurações especiais.
+\end{itemize}
+
+
+
+% ============================================================================
+% 3.8 REGRESSÃO
+% ============================================================================
+
+\subsection{Testes de Regressão}
+
+Analise como o projeto trata testes de regressão.
+
+Verifique:
+
+\begin{itemize}
+    \item existência de testes associados à correção de bugs;
+    \item execução recorrente da suíte;
+    \item execução antes de releases;
+    \item testes executados em pull requests;
+    \item manutenção da suíte.
+\end{itemize}
+
+
+% ============================================================================
+% 3.9 CI/CD
+% ============================================================================
+
+\subsection{Integração Contínua}
+
+Verifique se os testes são executados automaticamente por
+um pipeline de integração contínua.
+
+Informe:
+
+\begin{itemize}
+    \item ferramenta utilizada;
+    \item quando os testes são executados;
+    \item quais testes são executados;
+    \item critérios para aprovação ou falha;
+    \item evidências encontradas.
+\end{itemize}
+
+
+% ============================================================================
+% 3.10 PR E CODE REVIEW
+% ============================================================================
+
+\subsection{Pull Requests e Code Review}
+
+Analise a relação entre testes e o processo de contribuição.
+
+Verifique:
+
+\begin{itemize}
+    \item exigência de testes em pull requests;
+    \item execução automática da suíte;
+    \item revisão de código;
+    \item exigência de cobertura;
+    \item testes associados à correção de bugs;
+    \item outras práticas relevantes.
+\end{itemize}
+
+
+% ============================================================================
+% 3.11 ISSUES E DEFEITOS
+% ============================================================================
+
+\subsection{Defeitos e Issues}
+
+Analise issues relacionadas a defeitos e testes.
+
+Procure evidências de:
+
+\begin{itemize}
+    \item identificação de bugs;
+    \item reprodução de defeitos;
+    \item criação de testes para bugs;
+    \item testes de regressão;
+    \item discussão sobre qualidade.
+\end{itemize}
+
+Apresente exemplos concretos de issues quando forem relevantes.

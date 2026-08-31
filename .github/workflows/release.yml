@@ -1,0 +1,32 @@
+name: Publicar entrega
+
+# Cria uma release com o PDF anexado quando a equipe marcar a versão de
+# entrega. Ex.: git tag entrega-1 && git push origin entrega-1
+
+on:
+  push:
+    tags: ['entrega-*', 'v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compilar main.tex
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+          args: -pdf -interaction=nonstopmode -halt-on-error -file-line-error
+
+      - name: Renomear PDF para o nome da entrega
+        run: mv build/main.pdf FGA0314_Relatorio_1.pdf
+
+      - name: Criar release com o PDF
+        uses: softprops/action-gh-release@v2
+        with:
+          files: FGA0314_Relatorio_1.pdf
+          generate_release_notes: true

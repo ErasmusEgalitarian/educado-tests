@@ -1,0 +1,27 @@
+# Saída do LaTeX. O PDF não vai versionado: pega no artifact do CI.
+*.pdf
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+*.nav
+*.snm
+*.vrb
+*.idx
+*.ilg
+*.ind
+*.xdv
+
+# Editores e SO
+.vscode/
+.DS_Store
+Thumbs.db
