@@ -1,4 +1,6 @@
 # Saída do LaTeX. O PDF não vai versionado: pega no artifact do CI.
+build/
+relatorios/*/build/
 *.pdf
 *.aux
 *.log

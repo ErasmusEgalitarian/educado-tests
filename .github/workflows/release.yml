@@ -1,11 +1,12 @@
 name: Publicar entrega
 
-# Cria uma release com o PDF anexado quando a equipe marcar a versão de
-# entrega. Ex.: git tag entrega-1 && git push origin entrega-1
+# Cria uma release com o PDF de UM relatório, o nomeado na tag.
+# Ex.: git tag entrega-01-estrategia-de-testes && git push origin --tags
+# O trecho depois de "entrega-" tem que ser o nome da pasta em relatorios/.
 
 on:
   push:
-    tags: ['entrega-*', 'v*']
+    tags: ['entrega-*']
 
 permissions:
   contents: write
@@ -16,19 +17,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Compilar main.tex
+      - name: Identificar o relatório pela tag
+        id: alvo
+        run: |
+          relatorio="${GITHUB_REF_NAME#entrega-}"
+          if [ ! -f "relatorios/$relatorio/main.tex" ]; then
+            echo "::error::A tag aponta para 'relatorios/$relatorio', que não existe."
+            echo "Relatórios disponíveis:"
+            find relatorios -mindepth 1 -maxdepth 1 -type d -printf '  %f\n'
+            exit 1
+          fi
+          echo "relatorio=$relatorio" >> "$GITHUB_OUTPUT"
+
+      - name: Compilar
         uses: xu-cheng/latex-action@v3
         with:
+          working_directory: relatorios/${{ steps.alvo.outputs.relatorio }}
           root_file: main.tex
-          args: -pdf -interaction=nonstopmode -halt-on-error -file-line-error
+          args: -pdf -outdir=build -interaction=nonstopmode -halt-on-error -file-line-error
 
-      - name: Renomear PDF para o nome da entrega
-        # build/ e criado pelo container da action como root: mv falharia ao
-        # remover a origem, entao copiamos em vez de mover.
-        run: cp build/main.pdf FGA0314_Relatorio_1.pdf
+      - name: Nomear o PDF conforme entrega.txt
+        id: pdf
+        run: |
+          dir="relatorios/${{ steps.alvo.outputs.relatorio }}"
+          nome="${{ steps.alvo.outputs.relatorio }}"
+          [ -f "$dir/entrega.txt" ] && nome="$(head -1 "$dir/entrega.txt")"
+          cp "$dir/build/main.pdf" "$nome.pdf"
+          echo "nome=$nome" >> "$GITHUB_OUTPUT"
 
       - name: Criar release com o PDF
         uses: softprops/action-gh-release@v2
         with:
-          files: FGA0314_Relatorio_1.pdf
+          files: ${{ steps.pdf.outputs.nome }}.pdf
           generate_release_notes: true

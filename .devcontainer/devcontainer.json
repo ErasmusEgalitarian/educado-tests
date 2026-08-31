@@ -9,12 +9,13 @@
         "streetsidesoftware.code-spell-checker-portuguese-brazilian"
       ],
       "settings": {
-        "latex-workshop.latex.outDir": "build",
+        "latex-workshop.latex.outDir": "%DIR%/build",
         "latex-workshop.latex.autoBuild.run": "onSave",
         "latex-workshop.view.pdf.viewer": "tab",
         "cSpell.language": "en,pt,pt-BR",
         "editor.wordWrap": "on",
-        "files.eol": "\n"
+        "files.eol": "\n",
+        "latex-workshop.latex.rootFile.useSubFile": true
       }
     }
   },

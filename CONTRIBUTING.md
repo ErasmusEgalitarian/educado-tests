@@ -4,6 +4,9 @@ A regra que evita 90% da dor: **uma pessoa por seção, uma branch por seção, 
 
 ## Divisão dos arquivos
 
+Cada relatório vive em `relatorios/<nome>/`. Os caminhos abaixo são do
+`relatorios/01-estrategia-de-testes/`; os próximos relatórios seguem o mesmo desenho.
+
 | Arquivo | Seção do relatório |
 |---|---|
 | `secoes/00-capa.tex` | Capa: nome da equipe, integrantes, matrículas |
@@ -17,7 +20,12 @@ A regra que evita 90% da dor: **uma pessoa por seção, uma branch por seção, 
 | `secoes/08-referencias.tex` | Referências |
 | `secoes/09-apendice.tex` | Apêndice: evidências complementares |
 
-`main.tex` e `estilo/preambulo.tex` são compartilhados. Mexer neles só com aviso no grupo, porque todo mundo pega o conflito.
+Dois arquivos são compartilhados e merecem cuidado:
+
+- `main.tex` do relatório: só preâmbulo e a ordem dos `\input`. Mexer nele conflita com todo mundo daquele relatório.
+- `comum/preambulo.tex`: pacotes e formatação de **todos** os relatórios do repo. Mudar aqui muda o layout dos outros também, inclusive de relatório já entregue. Avise no grupo antes.
+
+Figura vai em `figuras/` do **próprio** relatório, nunca em `comum/`. `comum/` é só o que é genuinamente de todos.
 
 ## Fluxo
 
@@ -25,12 +33,14 @@ A regra que evita 90% da dor: **uma pessoa por seção, uma branch por seção, 
 git checkout main && git pull
 git checkout -b secao/04-estrategia
 # escreve
-./build.sh                       # se você compila local; se não, deixa o CI conferir
-git add secoes/04-estrategia-de-testes.tex
+./build.sh 01-estrategia-de-testes    # se você compila local; se não, deixa o CI conferir
+git add relatorios/01-estrategia-de-testes/secoes/04-estrategia-de-testes.tex
 git commit -m "docs(secao-4): niveis de teste e evidencias"
 git push -u origin secao/04-estrategia
 gh pr create --fill
 ```
+
+Trabalhando em relatórios diferentes, vocês não se cruzam: pastas separadas, zero conflito.
 
 No PR, o CI compila. Se ficar vermelho, o LaTeX quebrou: abra o log da execução, ele aponta o arquivo e a linha.
 
@@ -55,7 +65,7 @@ A configuração está em \texttt{jest.config.js}.
 
 Isso não muda nada no PDF, o LaTeX junta as linhas no mesmo parágrafo. Linha em branco é que separa parágrafo.
 
-**Figuras e evidências.** Coloque o arquivo em `figuras/` e referencie:
+**Figuras e evidências.** Coloque o arquivo em `figuras/` do seu relatório e referencie:
 
 ```latex
 \begin{figure}[H]
