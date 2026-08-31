@@ -23,7 +23,9 @@ jobs:
           args: -pdf -interaction=nonstopmode -halt-on-error -file-line-error
 
       - name: Renomear PDF para o nome da entrega
-        run: mv build/main.pdf FGA0314_Relatorio_1.pdf
+        # build/ e criado pelo container da action como root: mv falharia ao
+        # remover a origem, entao copiamos em vez de mover.
+        run: cp build/main.pdf FGA0314_Relatorio_1.pdf
 
       - name: Criar release com o PDF
         uses: softprops/action-gh-release@v2
