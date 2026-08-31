@@ -9,8 +9,9 @@ Cada relatório vive em `relatorios/<nome>/`. Os caminhos abaixo são do
 
 | Arquivo | Seção do relatório |
 |---|---|
-| `secoes/00-capa.tex` | Capa: nome da equipe, integrantes, matrículas |
-| `secoes/01-identificacao.tex` | Identificação do projeto OSS, repositório, commit analisado |
+| `equipe.tex` | Nome e matrícula dos integrantes. **O único lugar onde esses dados são escritos** |
+| `secoes/00-capa.tex` | Capa (os integrantes vêm de `equipe.tex`, não escreva nome aqui) |
+| `secoes/01-identificacao.tex` | Identificação do projeto OSS, repositório, commit (integrantes vêm de `equipe.tex`) |
 | `secoes/02-introducao.tex` | 1. Introdução |
 | `secoes/03-visao-geral.tex` | 2. Visão Geral do Projeto |
 | `secoes/04-estrategia-de-testes.tex` | 3. Estratégia de Testes (a maior, dá pra dividir por subseção) |

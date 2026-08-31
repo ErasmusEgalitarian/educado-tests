@@ -44,13 +44,14 @@ Open Source Software (OSS)
 % EQUIPE
 % ---------------------------------------------------------------------------
 
+% integrantes vêm de equipe.tex, não escreva nome aqui
+\begingroup
+\renewcommand{\integrante}[2]{#1 -- #2\\}
 \begin{tabular}{ll}
-\textbf{Equipe:} & Nome da equipe \\[0.3cm]
-\textbf{Integrantes:} & Nome completo -- Matrícula \\
-                      & Nome completo -- Matrícula \\
-                      & Nome completo -- Matrícula \\
-                      & Nome completo -- Matrícula
+\textbf{Equipe:} & \equipenome \\[0.3cm]
+\textbf{Integrantes:} & \begin{tabular}[t]{@{}l@{}}\listaintegrantes\end{tabular}
 \end{tabular}
+\endgroup
 
 \vfill
 

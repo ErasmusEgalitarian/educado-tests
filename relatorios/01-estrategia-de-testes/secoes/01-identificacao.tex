@@ -20,8 +20,10 @@ Data da análise:
 \noindent
 \textbf{Integrantes:}
 
+% integrantes vêm de equipe.tex, não escreva nome aqui
+\begingroup
+\renewcommand{\integrante}[2]{\item #1 -- #2}
 \begin{itemize}
-    \item Nome completo -- Matrícula
-    \item Nome completo -- Matrícula
-    \item Nome completo -- Matrícula
+    \listaintegrantes
 \end{itemize}
+\endgroup

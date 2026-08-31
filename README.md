@@ -54,6 +54,7 @@ comum/
 relatorios/
   01-estrategia-de-testes/
     main.tex              espinha: preâmbulo + ordem das seções
+    equipe.tex            nome e matrícula dos integrantes, um lugar só
     entrega.txt           nome do PDF final (o que vai pro Moodle)
     secoes/               o conteúdo, um arquivo por seção
     figuras/              imagens e evidências deste relatório
