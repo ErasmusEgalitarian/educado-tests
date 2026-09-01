@@ -1,65 +1,43 @@
 % !TEX root = ../main.tex
 \begin{titlepage}
-
-\begin{center}
-
-% ---------------------------------------------------------------------------
-% LOGO
-%
-% Coloque o arquivo "logo-unb.png" na mesma pasta deste arquivo.
-% ---------------------------------------------------------------------------
+\centering
 
 \includegraphics[width=3.5cm]{../../comum/logo_unb.jpg}
 
-\vspace{0.5cm}
+\vspace{0.6cm}
 
-{\large
-\textbf{UNIVERSIDADE DE BRASÍLIA}\\
-Faculdade de Ciências e Tecnologias em Engenharia (FCTE)
-}
+{\large\textbf{UNIVERSIDADE DE BRASÍLIA}\\[0.15cm]
+Faculdade de Ciências e Tecnologias em Engenharia (FCTE)\\[0.15cm]
+\textbf{FGA0314, Testes de Software}}
 
-\vspace{0.8cm}
+\vspace{3.5cm}
 
-{\large
-\textbf{FGA0314 -- TESTES DE SOFTWARE}
-}
+{\Large\textbf{RELATÓRIO DE ESTRATÉGIA DE TESTES}}
 
-\vfill
+\vspace{0.4cm}
 
-{\Large
-\textbf{RELATÓRIO DE ESTRATÉGIA DE TESTES}\\
-\textbf{Educado}
-}
+{\Large\textbf{Educado}}
 
-\vspace{1cm}
+\vspace{0.7cm}
 
-{\large
-Análise da estratégia de testes de um projeto\\
-Open Source Software (OSS)
-}
+{\large Análise da estratégia de testes\\[0.1cm]
+de um projeto Open Source Software}
 
-\vfill
-
-% ---------------------------------------------------------------------------
-% EQUIPE
-% ---------------------------------------------------------------------------
+\vspace{3.5cm}
 
 % integrantes vêm de equipe.tex, não escreva nome aqui
 \begingroup
-\renewcommand{\integrante}[2]{#1 -- #2\\}
-\begin{tabular}{ll}
-\textbf{Equipe:} & \equipenome \\[0.3cm]
-\textbf{Integrantes:} & \begin{tabular}[t]{@{}l@{}}\listaintegrantes\end{tabular}
-\end{tabular}
+\renewcommand{\integrante}[2]{#1, #2\\[0.1cm]}
+{\large\textbf{Equipe \equipenome}}
+
+\vspace{0.5cm}
+
+{\normalsize\listaintegrantes}
 \endgroup
 
 \vfill
 
-{\large
-Brasília -- DF\\
-2026
-}
-
-\end{center}
+{\large Brasília, DF\\[0.1cm]
+2026}
 
 \end{titlepage}
