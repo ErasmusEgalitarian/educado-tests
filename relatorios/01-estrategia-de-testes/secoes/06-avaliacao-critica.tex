@@ -1,11 +1,18 @@
-% !TEX root = ../main.tex
+% ============================================================================
+% 5. AVALIAÇÃO CRÍTICA
+% ============================================================================
+
 \section{Avaliação Crítica da Estratégia de Testes}
 
-Nesta seção a equipe deve avaliar criticamente a estratégia
-identificada utilizando os conceitos estudados na disciplina.
+A estratégia de testes do Educado apresenta um nível de maturidade desigual entre os repositórios que compõem o sistema.
+Enquanto o \texttt{educado-api} possui uma suíte automatizada ampla, organizada e integrada ao processo de contribuição, o \texttt{educado-web} e o \texttt{educado-app} possuem apenas testes de fumaça destinados principalmente a validar a infraestrutura de testes.
 
-A avaliação deve ser fundamentada nas evidências apresentadas
-nas seções anteriores.
+Na execução realizada pela equipe, o backend apresentou 31 suítes e 506 testes aprovados.
+O relatório de cobertura do Jest indicou 79,36\% de cobertura de instruções, 69,26\% de branches, 78\% de funções e 78,9\% de linhas dentro do conjunto de arquivos selecionado pela configuração.
+No \texttt{educado-web} e no \texttt{educado-app}, foi executado somente um teste automatizado em cada repositório, ambos aprovados.
+
+Esses resultados demonstram que o projeto possui uma base técnica adequada para automação, mas ainda não apresenta uma estratégia equilibrada de verificação do produto como um sistema completo.
+A avaliação geral da equipe é, portanto, \textbf{parcialmente adequada}: o backend possui uma prática consistente de testes unitários e de componentes internos, porém os fluxos críticos das interfaces e a integração entre API, painel web e aplicativo móvel permanecem pouco protegidos contra regressões.
 
 
 % ----------------------------------------------------------------------------
@@ -14,9 +21,7 @@ nas seções anteriores.
 
 \subsection{Pontos Fortes}
 
-Identifique os aspectos positivos da estratégia.
-
-Cada ponto deve estar associado a uma evidência.
+Os principais pontos fortes estão relacionados à suíte do backend, à integração contínua e à existência de critérios de qualidade documentados para as contribuições.
 
 \begin{table}[H]
 \centering
@@ -26,9 +31,50 @@ Cada ponto deve estar associado a uma evidência.
 \toprule
 \textbf{Aspecto} & \textbf{Evidência} & \textbf{Justificativa} \\
 \midrule
--- & -- & -- \\
--- & -- & -- \\
--- & -- & -- \\
+
+Suíte ampla no backend
+&
+A execução de \texttt{npm test} no \texttt{educado-api} resultou em 31 suítes e 506 testes aprovados.
+Os testes estão distribuídos em diretórios \path{__tests__} dos módulos de aplicação, segurança, armazenamento e middlewares.
+&
+A quantidade de casos e sua distribuição por diferentes domínios fornecem uma boa proteção para regras de negócio, validações, autenticação, autorização, recuperação de senha, mídia, cursos, matrículas e progresso dos estudantes.
+\\
+
+Cobertura mensurável na API
+&
+O script \texttt{npm run test:coverage}, definido no \path{educado-api/package.json}, produziu cobertura de 79,36\% de instruções, 69,26\% de branches, 78\% de funções e 78,9\% de linhas no escopo configurado em \path{jest.config.ts}.
+&
+A coleta de cobertura permite identificar módulos insuficientemente exercitados e oferece uma base objetiva para acompanhar a evolução da suíte.
+Os resultados também mostram cobertura elevada em módulos críticos, como autenticação, recuperação de senha, validação de cursos e segurança.
+\\
+
+Execução automática em pull requests
+&
+Os arquivos \path{.github/workflows/ci.yml} de \texttt{educado-api}, \texttt{educado-web} e \texttt{educado-app} executam os testes automaticamente em pull requests.
+Os workflows também realizam verificações de tipos e, conforme o repositório, lint e build.
+&
+A automação reduz a dependência da execução manual e possibilita detectar regressões antes da integração de uma alteração.
+A utilização de \texttt{npm ci} também favorece uma instalação reprodutível das dependências.
+\\
+
+Organização por domínio
+&
+No \texttt{educado-api}, os testes estão próximos ao código testado, em diretórios \path{__tests__}, e seguem a nomenclatura \path{*.test.ts}.
+A configuração do Jest utiliza \texttt{clearMocks} e um ambiente Node específico para os testes.
+&
+A organização facilita a localização, manutenção e associação entre cada comportamento e seus respectivos testes.
+O isolamento de dependências por mocks também torna a suíte rápida e determinística.
+\\
+
+Processo de contribuição orientado à qualidade
+&
+O modelo de pull request da API exige a execução de lint, testes e verificação de tipos, além da inclusão ou atualização de testes para comportamentos modificados.
+Os modelos do Web e do App solicitam procedimentos de teste, cenários manuais e evidências visuais.
+&
+Esses critérios incentivam o autor da mudança a explicar como realizou a verificação e auxiliam o revisor a repetir os cenários relevantes.
+No aplicativo, a verificação de conectividade instável e dos dois idiomas é especialmente pertinente ao público e ao contexto de uso do Educado.
+\\
+
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -40,10 +86,8 @@ Cada ponto deve estar associado a uma evidência.
 
 \subsection{Limitações e Problemas}
 
-Identifique as principais limitações da estratégia.
-
-Evite apresentar como problema simplesmente a ausência de uma
-prática sem explicar por que ela seria relevante para o projeto.
+Apesar dos pontos positivos, a estratégia atual concentra sua capacidade de detecção de defeitos no backend.
+Essa concentração é insuficiente para um produto em produção cujo funcionamento depende da interação entre diferentes aplicações, dispositivos e serviços.
 
 \begin{table}[H]
 \centering
@@ -53,9 +97,69 @@ prática sem explicar por que ela seria relevante para o projeto.
 \toprule
 \textbf{Limitação} & \textbf{Evidência} & \textbf{Impacto} \\
 \midrule
--- & -- & -- \\
--- & -- & -- \\
--- & -- & -- \\
+
+Baixa proteção do Web e do App
+&
+O \texttt{educado-web} contém apenas o teste de fumaça \path{src/__tests__/languageSwitcher.smoke.test.ts}.
+O \texttt{educado-app} contém apenas \path{__tests__/ButtonPrimary.test.tsx}.
+Cada suíte executou somente um teste.
+&
+Funcionalidades como autenticação, criação e edição de cursos, navegação, consumo da API, progresso, armazenamento local, sincronização e tratamento de erros podem sofrer regressões sem que o CI as detecte.
+\\
+
+Ausência de testes de sistema e end-to-end
+&
+Não foram encontradas configurações ou suítes com Playwright, Cypress, Detox ou Maestro.
+Embora o \texttt{educado-api} possua o Supertest entre suas dependências, não foram encontrados testes que utilizem a biblioteca para exercitar a API por meio de requisições HTTP.
+&
+Os testes existentes não validam os fluxos completos entre interface, API, autenticação, banco de dados e serviços externos.
+Um módulo pode funcionar isoladamente e, ainda assim, falhar quando integrado aos demais componentes.
+\\
+
+Predomínio de mocks na API
+&
+Diversos testes de serviços substituem modelos, JWT, armazenamento S3 e outros colaboradores por funções criadas com \texttt{jest.mock} e \texttt{jest.fn}.
+Não há uma suíte equivalente executando esses componentes com PostgreSQL, Redis e MinIO reais ou efêmeros.
+&
+Os mocks tornam os testes rápidos, mas podem divergir do comportamento das dependências reais.
+Problemas em consultas, transações, serialização, configuração de infraestrutura e contratos externos podem permanecer ocultos.
+\\
+
+Cobertura sem critério de aprovação
+&
+O workflow da API executa \texttt{npm test}, mas não executa \texttt{npm run test:coverage}.
+O arquivo \path{jest.config.ts} não define \texttt{coverageThreshold}.
+Web e App também não possuem metas de cobertura versionadas.
+&
+A cobertura pode diminuir sem causar falha no pipeline.
+Assim, o crescimento da suíte depende de revisão manual e não existe um limite objetivo para impedir a integração de código crítico sem testes.
+\\
+
+Escopo parcial da cobertura da API
+&
+A opção \texttt{collectCoverageFrom} inclui principalmente \path{src/application}, \path{src/interface} e \path{src/infrastructure/security}.
+Outras partes do backend não participam integralmente do percentual global apresentado.
+&
+O valor de 78,9\% de linhas não representa todo o código do backend.
+A métrica pode transmitir uma percepção mais abrangente de proteção do que aquela efetivamente fornecida pela configuração atual.
+\\
+
+Documentação inconsistente
+&
+Os arquivos \path{README.md} e \path{CONTRIBUTING.md} do Web e do App afirmam que não existe suíte automatizada, embora ambos possuam um teste e seus workflows executem \texttt{npm test}.
+No App, o checklist do pull request também não inclui explicitamente o comando de teste, apesar de o CI executá-lo.
+&
+A divergência dificulta a configuração do ambiente, reduz a confiança na documentação e pode fazer novos contribuidores ignorarem a infraestrutura de testes já disponível.
+\\
+
+Execução restrita a pull requests
+&
+Os workflows de teste dos três repositórios utilizam somente o evento \texttt{pull\_request}.
+Não foram identificadas execuções equivalentes em pushes para a branch principal, tags de versão ou rotinas agendadas.
+&
+Falhas introduzidas por merges, mudanças de dependências ou diferenças no processo de release podem não ser verificadas novamente depois da aprovação do pull request.
+\\
+
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -67,16 +171,8 @@ prática sem explicar por que ela seria relevante para o projeto.
 
 \subsection{Recomendações de Melhoria}
 
-Proponha melhorias específicas para a estratégia de testes
-do projeto.
-
-As recomendações devem ser justificadas com base:
-
-\begin{itemize}
-    \item nas evidências encontradas;
-    \item nos resultados da execução dos testes;
-    \item nos conceitos estudados na disciplina.
-\end{itemize}
+As melhorias propostas priorizam a proteção dos fluxos utilizados em produção e a redução da diferença de maturidade entre os repositórios.
+Não se recomenda buscar apenas um número elevado de testes, mas selecionar casos com base no risco, na frequência de uso e no impacto de uma falha para estudantes, criadores de conteúdo e administradores.
 
 \begin{table}[H]
 \centering
@@ -93,9 +189,86 @@ As recomendações devem ser justificadas com base:
 \textbf{Prioridade}
 \\
 \midrule
--- & -- & -- & Alta \\
--- & -- & -- & Média \\
--- & -- & -- & Baixa \\
+
+Cobertura mínima no Web
+&
+Criar testes unitários e de componente com Vitest, jsdom e Testing Library.
+Priorizar autenticação, roteamento, internacionalização, formulários, permissões, cliente HTTP e criação e edição de cursos.
+&
+A infraestrutura já está configurada.
+A ampliação incremental da suíte produzirá retorno rápido e protegerá as funcionalidades administrativas e de criação de conteúdo.
+&
+Alta
+\\
+
+Cobertura mínima no App
+&
+Expandir a suíte Jest e React Native Testing Library para serviços, hooks e componentes críticos.
+Incluir cenários de autenticação, armazenamento seguro, download de conteúdo, sincronização de progresso, mudança de idioma e falhas de conexão.
+&
+O aplicativo atende usuários que podem possuir conectividade limitada.
+Por isso, os comportamentos offline e de sincronização representam riscos funcionais centrais, e não apenas casos excepcionais.
+&
+Alta
+\\
+
+Ausência de integração real na API
+&
+Adicionar testes de integração HTTP com Supertest e uma infraestrutura de teste isolada para PostgreSQL, Redis e MinIO, utilizando Docker Compose ou containers efêmeros.
+Os dados devem ser recriados ou limpos entre os testes.
+&
+Esses testes verificariam rotas, middlewares, persistência, autenticação e serialização em conjunto, complementando os testes unitários baseados em mocks.
+&
+Alta
+\\
+
+Ausência de testes end-to-end
+&
+Implementar uma suíte pequena de testes end-to-end para os fluxos mais críticos.
+No Web, pode-se utilizar Playwright; no App, Maestro ou Detox.
+Os primeiros cenários devem cobrir login, acesso por perfil, criação e publicação de curso e conclusão de atividade com atualização do progresso.
+&
+Uma suíte end-to-end reduz o risco de incompatibilidades entre Web, App e API.
+A seleção de poucos fluxos críticos evita que o custo de execução e manutenção se torne excessivo.
+&
+Alta
+\\
+
+Cobertura sem limite mínimo
+&
+Executar cobertura no CI e estabelecer metas progressivas, inicialmente próximas aos valores atuais da API.
+Também se deve ampliar gradualmente o \texttt{collectCoverageFrom} e definir metas específicas para código novo ou modificado.
+&
+Um limite progressivo evita quedas de cobertura sem bloquear imediatamente o projeto por módulos legados ainda não testados.
+A análise de código novo torna o critério mais viável.
+&
+Média
+\\
+
+Documentação divergente
+&
+Atualizar os arquivos README, CONTRIBUTING e os modelos de pull request do Web e do App.
+Os documentos devem apresentar os comandos atuais e solicitar testes novos ou atualizados para correções e mudanças de comportamento.
+&
+A documentação alinhada ao CI reduz erros de contribuição e transforma a existência da infraestrutura de testes em uma prática de desenvolvimento efetivamente adotada.
+&
+Média
+\\
+
+CI limitado a pull requests
+&
+Executar a suíte novamente em pushes para as branches \texttt{dev} e \texttt{main}, além de incluir uma verificação nos processos de release.
+Testes mais caros podem ser separados em jobs de integração ou execução agendada.
+&
+A execução em diferentes etapas fornece proteção adicional sem obrigar que todos os testes end-to-end sejam executados em cada alteração pequena.
+&
+Média
+\\
+
 \bottomrule
 \end{tabularx}
 \end{table}
+
+Em síntese, a estratégia atual oferece uma base sólida no backend e demonstra preocupação com automação e revisão de contribuições.
+Entretanto, o nível de confiança proporcionado pelos testes não é uniforme entre os componentes.
+A prioridade deve ser transformar a infraestrutura inicial do Web e do App em suítes voltadas aos comportamentos críticos e complementar os testes unitários da API com verificações de integração e de sistema.
