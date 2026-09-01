@@ -1,4 +1,6 @@
 \usepackage[brazil]{babel}
+% Recuo tambem no primeiro paragrafo de cada secao (norma brasileira).
+\usepackage{indentfirst}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 
@@ -20,6 +22,11 @@
 \usepackage{enumitem}
 \usepackage{xcolor}
 \usepackage{hyperref}
+
+% Citações e referências em ABNT autor-data (NBR 10520 e 6023).
+% \cite{chave} produz (AUTOR, ano); \citeonline{chave} produz Autor (ano).
+\usepackage[alf,abnt-emphasize=bf]{abntex2cite}
+\bibliographystyle{abntex2-alf}
 \usepackage{listings}
 \usepackage{microtype}
 \usepackage{setspace}
