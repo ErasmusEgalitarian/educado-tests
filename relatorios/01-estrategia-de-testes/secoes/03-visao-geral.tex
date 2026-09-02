@@ -9,9 +9,9 @@ O projeto é desenvolvido por uma colaboração internacional entre universidade
 A plataforma atende três grupos principais: os catadores, que acessam os conteúdos educacionais; as equipes universitárias, responsáveis pela criação e curadoria dos cursos; e os administradores, que gerenciam usuários, instituições e informações da plataforma.
 Entre suas funcionalidades estão a organização de cursos em seções e atividades, o acompanhamento do progresso dos estudantes, a gamificação, a emissão de certificados e a apresentação de indicadores de uso.
 
-O projeto está distribuído em quatro repositórios públicos: educado-web, educado-api, educado-app e educado-docs.
-Por recomendação da disciplina, este trabalho terá como objeto principal o educado-web, responsável pela interface web utilizada por criadores de conteúdo e administradores.
-Entretanto, algumas atividades poderão envolver o educado-api, pois funcionalidades e testes de integração da interface dependem dos serviços fornecidos pelo backend.
+O projeto está distribuído em quatro repositórios públicos \cite{educado-repos}: educado-web, educado-api, educado-app e educado-docs.
+Por recomendação da disciplina, este trabalho tem como objeto principal o educado-web, responsável pela interface web utilizada por criadores de conteúdo e administradores.
+A caracterização da estratégia de testes, porém, cobre também o educado-api, o educado-app e o educado-docs, porque a prática de teste do projeto se distribui entre eles e analisar apenas a interface web daria um retrato incompleto.
 
 \subsection{Características Técnicas}
 
@@ -34,7 +34,7 @@ educado-docs & Documentação do produto e de sua arquitetura & MkDocs e Python 
 \end{tabularx}
 \end{table}
 
-O educado-web, foco deste relatório, é uma aplicação de página única (Single Page Application -- SPA) desenvolvida em TypeScript, sem a utilização de frameworks de interface como React, Vue ou Angular.
+O educado-web, foco deste relatório, é uma aplicação de página única (Single Page Application, SPA) desenvolvida em TypeScript, sem a utilização de frameworks de interface como React, Vue ou Angular.
 A renderização das páginas é realizada diretamente por funções que manipulam o HTML e registram os eventos necessários.
 O projeto também possui implementações próprias para o roteamento da aplicação e para a internacionalização das interfaces em português e inglês.
 
@@ -51,7 +51,7 @@ O roteamento e os estilos globais ficam em \texttt{src/app}.
 O frontend não possui banco de dados próprio.
 A persistência e as regras de negócio são fornecidas pelo educado-api, acessado por meio de requisições HTTP.
 A URL do serviço é configurada pela variável de ambiente \texttt{VITE\_API\_URL}, enquanto a autenticação utiliza um token JWT fornecido pela API e armazenado no \texttt{localStorage} do navegador.
-Essa dependência poderá exigir a utilização ou modificação da API durante a criação de alguns testes de integração.
+Essa dependência é relevante para o teste: verificar a interface em conjunto com o backend exigiria disponibilizar a API, o que a estratégia atual do projeto não faz.
 
 Para execução local, o projeto requer Node.js 20 ou superior e o gerenciador de pacotes npm.
 A instalação reprodutível das dependências é feita por meio do arquivo \texttt{package-lock.json}.
