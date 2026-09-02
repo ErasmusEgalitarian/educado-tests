@@ -1,205 +1,191 @@
 % !TEX root = ../main.tex
 \section{Estratégia de Testes}
-
-Esta seção deve apresentar os aspectos relacionados a testes
-identificados no projeto.
-
-A análise deve utilizar como fontes de evidência:
-
-\begin{itemize}
-    \item documentação do projeto;
-    \item código-fonte;
-    \item código dos testes;
-    \item arquivos de configuração;
-    \item issues;
-    \item pull requests;
-    \item workflows de CI/CD;
-    \item resultados da execução dos testes;
-    \item outros artefatos relevantes.
-\end{itemize}
-
-\subsection*{Importante: evidência, avaliação e recomendação}
-
-Ao longo desta seção, diferencie claramente:
-
-\begin{description}
-
-\item[Evidência encontrada:]
-informação efetivamente observada no projeto. Sempre que possível,
-indique a fonte da evidência, como arquivo, diretório, issue,
-pull request, workflow ou trecho de código.
-
-\item[Avaliação da equipe:]
-interpretação da equipe sobre a adequação da prática identificada,
-utilizando os conceitos estudados na disciplina.
-
-\item[Recomendação:]
-melhoria proposta pela equipe. Uma recomendação não deve ser
-apresentada como se fosse uma prática atualmente utilizada
-pelo projeto.
-
-\end{description}
-
+\label{sec:estrategia}
 
 % ============================================================================
-% 3.1 TABELA-RESUMO
+% 3.1 RESUMO
 % ============================================================================
 
 \subsection{Resumo da Estratégia de Testes}
 
-Preencha a tabela abaixo antes de apresentar o detalhamento
-dos elementos da estratégia.
+O Educado verifica seu software por duas frentes que não se falam, e que também
+não olham para o mesmo alvo. A frente automatizada mora dentro dos repositórios
+de código \cite{educado-repos} e entra em ação quando uma mudança é proposta,
+antes de ela ser aceita: verifica o código de toda a base, mas nunca exercita a
+experiência de uso. A frente de campo é conduzida com quem usa a plataforma no
+dia a dia, catadores de materiais recicláveis aprendendo educação financeira e
+prevenção a golpe, e mede a experiência de uso de um único produto, o aplicativo
+móvel, que é o que chega às mãos desse usuário \cite{psp5}; ela não toca no
+código. A frente do repositório é estreita, restrita a unidades isoladas de
+código. A de campo é mais ampla e mais formal, orientada a metas de qualidade
+observadas diretamente com o usuário \cite{dashboard}. A separação entre as duas
+é dupla, de método e de alvo, e por isso olhar só para os repositórios descreve
+apenas parte do que o projeto verifica, e sobre um produto diferente do que o
+catador usa. As subseções seguintes detalham níveis, tipos, automação,
+organização, ambiente, regressão, integração contínua, revisão de código e
+registro de defeito em cada uma dessas frentes; critérios de aprovação e
+cobertura aparecem na Tabela~\ref{tab:estrategia-resumo}.
 
-A coluna ``Evidência'' deve indicar onde a informação foi
-encontrada. Não basta afirmar, por exemplo, que ``o projeto
-possui testes unitários''; indique como essa conclusão foi obtida.
-
-\begin{longtable}{p{3.0cm} p{4.2cm} p{4.2cm} p{2.5cm}}
-\caption{Resumo da estratégia de testes identificada.}
+{\footnotesize
+\begin{longtable}{>{\raggedright\arraybackslash}p{2.1cm} >{\raggedright\arraybackslash}p{4.3cm} >{\raggedright\arraybackslash}p{4.4cm} >{\raggedright\arraybackslash}p{1.6cm}}
+\caption{Resumo da estratégia de testes identificada nas duas frentes.}
 \label{tab:estrategia-resumo}\\
 \toprule
-\textbf{Elemento}
-&
-\textbf{O que foi identificado}
-&
-\textbf{Evidência}
-&
-\textbf{Avaliação inicial}
-\\
+\textbf{Elemento} & \textbf{O que foi identificado} & \textbf{Evidência} & \textbf{Avaliação} \\
 \midrule
 \endfirsthead
 
 \toprule
-\textbf{Elemento}
-&
-\textbf{O que foi identificado}
-&
-\textbf{Evidência}
-&
-\textbf{Avaliação inicial}
-\\
+\textbf{Elemento} & \textbf{O que foi identificado} & \textbf{Evidência} & \textbf{Avaliação} \\
 \midrule
 \endhead
 
 Objetivos de teste
-&
-Descreva os objetivos identificados.
-&
-Arquivo, documentação, issue etc.
-&
-Adequado / Parcial / Ausente
-\\
+& Automatizada: exigência de teste em PR que muda comportamento; sem documento de plano ou política.
+& \texttt{CONTRIBUTING.md} da api, seção ``Quality gate'' \cite{educado-repos}.
+& Parcial
+\\[0.1cm]
 
+& Campo: objetivo SMART de ciclo de avaliação da qualidade, com prazo e público definidos.
+& \cite[p.~10]{psp5}.
+& Adequado
+\\
+\addlinespace
 Níveis de teste
-&
-Unitário, integração, sistema etc.
-&
-Arquivos/diretórios de testes.
-&
-Adequado / Parcial / Ausente
-\\
+& Automatizada: somente unitário. A documentação declara testes de integração e de nível HTTP que não existem no código.
+& 31 arquivos na api, 1 no web, 1 no app \cite{educado-repos}. Em \cite{educado-repos}: \texttt{getting-started.md}, seção Tests, e \texttt{tools.md}.
+& Parcial
+\\[0.1cm]
 
+& Campo: sistema e aceitação, com validação da jornada completa junto ao usuário final.
+& Roteiro do teste de usabilidade \cite[p.~17]{psp5}.
+& Adequado
+\\
+\addlinespace
 Tipos de teste
-&
-Funcional, regressão, segurança etc.
-&
-Evidências encontradas.
-&
-Adequado / Parcial / Ausente
-\\
+& Automatizada: funcional predominante; segurança presente mas não rotulada; sem desempenho, compatibilidade ou API.
+& \cite{educado-repos}: 13 de serviço, 10 de validação, 4 de middleware, 1 de hashing de senha.
+& Parcial
+\\[0.1cm]
 
+& Campo: usabilidade e regressão manual.
+& \cite{ericsson1984,brooke1996,nielsen1993,garvin1998}.
+& Adequado
+\\
+\addlinespace
 Automação
-&
-Ferramentas e frameworks.
-&
-Scripts/configurações.
-&
-Adequado / Parcial / Ausente
-\\
+& Automatizada: três stacks distintas, sem padronização nem justificativa registrada.
+& \texttt{jest.config.ts}, \texttt{vitest.config.ts} e a chave \texttt{jest} do \texttt{package.json} \cite{educado-repos}.
+& Parcial
+\\[0.1cm]
 
+& Campo: coleta manual em formulário, com instrumentação automática de sessão na segunda visita.
+& Google Forms e Microsoft Clarity \cite[p.~16]{psp5}.
+& Adequado
+\\
+\addlinespace
 Organização da suíte
-&
-Estrutura e organização.
-&
-Diretórios/código.
-&
-Adequado / Parcial / Ausente
-\\
+& Automatizada: arquivos junto ao código, sufixo \texttt{.test.ts}; convenção documentada só na api.
+& \texttt{README.md} da api, seção ``Testes'' \cite{educado-repos}.
+& Parcial
+\\[0.1cm]
 
+& Campo: roteiro por tela e checklist do entrevistador.
+& Guia de entrevista e checklist \cite[p.~12]{psp5}.
+& Adequado
+\\
+\addlinespace
 Ambiente
-&
-Ambiente necessário para testes.
-&
-README/configuração.
-&
-Adequado / Parcial / Ausente
-\\
+& Automatizada: execução isolada, sem infraestrutura; dependências externas mockadas.
+& \cite{educado-repos}: sem \texttt{setupFiles} no Jest, CI não sobe serviços, 16 dos 31 arquivos usam simulação de dependência.
+& Parcial
+\\[0.1cm]
 
+& Campo: dispositivo Android real, na sede da cooperativa.
+& Dispositivos registrados em \cite{dashboard}.
+& Adequado
+\\
+\addlinespace
 Regressão
-&
-Como regressões são tratadas.
-&
-Issues, testes, CI etc.
-&
-Adequado / Parcial / Ausente
-\\
+& Automatizada: correção de defeito raramente acompanhada de teste.
+& \cite{educado-repos}: 14 commits \texttt{fix}, dos quais 2 a 3 alteram teste.
+& Ausente
+\\[0.1cm]
 
+& Campo: a segunda visita foi desenhada como reteste das melhorias da primeira.
+& \cite[p.~10]{psp5}: 53 de 57 melhorias; 6 dos 15 indicadores não remedidos.
+& Parcial
+\\
+\addlinespace
 Integração contínua
-&
-Execução dos testes no CI.
-&
-Workflow/configuração.
-&
-Adequado / Parcial / Ausente
-\\
+& Automatizada: workflow nos três repositórios, disparado apenas por pull request.
+& \texttt{ci.yml}, gatilho \texttt{pull\_request}, nos três repositórios \cite{educado-repos}.
+& Parcial
+\\[0.1cm]
 
+& Campo: não se aplica.
+& Não se aplica
+& Não se aplica
+\\
+\addlinespace
 Pull requests
-&
-Relação entre testes e PRs.
-&
-PRs/configuração.
-&
-Adequado / Parcial / Ausente
-\\
+& Automatizada: template exige declarar o teste realizado, sem verificação automática.
+& Template de PR da api, seções ``How it was tested'' e checklist \cite{educado-repos}.
+& Parcial
+\\[0.1cm]
 
+& Campo: não se aplica.
+& Não se aplica
+& Não se aplica
+\\
+\addlinespace
 Code review
-&
-Práticas relacionadas a testes.
-&
-PRs/documentação.
-&
-Adequado / Parcial / Ausente
-\\
+& Automatizada: uma aprovação exigida na api e no web; app sem proteção de branch.
+& Proteção de branch via API do GitHub \cite{educado-repos}.
+& Parcial
+\\[0.1cm]
 
-Defeitos/issues
-&
-Uso de testes na investigação de bugs.
-&
-Issues/PRs.
-&
-Adequado / Parcial / Ausente
+& Campo: não se aplica.
+& Não se aplica
+& Não se aplica
 \\
+\addlinespace
+Defeitos e issues
+& Automatizada: nenhuma issue nos três repositórios de código, contra 100 pull requests. Outros repositórios do projeto acumulam registros, concentrados em 2025.
+& Listagem via API do GitHub, descontadas as pull requests, que a consulta inclui por padrão \cite{educado-repos}.
+& Ausente nos repositórios de código
+\\[0.1cm]
 
+& Campo: 57 melhorias levantadas, priorizadas e rastreadas.
+& Diagrama de Mudge \cite[p.~28]{psp5} e Balanced Scorecard \cite[p.~71]{psp5}.
+& Adequado
+\\
+\addlinespace
 Critérios de teste
-&
-Critérios de entrada/saída ou aprovação.
-&
-Documentação/CI.
-&
-Adequado / Parcial / Ausente
-\\
+& Automatizada: o CI não é verificação obrigatória, logo um PR com suíte falhando pode ser mesclado.
+& Verificação de status não habilitada na api nem no web \cite{educado-repos}.
+& Ausente
+\\[0.1cm]
 
+& Campo: meta numérica por indicador, entre 75\% e 95\%.
+& 15 indicadores publicados em \cite{dashboard}.
+& Adequado
+\\
+\addlinespace
 Cobertura
-&
-Métricas e metas de cobertura.
-&
-Relatórios/configuração.
-&
-Adequado / Parcial / Ausente
-\\
+& Automatizada: coletável na api, sem meta definida; ausente no web e no app.
+& \cite{educado-repos}: script de cobertura, nenhum limiar configurado.
+& Parcial
+\\[0.1cm]
 
+& Campo: cobertura de jornada, do cadastro à emissão do certificado.
+& Roteiro do teste de usabilidade \cite[p.~17]{psp5}.
+& Adequado
+\\
+\addlinespace
 \bottomrule
 \end{longtable}
+}
 
 
 % ============================================================================
@@ -208,20 +194,48 @@ Adequado / Parcial / Ausente
 
 \subsection{Objetivos de Teste}
 
-Descreva quais são os objetivos de teste identificados no projeto.
+Nenhum dos três repositórios declara, em texto explícito, o que um teste deveria
+alcançar. O objetivo existe, mas precisa ser reconstruído a partir de indícios
+espalhados pelo fluxo de contribuição de código.
 
-Caso não exista uma definição explícita, deixe isso claro e
-explique quais objetivos podem ser inferidos a partir das evidências.
+A frente de campo, em contraste, tem objetivo escrito com formato SMART:
+``Realizar um ciclo de avaliação da qualidade do Educado, por meio de testes de
+usabilidade nas frentes de Software, Conteúdo e Design, elaboração e análise de
+indicadores de desempenho (KPIs), proposição e validação de melhorias,
+envolvendo no mínimo 30 cooperados de 2 cooperativas até 30 de junho de 2026.''
+Ele foi cumprido: as duas cooperativas previstas participaram, o mínimo de 30
+cooperados foi superado e a segunda visita ocorreu em 22/06/2026 \cite[p.~10]{psp5}. É
+o único lugar do projeto onde o objetivo de teste está no papel antes de o teste
+acontecer.
 
 \subsubsection*{Evidências}
 
-Apresente as evidências encontradas.
+O guia de contribuição do \texttt{educado-api} abre a seção ``Quality gate:
+lint, tests, typecheck'' e, nela, afirma que qualquer pull
+request que muda comportamento deveria vir acompanhada de teste. O
+template de pull request cobra o mesmo por outro caminho: a seção ``How it was
+tested'' pede que quem contribui descreva como testou, e o item
+``Tests added or updated for the behavior I changed'' transforma isso
+em caixa a marcar \cite{educado-repos}. É o rastro mais próximo de um objetivo
+formal que o projeto tem.
 
 \subsubsection*{Avaliação}
 
-Avalie se os objetivos de teste estão claramente definidos e
-se são adequados ao contexto do projeto.
-
+A documentação erra em dois sentidos distintos, e a distância entre erro e
+realidade não é a mesma nos dois. O \texttt{educado-docs} promete teste de
+integração e uso de \texttt{supertest} que não existem em nenhuma forma, nem
+parcial: o exagero é total. O \texttt{educado-web} e o \texttt{educado-app}
+afirmam não ter suíte de teste, e essa afirmação é incorreta na letra, porque
+cada um tem um arquivo de teste e um CI que o roda a cada pull request, mas
+próxima da verdade no conteúdo, já que esse arquivo confirma apenas que a
+infraestrutura de teste funciona, não que o produto se comporta como deveria
+\cite{educado-repos}. No \texttt{educado-app} a documentação, de 13/08/2026,
+simplesmente antecede o arquivo de teste, criado em 18/08/2026. No
+\texttt{educado-web} a documentação foi editada em 27/08/2026, nove dias depois
+de o arquivo já existir, e manteve a afirmação: ou a informação ficou
+desatualizada, ou a equipe considerou que um smoke test não constitui suíte. Só
+o exagero do \texttt{educado-docs} engana de fato quem chega ao projeto sobre a
+proteção que ele tem.
 
 % ============================================================================
 % 3.3 NÍVEIS DE TESTE
@@ -229,37 +243,79 @@ se são adequados ao contexto do projeto.
 
 \subsection{Níveis de Teste}
 
-Identifique os níveis de teste utilizados pelo projeto.
+A base é o único andar da pirâmide que existe em automação. Os três
+repositórios de código têm teste unitário. O \texttt{educado-api}
+\cite{educado-repos} concentra 31 arquivos, guardados ao lado do código que
+verificam, cobrindo serviços de aplicação,
+validações, middlewares HTTP, hashing de senha e cliente de armazenamento. O
+\texttt{educado-web} \cite{educado-repos} e o \texttt{educado-app}
+\cite{educado-repos} têm um arquivo cada, e os dois se declaram smoke test no
+próprio cabeçalho: confirmam que a infraestrutura de teste liga, não que o
+produto se comporta como deveria.
 
-Considere, quando aplicável:
+O nível de integração está vazio no código e prometido na documentação. Nenhum
+dos três repositórios testa a costura entre peças, e o \texttt{supertest},
+instalado no \texttt{educado-api}, nunca é chamado. O \texttt{educado-docs}
+\cite{educado-repos} descreve o Jest fazendo unidade e integração, com
+\texttt{supertest} no nível HTTP, e o handbook repete a promessa. Na prática, a
+suíte roda com Postgres, Redis e S3 mockados, e o CI não sobe serviço externo
+algum: se a aplicação parar de conversar direito com o banco, o cache ou o
+armazenamento, isso só aparece quando alguém abre o aplicativo, não antes.
 
-\begin{itemize}
-    \item teste unitário;
-    \item teste de integração;
-    \item teste de sistema;
-    \item teste de aceitação;
-    \item teste end-to-end;
-    \item outros.
-\end{itemize}
-
-Para cada nível identificado, apresente evidências.
+Sistema e aceitação existem, mas fora do repositório. As duas visitas do PSP5
+\cite[p.~17]{psp5} validaram a jornada completa em Android real, contra metas entre
+75\% e 95\%. É o mesmo caminho que um teste de ponta a ponta automatizado
+percorreria, sem a repetibilidade de máquina: as ferramentas usuais do
+ecossistema para isso não aparecem em nenhum dos três repositórios.
 
 \begin{table}[H]
 \centering
 \caption{Níveis de teste identificados.}
 \label{tab:niveis}
-\begin{tabularx}{\textwidth}{l X X}
+{\footnotesize
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.2cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{3.0cm}}
 \toprule
 \textbf{Nível} & \textbf{Evidência} & \textbf{Avaliação} \\
 \midrule
-Unitário & -- & -- \\
-Integração & -- & -- \\
-Sistema & -- & -- \\
-Aceitação & -- & -- \\
-End-to-end & -- & -- \\
-Outro & -- & -- \\
+
+Unitário
+& 31 arquivos em \texttt{src/**/\_\_tests\_\_} \cite{educado-repos}; um arquivo em cada front-end \cite{educado-repos}.
+& Consolidado na api, incipiente no web e no app.
+\\
+\addlinespace
+
+Integração
+& Nenhum teste. O \texttt{supertest} está instalado e não é usado \cite{educado-repos}; a documentação declara o contrário \cite{educado-repos}.
+& Ausente, e descrito como existente na documentação.
+\\
+\addlinespace
+
+Sistema
+& Jornada completa validada em campo, em dispositivo Android real \cite[p.~17]{psp5}.
+& Presente apenas na frente manual.
+\\
+\addlinespace
+
+Aceitação
+& Validação com o usuário final contra metas por indicador, de 75\% a 95\% \cite{dashboard}.
+& Presente apenas na frente manual.
+\\
+\addlinespace
+
+End-to-end
+& Nenhuma ferramenta de automação nos três repositórios.
+& Ausente nas duas frentes.
+\\
+\addlinespace
+
+Outro
+& Smoke test declarado nos dois front-ends \cite{educado-repos}; teste de usabilidade formal em campo \cite[p.~14]{psp5}.
+& Presente.
+\\
+
 \bottomrule
 \end{tabularx}
+}
 \end{table}
 
 
@@ -269,23 +325,53 @@ Outro & -- & -- \\
 
 \subsection{Tipos de Teste}
 
-Identifique os tipos de teste utilizados pelo projeto.
+O funcional é o único tipo que o código exercita de fato. Dos 31 arquivos de teste do
+\texttt{educado-api}, 13 cobrem serviço de aplicação e 10 cobrem validação de
+entrada e de regra \cite{educado-repos}, sempre no mesmo molde:
+entrada conhecida, resultado esperado. Falta o critério estrutural que decidiria
+quando parar de testar. O projeto delimita onde a cobertura é coletada, restringindo a medição às
+camadas de aplicação, de interface e de segurança da infraestrutura, mas não
+define limiar mínimo de comando,
+decisão ou caminho. A cobertura existe como número; não existe como régua.
 
-Considere, quando aplicável:
+Desempenho e integração com a API não são testados em nenhum lugar do código.
+Nenhuma ferramenta usual de carga ou benchmark está instalada, e o
+\texttt{supertest}, presente no
+\texttt{educado-api}, nunca é chamado. O que existe é observação de campo com
+critério objetivo, não opinião: o indicador de Desempenho do Sistema mede se a
+resposta ocorre em até três segundos, e ficou em 68,8\% contra meta de 95\%
+\cite{dashboard}, o que significa que em cerca de três de cada dez observações a
+resposta ultrapassou esse tempo. É medição de comportamento real sob uso, não
+teste de carga controlado. Compatibilidade segue o mesmo padrão de ausência:
+nenhuma matriz de dispositivo definida em código, e a variedade de aparelhos
+registrada em campo corresponde aos que foram usados nas sessões, não a uma
+matriz de compatibilidade definida pelo projeto.
 
-\begin{itemize}
-    \item testes funcionais;
-    \item testes estruturais;
-    \item testes de regressão;
-    \item testes de desempenho;
-    \item testes de segurança;
-    \item testes de API;
-    \item testes de compatibilidade;
-    \item outros.
-\end{itemize}
+A segurança concentra o achado mais importante da subseção. No código, os
+middlewares que cuidam de autenticação por token, autorização por papel,
+exigência de conexão cifrada e rastreamento de requisição, mais a função de
+hashing de senha, têm teste próprio
+\cite{educado-repos}, sem que o projeto os nomeie como segurança. Fora do código,
+o Dependabot está ativo nos três repositórios e já gerou 38 commits corrigindo
+dependência com vulnerabilidade conhecida \cite{educado-repos}. Como nenhum
+arquivo de configuração dessa varredura está versionado, ela foi habilitada nas
+definições do serviço de hospedagem: é a única camada de segurança automatizada
+dos repositórios analisados, e é invisível para quem só lê o repositório.
 
-Para cada tipo identificado, apresente evidências e avaliação.
-
+A acessibilidade e a clareza de interface expõem o contraste mais forte da
+frente de campo. O indicador de acessibilidade mede uso autônomo, não visão ou
+destreza, e ficou em 56,0\% contra meta de 85\% \cite{dashboard}: quase metade de
+quem testou precisou de ajuda para operar a interface. A clareza de botões ficou
+ainda mais distante da meta, 45,7\% contra 90\%. Esses são critérios de
+comportamento observado, cumpridos ou não; a satisfação de quem usa o aplicativo
+é medida à parte, por outro indicador do mesmo instrumento de campo, o que separa
+duas perguntas fáceis de confundir: gostar do aplicativo e conseguir operá-lo
+sozinho. Usabilidade é o tipo mais desenvolvido do projeto, com método formal em
+campo, apoiado em protocolo verbal, escala de usabilidade, heurísticas de
+interface e dimensões de qualidade
+\cite{ericsson1984,brooke1996,nielsen1993,garvin1998}. Regressão existe e é
+tratada
+na subseção~\ref{sub:regressao}.
 
 % ============================================================================
 % 3.5 AUTOMAÇÃO
@@ -293,19 +379,28 @@ Para cada tipo identificado, apresente evidências e avaliação.
 
 \subsection{Automação de Testes}
 
-Descreva como os testes são automatizados.
+Cada repositório do Educado resolveu a automação de testes à sua maneira, sem
+registro da escolha em ata ou guia de contribuição. A API usa Jest com o
+adaptador ts-jest, ambiente Node e limpeza automática de mocks entre casos
+\cite{educado-repos}. O repositório web usa Vitest com jsdom e a Testing
+Library, com preparação carregada antes da suíte. O aplicativo usa o preset de
+teste do Expo com a Testing Library para React Native, declarado no manifesto do
+pacote. Entre os três, só a API já oferecia comando de coleta de cobertura; web e
+aplicativo ofereciam apenas execução única. Para viabilizar a medição nos outros
+dois, a equipe deste relatório adaptou ambos a produzir dados de cobertura,
+apresentados na seção~\ref{sec:execucao}; a adaptação é intervenção da equipe,
+não prática do projeto. Os três disparam a suíte no mesmo gatilho, a proposta de
+mudança, ao lado de verificação de tipo e, em dois casos, de análise de estilo,
+sempre antes de a mudança entrar.
 
-Informe:
-
-\begin{itemize}
-    \item frameworks;
-    \item ferramentas;
-    \item scripts;
-    \item comandos;
-    \item geração de relatórios;
-    \item outras características relevantes.
-\end{itemize}
-
+Depois que a mudança entra, o aplicativo carrega outra automação: a
+instrumentação da segunda visita roda em seu interior e captura tempo, sequência
+de telas e toques sem intervenção humana \cite{dashboard}, não ferramenta externa
+do pesquisador. Ela alimenta as duas frentes: a coleta de respostas em campo
+segue manual, um pesquisador registrando em formulário enquanto outro conduz a
+tarefa \cite[p.~16]{psp5}. Uma frente automatiza a verificação do código antes de
+a mudança entrar, a outra automatiza a observação do uso depois, e as duas
+convivem sem se falarem.
 
 % ============================================================================
 % 3.6 ORGANIZAÇÃO DA SUÍTE
@@ -313,20 +408,32 @@ Informe:
 
 \subsection{Organização da Suíte de Testes}
 
-Descreva como os testes estão organizados no projeto.
+A API concentra a única suíte de tamanho relevante, e ali a organização segue um
+padrão reconhecível: os testes ficam em pastas ao lado do código que cobrem, com
+sufixo padronizado no nome do arquivo, agrupados por módulo de negócio, não por
+tipo de teste \cite{educado-repos}. A distribuição por camada é desigual. A
+camada de aplicação concentra 25 dos 31 arquivos; a de interface, 4; a de
+infraestrutura, 2. Dos 19 módulos de negócio, 16 têm pasta de teste própria; três
+não têm, catálogo, certificados e atividades do estudante.
 
-Considere:
+A documentação da API declara que o teste mora ao lado do código correspondente.
+Fora dela essa convenção não se sustenta. No repositório web, o único arquivo de
+teste está numa pasta central dentro do código-fonte, enquanto o componente
+exercitado mora em outra árvore de diretórios; no aplicativo repete-se o padrão,
+com o arquivo de teste numa pasta na raiz e o componente correspondente em outro
+ponto do projeto. Nenhum dos dois documenta convenção própria.
 
-\begin{itemize}
-    \item estrutura de diretórios;
-    \item nomenclatura;
-    \item organização por componente;
-    \item organização por funcionalidade;
-    \item fixtures;
-    \item mocks e stubs;
-    \item dados de teste.
-\end{itemize}
+Simulação e fixture também não têm infraestrutura compartilhada nos três
+repositórios: não há diretório de simulações, nem de dados de teste, nem de
+fábricas de objeto. Na API, 16 dos 31 arquivos simulam dependência dentro do próprio arquivo, por substituição de módulo ou de método. Para o
+volume atual isso não constitui falha, mas marca um teto: suíte que cresça sem
+esse apoio tende a repetir preparação em cada arquivo.
 
+O módulo de certificados figura entre os três sem teste, e a emissão do
+certificado é o passo final da jornada validada em campo, com usabilidade
+apontada entre os itens priorizados pela frente de campo \cite[p.~28]{psp5}. A
+coincidência é digna de nota, sem que se afirme relação causal entre as duas
+observações.
 
 % ============================================================================
 % 3.7 AMBIENTE
@@ -334,40 +441,85 @@ Considere:
 
 \subsection{Ambiente de Teste}
 
-Descreva o ambiente necessário para executar os testes.
+O ambiente que executa a suíte automatizada dos três repositórios do Educado não
+depende de nenhum serviço externo. Nenhum deles exige banco de dados, cache,
+armazenamento de objetos ou acesso de rede para rodar os testes, e nenhuma
+variável de ambiente precisa ser fornecida de fora \cite{educado-repos}. A API
+roda sobre o próprio interpretador Node; o web usa um navegador simulado; o
+aplicativo usa o preset de teste do Expo, que fornece as simulações das APIs
+nativas.
 
-Inclua, quando aplicável:
+Essa ausência não vem de a aplicação ser simples. O produto usa Postgres, Redis e
+um servidor de objetos compatível com S3 em funcionamento normal: a API traz um
+arquivo de composição que sobe os três serviços para o ambiente de
+desenvolvimento. Quem não precisa deles é o nível de teste que o projeto
+automatiza. Como só existe teste unitário, cada peça é isolada e tudo em volta é
+simulado, o que dispensa qualquer dependência real, inclusive com a biblioteca de
+teste de nível HTTP instalada e sem uso. Se a suíte incluísse teste de
+integração, a mesma infraestrutura que hoje só serve ao desenvolvimento teria de
+subir também para testar; o ambiente de teste é simples porque o nível de teste é
+raso, não porque o sistema dispense essas peças.
 
-\begin{itemize}
-    \item sistema operacional;
-    \item versão da linguagem;
-    \item dependências;
-    \item banco de dados;
-    \item serviços externos;
-    \item containers;
-    \item configurações especiais.
-\end{itemize}
+A versão da linguagem é fixada de três formas diferentes. A API e o web declaram
+Node 20 num arquivo de versão que a integração contínua lê. O aplicativo, sem
+esse arquivo, define o ambiente de desenvolvimento por um ambiente declarativo
+Nix, e fixa a versão diretamente no fluxo de integração contínua.
 
+O ambiente simulado não é neutro. O arquivo de preparação do web substitui a
+implementação de armazenamento local do navegador simulado por uma versão em
+memória, porque a implementação experimental do próprio Node pode sobrepor a do
+navegador dependendo da versão instalada, quebrando o teste. A simulação
+transfere o problema de ambiente em vez de eliminá-lo. Um teste de middleware da
+API usa essa lógica a favor: altera o modo de execução entre desenvolvimento,
+teste e produção para verificar a exigência de conexão cifrada em cada um, e
+restaura o valor original ao final. Ali o ambiente é parâmetro controlado, não
+dependência externa.
 
+O teste de campo inverte cada um desses termos. Ocorreu na sede da cooperativa,
+com um aparelho Android fornecido pela equipe de pesquisa e o aplicativo já
+instalado \cite[p.~16]{psp5}. A segunda visita acrescentou instrumentação rodando
+dentro do aplicativo, que registrou a sessão real \cite{dashboard}. É o único
+momento em que o produto encontra um aparelho e uma pessoa reais.
 
 % ============================================================================
 % 3.8 REGRESSÃO
 % ============================================================================
 
 \subsection{Testes de Regressão}
+\label{sub:regressao}
 
-Analise como o projeto trata testes de regressão.
+A prática de transformar defeito corrigido em teste permanente, mecanismo pelo
+qual uma suíte de regressão cresce e deixa de repetir o mesmo erro, é exceção no
+projeto Educado. Na API, 14 commits têm assunto iniciado por correção. Cinco
+deles alteram algum arquivo de teste, mas dois tratam de ajuste de publicação sem
+relação com lógica de aplicação, e um é commit de junção que duplica outro já
+contabilizado. Sobram dois ou três casos em que a correção veio de fato
+acompanhada de teste novo \cite{educado-repos}. O guia de contribuição da API
+exige teste para toda mudança de comportamento; a prática observada, contudo, não
+confirma essa exigência como rotina.
 
-Verifique:
+A automação de regressão existente nos três repositórios se resume à reexecução
+da suíte a cada pull request. Não há execução agendada, disparo por
+integração no ramo principal fora dessas propostas, nem verificação vinculada a
+publicação de versão. Nenhuma versão publicada teve a suíte como portão, mas a
+explicação é cronológica: as marcações de versão registradas nos três
+repositórios datam de março de 2026, enquanto a integração contínua que executa a
+suíte só foi criada em agosto. As publicações existentes antecedem a automação.
 
-\begin{itemize}
-    \item existência de testes associados à correção de bugs;
-    \item execução recorrente da suíte;
-    \item execução antes de releases;
-    \item testes executados em pull requests;
-    \item manutenção da suíte.
-\end{itemize}
+Quanto à manutenção, oito commits tocaram arquivos de teste na API, concentrados
+em março, maio e junho, sem ocorrência posterior. O código de produção seguiu
+curva equivalente: 17 commits em março, nenhum em abril, 2 em maio, 4 em junho,
+nenhum em julho, 1 em agosto. O padrão indica repositório em
+baixa atividade geral, não suíte abandonada enquanto o código evoluía
+\cite{educado-repos}.
 
+A frente de campo, por outro lado, executou o ciclo completo de regressão:
+estabeleceu linha de base na primeira visita, acompanhou a implementação de 53
+das 57 melhorias propostas e remediu os mesmos indicadores numa segunda visita
+\cite[p.~10]{psp5}. Seis indicadores melhoraram e três pioraram, com 6 dos 15
+medidos apenas uma vez, o que limita parcialmente a validação
+\cite{dashboard}. Não há registro visível de regressão detectada pela suíte
+automatizada; há registro de regressão real detectada por pessoas em campo.
 
 % ============================================================================
 % 3.9 CI/CD
@@ -375,19 +527,28 @@ Verifique:
 
 \subsection{Integração Contínua}
 
-Verifique se os testes são executados automaticamente por
-um pipeline de integração contínua.
+Os três repositórios rodam fluxos automatizados a cada pull request, mas o
+que cada um verifica difere. A API executa análise estática de estilo,
+verificação de tipo e a suíte de testes. O aplicativo replica esse mesmo conjunto
+de três etapas. Já o web substitui a análise de estilo pela construção do pacote
+de distribuição, mantendo a verificação de tipo e a suíte de testes. Nenhum dos
+três cobre exatamente o que os outros dois cobrem: só o web confirma que o
+projeto ainda compila para publicação, e é o único que não audita o estilo do
+código. Essa divergência não decorre de limitação técnica. Os três executam sobre
+o mesmo tipo de máquina e a mesma versão da linguagem \cite{educado-repos}, o que
+indica escolha de escopo por repositório, não restrição de ambiente.
 
-Informe:
-
-\begin{itemize}
-    \item ferramenta utilizada;
-    \item quando os testes são executados;
-    \item quais testes são executados;
-    \item critérios para aprovação ou falha;
-    \item evidências encontradas.
-\end{itemize}
-
+O achado mais relevante está na obrigatoriedade do resultado. A API e o web
+protegem o ramo principal e exigem aprovação humana antes de qualquer mesclagem,
+mas nenhuma das duas proteções exige que as verificações automáticas tenham
+passado: a configuração de proteção de ramo devolve, para os dois casos, que a
+exigência de checagem de status está desabilitada \cite{educado-repos}. O
+aplicativo não tem proteção de ramo alguma, apesar de acumular dezenas de
+pull requests sob o mesmo fluxo. O guia de contribuição da API chama esse conjunto de verificações de
+portão de qualidade \cite{educado-repos}; a configuração vigente implementa
+aviso, não portão. Uma
+proposta pode ser incorporada com a suíte falhando, desde que uma pessoa aprove.
+A decisão final é sempre humana, sem poder de veto automatizado.
 
 % ============================================================================
 % 3.10 PR E CODE REVIEW
@@ -395,19 +556,32 @@ Informe:
 
 \subsection{Pull Requests e Code Review}
 
-Analise a relação entre testes e o processo de contribuição.
+O modelo de pull request da API pede que quem contribui descreva como
+testou a alteração e marque um item confirmando teste adicionado ou atualizado. O
+guia de contribuição exige teste para toda mudança que altere comportamento, e a
+API e o web protegem o ramo principal exigindo uma aprovação antes da mesclagem \cite{educado-repos}.
 
-Verifique:
+O histórico não confirma essa regra. Somando os três repositórios, 70 propostas
+foram mescladas: 25 na API, 15 no web, 30 no aplicativo. Dessas, 38 partiram do robô de atualização de dependências e 32 foram de autoria
+humana.
+Nenhuma das 32 humanas tem revisão registrada, resultado checado por dois métodos
+independentes, incluindo consulta individual a cada proposta. Das 38 do robô, 15
+têm revisão registrada \cite{educado-repos}.
 
-\begin{itemize}
-    \item exigência de testes em pull requests;
-    \item execução automática da suíte;
-    \item revisão de código;
-    \item exigência de cobertura;
-    \item testes associados à correção de bugs;
-    \item outras práticas relevantes.
-\end{itemize}
+A configuração explica a lacuna sem contradizê-la. A proteção de ramo da API e do web exige
+uma aprovação, mas a opção que estenderia essa exigência a quem tem privilégio
+administrativo está desabilitada. Quem administra mescla sem
+a aprovação que a regra pede, sem violar configuração nenhuma. O aplicativo não tem
+proteção de ramo alguma \cite{educado-repos}.
 
+O conjunto reúne os artefatos de um processo maduro de revisão sem a prática
+correspondente nas mudanças que pessoas escrevem, e cobertura de teste ou
+verificação automática também não são exigidas em nenhum ponto do fluxo. Revisão
+de código é regra declarada e prática ausente; a configuração mostra como as duas
+convivem sem contradição formal. Ausência de revisão registrada não prova
+ausência de revisão, já que conversa fora da plataforma não deixa rastro. O que
+se pode afirmar é que não há registro, e registro é o que torna a revisão
+auditável.
 
 % ============================================================================
 % 3.11 ISSUES E DEFEITOS
@@ -415,16 +589,33 @@ Verifique:
 
 \subsection{Defeitos e Issues}
 
-Analise issues relacionadas a defeitos e testes.
+Os três repositórios de código analisados, API, web e aplicativo, têm o mecanismo
+de registro de defeito montado: modelo de relato de defeito, modelo de pedido de
+funcionalidade, e um guia de contribuição que instrui quem contribui a abrir um
+registro a partir desses modelos, verificando antes se o problema já não foi
+relatado, para evitar duplicata \cite{educado-repos}. O mesmo guia orienta que
+vulnerabilidade de segurança não seja aberta em registro público e aponta um
+canal reservado, prática correta.
 
-Procure evidências de:
+Nos três repositórios, porém, o número de registros abertos, em qualquer estado,
+é zero. Essa ausência não reflete o histórico da organização. O repositório de
+documentação, dentro do escopo desta análise, mantém 56 registros; um repositório
+de aplicativo móvel de geração anterior tem 45; um repositório de backend
+anterior, 17; um repositório de frontend anterior, hoje arquivado, 12
+\cite{educado-repos}. No repositório de documentação a prática começa em março de
+2025, concentra-se em setembro e outubro daquele ano, quando 46 registros foram
+abertos, e depois cessa, com uma ocorrência em novembro e outra em dezembro.
 
-\begin{itemize}
-    \item identificação de bugs;
-    \item reprodução de defeitos;
-    \item criação de testes para bugs;
-    \item testes de regressão;
-    \item discussão sobre qualidade.
-\end{itemize}
+O mecanismo foi transportado para os repositórios atuais; o hábito não. Isso não
+é ausência de cultura de registro, é descontinuidade entre gerações do código. Na
+API atual, 14 commits têm assunto iniciado por correção, evidência de que
+defeitos existiram e foram corrigidos. O único registro deles é a mensagem do
+commit, sem descrição do problema, sem passo de reprodução, sem vínculo com um
+teste que impeça retorno.
 
-Apresente exemplos concretos de issues quando forem relevantes.
+O ciclo que falta no código sobrevive na frente de campo: 57 propostas levantadas
+e priorizadas por comparação par a par, das quais 53 implementadas
+\cite[p.~10]{psp5}, e o reteste da segunda visita detectando três indicadores que
+pioraram \cite{dashboard}. No projeto, identificar, priorizar, corrigir e
+verificar o efeito é ciclo completo só onde o código não é escrito.
+
