@@ -1,6 +1,6 @@
 
 
-%% !TEX root = ../main.tex
+% !TEX root = ../main.tex
 \section{Conclusão}
 
 O objeto principal desta análise foi o \texttt{educado-web}, conforme
@@ -9,74 +9,56 @@ apenas na medida em que o funcionamento do Web depende dela, sobretudo
 para os fluxos que exigem testes de integração entre a interface e o
 backend. Sob esse recorte, o achado central é que o \texttt{educado-web}
 possui uma proteção mínima por testes automatizados: apenas um teste de
-fumaça, cuja função é validar a infraestrutura de testes em si, e não os
-comportamentos da aplicação~\cite{secao5}. Esse teste foi executado com
-sucesso, o que confirma que a infraestrutura (Vitest, jsdom) está
-corretamente configurada e integrada ao CI, mas isso não equivale a uma
-suíte que proteja o produto.
+fumaça (\path{src/__tests__/languageSwitcher.smoke.test.ts}), cuja função
+é validar a infraestrutura de testes em si, e não os comportamentos da
+aplicação~\cite{educado-repos}. Esse teste foi executado com sucesso, o
+que confirma que a infraestrutura (Vitest, jsdom) está corretamente
+configurada e integrada ao CI -- mas isso não equivale a uma suíte que
+proteja o produto.
 
 A API, examinada como dependência do Web, mostrou-se consideravelmente
 mais madura: 31 conjuntos e 506 testes aprovados, com cobertura de
 79,36\% de instruções, 69,26\% de branches, 78\% de funções e 78,9\% de
-linhas no escopo definido pelo \texttt{jest.config.ts}~\cite{secao5}.
-Esse dado é relevante para o trabalho não porque a API seja o foco da
-análise, mas porque ele delimita o que já está coberto do lado do
-backend e, por consequência, o que falta ser verificado do lado do Web, em especial a integração entre os dois: o consumo da API pela
-interface, o tratamento de respostas de erro, autenticação via JWT
-armazenado no \texttt{localStorage} e a reação da aplicação a falhas de
-rede.
-
-Esse veredito, no entanto, cobre apenas a verificação automatizada de
-código, e o próprio relatório identifica que essa é só parte do que o
-Educado verifica. Existe uma frente de campo, ancorada em observações
-diretas com catadores e registrada em \texttt{psp5} e no
-\texttt{dashboard}~\cite{psp5,dashboard}, que avalia usabilidade e
-aceitação da plataforma com usuários reais. Essa frente não é considerada
-na avaliação acima porque seu foco está no aplicativo e na experiência de
-conteúdo do estudante, não na interface administrativa e de criação de
-cursos que compõe o escopo deste trabalho; ainda assim, sua existência
-mostra que a lacuna de testes automatizados no Web não é a mesma coisa
-que uma lacuna de verificação do produto como um todo, é uma lacuna
-específica do tipo de verificação que este trabalho se propôs a analisar.
+linhas no escopo definido pelo \texttt{jest.config.ts}~\cite{educado-repos}.
+Esse dado é
+relevante para o trabalho não porque a API seja o foco da análise, mas
+porque ele delimita o que já está coberto do lado do backend e, por
+consequência, o que falta ser verificado do lado do Web -- em especial a
+integração entre os dois: o consumo da API pela interface, o tratamento
+de respostas de erro, autenticação via JWT armazenado no
+\texttt{localStorage} e a reação da aplicação a falhas de rede.
 
 O ponto forte identificado que se aplica diretamente ao escopo do Web é o
 processo de contribuição: o workflow de CI do \texttt{educado-web} já
 executa os testes automaticamente em pull requests, e o modelo de pull
 request do repositório solicita procedimentos de teste e evidências
-visuais~\cite{secao5}. Ou seja, a estrutura para sustentar uma suíte
-maior já existe; falta populá-la.
+visuais~\cite{educado-repos}. Ou seja, a estrutura para sustentar uma
+suíte maior já existe; falta populá-la.
 
 A principal limitação, portanto, não é a ausência de testes no projeto
-como um todo, a API demonstra que a equipe sabe construir uma suíte
-consistente, e a frente de campo mostra que a verificação com usuários
-reais também acontece,, mas a concentração quase total da verificação
-automatizada de código fora do escopo deste trabalho. Para o
-\texttt{educado-web} especificamente, isso significa que funcionalidades
-centrais para os usuários administradores e criadores de conteúdo,
-autenticação, criação e edição de cursos, roteamento, internacionalização
-e comunicação com a API, podem sofrer regressões sem que o CI as
-detecte~\cite{secao5}.
+como um todo -- a API demonstra que a equipe sabe construir uma suíte
+consistente --, mas a concentração quase total dessa prática fora do
+escopo deste trabalho. Para o \texttt{educado-web} especificamente, isso
+significa que funcionalidades centrais para os usuários administradores e
+criadores de conteúdo -- autenticação, criação e edição de cursos,
+roteamento, internacionalização e comunicação com a API -- podem sofrer
+regressões sem que o CI as detecte.
 
 As melhorias mais importantes para o escopo deste trabalho são, em
 ordem de prioridade: (i) ampliar a suíte do \texttt{educado-web} com
 testes unitários e de componente (Vitest, jsdom, Testing Library),
 priorizando autenticação, formulários, permissões e o cliente HTTP; (ii)
 adicionar testes de integração entre Web e API para os fluxos que
-efetivamente dependem do backend, exatamente o ponto em que o escopo do
-trabalho autoriza o uso da API,, cobrindo cenários de erro e expiração
+efetivamente dependem do backend, cobrindo cenários de erro e expiração
 de sessão; e (iii) complementar com uma suíte enxuta de testes
-\textit{end-to-end} para os fluxos mais críticos de login, criação e
-publicação de curso~\cite{secao5}.
+\textit{end-to-end} (por exemplo, com Playwright) para os fluxos mais
+críticos de login, criação e publicação de curso~\cite{educado-repos}.
 
-Em síntese, a equipe avalia a estratégia de \emph{testes automatizados de
-código} do \texttt{educado-web} como \textbf{insuficiente diante do
-escopo do produto}, ainda que apoiada por uma infraestrutura de CI já
-funcional e por uma API bem testada que pode servir de referência de
-maturidade a ser alcançada. Esse veredito é específico à camada de
-código: o projeto complementa a verificação com uma frente de campo
-voltada a usuários reais, que este trabalho não teve como escopo avaliar
-em profundidade. O uso pontual da API neste trabalho reforça o
-diagnóstico sobre a camada de código: a maior lacuna não está em nenhum
-dos dois lados isoladamente, mas na fronteira entre eles, exatamente o
-tipo de teste que o escopo do trabalho previu como necessário e que
-ainda não existe.
+Em síntese, a equipe avalia a estratégia de testes do \texttt{educado-web}
+como \textbf{insuficiente diante do escopo do produto}, ainda que
+apoiada por uma infraestrutura de CI já funcional e por uma API bem
+testada que pode servir de referência de maturidade a ser alcançada. O
+uso pontual da API neste trabalho reforça esse diagnóstico: a maior
+lacuna não está em nenhum dos dois lados isoladamente, mas na fronteira
+entre eles -- exatamente o tipo de teste que o escopo do trabalho previu
+como necessário e que ainda não existe.
