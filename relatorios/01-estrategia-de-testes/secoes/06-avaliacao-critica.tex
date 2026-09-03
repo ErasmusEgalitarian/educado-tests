@@ -1,11 +1,36 @@
 % !TEX root = ../main.tex
+% ============================================================================
+% 5. AVALIAÇÃO CRÍTICA
+% ============================================================================
+
 \section{Avaliação Crítica da Estratégia de Testes}
 
-Nesta seção a equipe deve avaliar criticamente a estratégia
-identificada utilizando os conceitos estudados na disciplina.
+A estratégia de testes do Educado é \textbf{insuficiente} diante do escopo do
+produto analisado. A avaliação não decorre da ausência total de testes: há uma
+base automatizada relevante no \texttt{educado-api}, um teste de fumaça no
+\texttt{educado-web}, um teste de fumaça no \texttt{educado-app} e um ciclo de
+avaliação de campo conduzido com usuários finais \cite{educado-repos,psp5}. O
+problema é que essas frentes não formam uma proteção equilibrada para o
+funcionamento do produto. O Web, analisado em maior profundidade neste
+relatório, ainda tem cobertura automatizada mínima, e a integração entre painel,
+API e experiência final do usuário não é verificada por testes de sistema ou
+end-to-end \cite{educado-repos}.
 
-A avaliação deve ser fundamentada nas evidências apresentadas
-nas seções anteriores.
+Na execução realizada pela equipe, o backend apresentou 31 suítes e 506 testes
+aprovados. O relatório de cobertura do Jest indicou 79,36\% de instruções,
+69,26\% de branches, 78\% de funções e 78,9\% de linhas no escopo configurado
+em \texttt{jest.config.ts}; esses números dependem da configuração de cobertura
+do próprio repositório e não representam todo o produto \cite{educado-repos}. No
+\texttt{educado-web} e no \texttt{educado-app}, foi executado somente um teste
+automatizado em cada repositório \cite{educado-repos}. A frente de campo, por
+outro lado, mede usabilidade e jornada real com catadores em dispositivo Android,
+mas não se conecta à suíte automatizada nem gera uma barreira de regressão no CI
+\cite{psp5,dashboard}.
+
+Assim, o veredito é insuficiente: o projeto possui peças úteis, mas a estratégia
+como conjunto ainda não garante que mudanças no Web, na API ou na experiência
+final preservem fluxos críticos, metas de qualidade e comportamentos observados
+em campo.
 
 
 % ----------------------------------------------------------------------------
@@ -14,24 +39,100 @@ nas seções anteriores.
 
 \subsection{Pontos Fortes}
 
-Identifique os aspectos positivos da estratégia.
+Os pontos fortes mostram que o projeto já tem material para evoluir: há
+automação no repositório, documentação de contribuição e uma frente de validação
+com usuários. Eles não bastam para tornar a estratégia adequada, mas reduzem o
+custo de amadurecê-la.
 
-Cada ponto deve estar associado a uma evidência.
-
-\begin{table}[H]
-\centering
+{\footnotesize
+\begin{longtable}{>{\raggedright\arraybackslash}p{2.9cm} >{\raggedright\arraybackslash}p{5.1cm} >{\raggedright\arraybackslash}p{5.1cm}}
 \caption{Pontos fortes da estratégia de testes.}
-\label{tab:pontosfortes}
-\begin{tabularx}{\textwidth}{l X X}
+\label{tab:pontosfortes}\\
 \toprule
 \textbf{Aspecto} & \textbf{Evidência} & \textbf{Justificativa} \\
 \midrule
--- & -- & -- \\
--- & -- & -- \\
--- & -- & -- \\
+\endfirsthead
+
+\toprule
+\textbf{Aspecto} & \textbf{Evidência} & \textbf{Justificativa} \\
+\midrule
+\endhead
+
+Suíte unitária relevante na API
+&
+A execução de \texttt{npm test} no \texttt{educado-api} resultou em 31 suítes e
+506 testes aprovados. Os testes estão distribuídos por módulos de aplicação,
+segurança, armazenamento e middlewares \cite{educado-repos}.
+&
+A quantidade de casos e sua distribuição por diferentes domínios fornecem uma
+base real de proteção para regras de negócio, validações, autenticação,
+autorização, recuperação de senha, mídia, cursos, matrículas e progresso dos
+estudantes.
+\\
+\addlinespace
+
+Cobertura mensurável na API
+&
+O script \texttt{test:coverage} da API produz métricas de cobertura e o
+\texttt{jest.config.ts} delimita os arquivos considerados na medição
+\cite{educado-repos}.
+&
+A coleta de cobertura oferece uma régua objetiva para acompanhar evolução da
+suíte. A ressalva é importante: por ser delimitada pela configuração, a métrica
+é útil para a API, mas não deve ser lida como cobertura global do produto.
+\\
+\addlinespace
+
+Execução automática em pull requests
+&
+Os workflows dos repositórios \texttt{educado-api}, \texttt{educado-web} e
+\texttt{educado-app} executam testes em pull requests, junto com verificações de
+tipo e, conforme o repositório, lint ou build \cite{educado-repos}.
+&
+A automação reduz a dependência de execução manual e cria um ponto natural para
+detectar regressões antes da integração de uma mudança. O problema remanescente
+é que esse aviso ainda não funciona como portão obrigatório de qualidade.
+\\
+\addlinespace
+
+Organização por domínio na API
+&
+No \texttt{educado-api}, os testes ficam próximos ao código testado, em
+diretórios \texttt{\_\_tests\_\_}, e seguem a nomenclatura \texttt{*.test.ts}
+\cite{educado-repos}.
+&
+A organização facilita localização e manutenção. O uso de mocks também torna a
+suíte rápida e determinística; esse é o lado positivo do mesmo tradeoff que, nas
+limitações, aparece como risco de divergência em relação às dependências reais.
+\\
+\addlinespace
+
+Processo de contribuição orientado à qualidade
+&
+O guia de contribuição e os modelos de pull request pedem descrição de testes,
+execução de verificações e inclusão ou atualização de testes para mudanças de
+comportamento \cite{educado-repos}.
+&
+Esses critérios incentivam quem contribui a explicitar como verificou a mudança
+e ajudam a revisão humana. Como a própria documentação exige fonte e evidência,
+ela também cria um padrão útil para avaliar as lacunas encontradas no relatório.
+\\
+\addlinespace
+
+Avaliação de campo com usuários reais
+&
+O ciclo de campo avaliou a experiência do Educado com catadores, usando roteiro
+de usabilidade, indicadores e segunda visita para verificar melhorias
+\cite{psp5,dashboard}.
+&
+Essa frente cobre aspectos que a suíte automatizada não mede, como compreensão
+da interface, autonomia de uso, desempenho percebido e aderência da jornada ao
+contexto real dos usuários.
+\\
+\addlinespace
 \bottomrule
-\end{tabularx}
-\end{table}
+\end{longtable}
+}
 
 
 % ----------------------------------------------------------------------------
@@ -40,25 +141,116 @@ Cada ponto deve estar associado a uma evidência.
 
 \subsection{Limitações e Problemas}
 
-Identifique as principais limitações da estratégia.
+As limitações tornam a estratégia insuficiente porque atingem justamente o
+comportamento integrado do produto. A API tem a parte mais madura da automação,
+mas o Web, que é o foco principal do recorte, permanece quase sem testes de
+comportamento, e a frente de campo não se transforma em critério automatizado de
+regressão.
 
-Evite apresentar como problema simplesmente a ausência de uma
-prática sem explicar por que ela seria relevante para o projeto.
-
-\begin{table}[H]
-\centering
+{\footnotesize
+\begin{longtable}{>{\raggedright\arraybackslash}p{2.9cm} >{\raggedright\arraybackslash}p{5.1cm} >{\raggedright\arraybackslash}p{5.1cm}}
 \caption{Limitações identificadas.}
-\label{tab:limitacoes}
-\begin{tabularx}{\textwidth}{l X X}
+\label{tab:limitacoes}\\
 \toprule
 \textbf{Limitação} & \textbf{Evidência} & \textbf{Impacto} \\
 \midrule
--- & -- & -- \\
--- & -- & -- \\
--- & -- & -- \\
+\endfirsthead
+
+\toprule
+\textbf{Limitação} & \textbf{Evidência} & \textbf{Impacto} \\
+\midrule
+\endhead
+
+Baixa proteção automatizada do Web
+&
+O \texttt{educado-web} contém apenas o teste de fumaça
+do seletor de idioma; não há suíte cobrindo autenticação, permissões,
+formulários, criação de cursos ou integração com a API \cite{educado-repos}.
+&
+Funcionalidades administrativas e de criação de conteúdo podem regredir sem que
+o CI detecte. Como o relatório analisa o Web em maior profundidade, essa lacuna
+pesa mais que a quantidade de testes existentes na API.
+\\
+\addlinespace
+
+Integração e end-to-end ausentes
+&
+Não foram encontradas configurações ou suítes com Playwright, Cypress, Detox ou
+Maestro. O \texttt{educado-api} possui Supertest entre as dependências, mas não
+há testes HTTP usando a biblioteca \cite{educado-repos}.
+&
+Os testes existentes não validam fluxos completos entre interface, API,
+autenticação, persistência e serviços externos. Um módulo pode funcionar
+isoladamente e falhar quando integrado ao restante do sistema.
+\\
+\addlinespace
+
+Predomínio de mocks na API
+&
+Diversos testes substituem modelos, JWT, armazenamento S3 e outros
+colaboradores por \texttt{jest.mock} e \texttt{jest.fn}; não há suíte equivalente
+com PostgreSQL, Redis e MinIO reais ou efêmeros \cite{educado-repos}.
+&
+Mocks tornam a suíte rápida, mas podem divergir do comportamento real. O texto
+trata isso como tradeoff: é força para feedback curto e limitação para confiança
+em consultas, transações, serialização, infraestrutura e contratos externos.
+\\
+\addlinespace
+
+Cobertura sem critério de aprovação
+&
+O workflow da API executa \texttt{npm test}, mas não executa
+\texttt{npm run test:coverage}. O \texttt{jest.config.ts} não define
+\texttt{coverageThreshold}; Web e App também não possuem metas versionadas
+\cite{educado-repos}.
+&
+A cobertura pode cair sem quebrar o pipeline. O crescimento da suíte depende de
+revisão manual, sem limite objetivo para impedir integração de código crítico
+sem testes suficientes.
+\\
+\addlinespace
+
+Documentação inconsistente
+&
+Documentos do Web e do App afirmam não haver suíte automatizada, embora ambos
+tenham teste e workflow executando \texttt{npm test}. A documentação da API
+também descreve testes de integração que não aparecem no código
+\cite{educado-repos}.
+&
+A divergência reduz a confiança na documentação e pode induzir contribuidores a
+ignorar infraestrutura existente ou acreditar em uma proteção que ainda não foi
+implementada.
+\\
+\addlinespace
+
+Frente de campo desconectada do CI
+&
+O PSP5 e o dashboard registram indicadores, melhorias e segunda visita de
+validação, mas esses achados não aparecem como testes automatizados, critérios
+de aceite versionados ou gates de regressão nos repositórios
+\cite{psp5,dashboard,educado-repos}.
+&
+Problemas reais de usabilidade, clareza, desempenho percebido e autonomia podem
+reaparecer sem alerta automático. A estratégia mede o usuário em campo, mas não
+transforma essa aprendizagem em proteção contínua do produto.
+\\
+\addlinespace
+
+Execução restrita a pull requests
+&
+Os workflows de teste dos três repositórios usam o evento
+\texttt{pull\_request}; não foram identificadas execuções equivalentes em pushes
+para a branch principal, tags de versão ou rotinas agendadas
+\cite{educado-repos}.
+&
+Falhas introduzidas por merges, mudanças de dependências ou diferenças no
+processo de release podem não ser verificadas novamente depois da aprovação do
+pull request.
+\\
+\addlinespace
 \bottomrule
-\end{tabularx}
-\end{table}
+\end{longtable}
+}
 
 
 % ----------------------------------------------------------------------------
@@ -67,35 +259,127 @@ prática sem explicar por que ela seria relevante para o projeto.
 
 \subsection{Recomendações de Melhoria}
 
-Proponha melhorias específicas para a estratégia de testes
-do projeto.
+As recomendações priorizam o Web e a integração com a API, mantendo o App e a
+frente de campo como contexto necessário para a estratégia completa. Não se
+recomenda buscar apenas um número alto de testes, mas selecionar casos por risco,
+frequência de uso e impacto para estudantes, criadores de conteúdo,
+administradores e usuários finais.
 
-As recomendações devem ser justificadas com base:
-
-\begin{itemize}
-    \item nas evidências encontradas;
-    \item nos resultados da execução dos testes;
-    \item nos conceitos estudados na disciplina.
-\end{itemize}
-
-\begin{table}[H]
-\centering
+{\footnotesize
+\begin{longtable}{>{\raggedright\arraybackslash}p{2.4cm} >{\raggedright\arraybackslash}p{3.8cm} >{\raggedright\arraybackslash}p{4.5cm} >{\raggedright\arraybackslash}p{1.9cm}}
 \caption{Recomendações de melhoria.}
-\label{tab:recomendacoes}
-\begin{tabularx}{\textwidth}{l X X X}
+\label{tab:recomendacoes}\\
 \toprule
-\textbf{Problema}
-&
-\textbf{Recomendação}
-&
-\textbf{Justificativa}
-&
-\textbf{Prioridade}
-\\
+\textbf{Problema} & \textbf{Recomendação} & \textbf{Justificativa} & \textbf{Prioridade} \\
 \midrule
--- & -- & -- & Alta \\
--- & -- & -- & Média \\
--- & -- & -- & Baixa \\
+\endfirsthead
+
+\toprule
+\textbf{Problema} & \textbf{Recomendação} & \textbf{Justificativa} & \textbf{Prioridade} \\
+\midrule
+\endhead
+
+Cobertura mínima no Web
+&
+Criar testes unitários e de componente com Vitest, jsdom e Testing Library para
+autenticação, roteamento, internacionalização, formulários, permissões, cliente
+HTTP e criação ou edição de cursos.
+&
+A infraestrutura do Web já existe, mas só há teste de fumaça
+\cite{educado-repos}. Ampliar essa suíte ataca a lacuna mais importante dentro
+do recorte principal do relatório.
+&
+Alta
+\\
+\addlinespace
+
+Integração real com a API
+&
+Adicionar testes HTTP com Supertest na API e cenários de integração do Web contra
+contratos estáveis da API. Quando necessário, usar infraestrutura isolada para
+PostgreSQL, Redis e MinIO.
+&
+A API concentra a suíte mais madura, mas ainda depende fortemente de mocks e não
+exercita rotas HTTP com Supertest \cite{educado-repos}. Testes de integração
+reduzem o risco de falhas entre painel, autenticação, persistência e serviços.
+&
+Alta
+\\
+\addlinespace
+
+Ausência de end-to-end
+&
+Implementar uma suíte pequena de end-to-end para os fluxos Web mais críticos,
+preferencialmente com Playwright: login, acesso por perfil, criação de curso,
+publicação e consumo básico refletido na API.
+&
+Poucos fluxos bem escolhidos validam o produto como sistema sem transformar o CI
+em uma suíte lenta e frágil. Para o App, ferramentas como Maestro ou Detox devem
+ser tratadas como evolução posterior, pois o foco deste relatório é o Web.
+&
+Alta
+\\
+\addlinespace
+
+Achados de campo sem regressão
+&
+Transformar indicadores e problemas recorrentes do PSP5 em critérios de aceite,
+checklists versionados e, quando possível, testes automatizados de interface.
+&
+A avaliação com catadores identificou metas e problemas reais de uso
+\cite{psp5,dashboard}. Incorporar esses achados impede que a frente de campo
+fique isolada da evolução técnica do produto.
+&
+Alta
+\\
+\addlinespace
+
+Cobertura sem limite mínimo
+&
+Executar cobertura no CI e estabelecer metas progressivas, começando próximas
+aos valores atuais da API. Definir também metas para código novo ou modificado e
+ampliar gradualmente o \texttt{collectCoverageFrom}.
+&
+Um limite progressivo evita queda de cobertura sem bloquear imediatamente o
+projeto por módulos legados. A análise de código novo torna o critério mais
+viável e mais justo.
+&
+Média
+\\
+\addlinespace
+
+Documentação divergente
+&
+Atualizar README, CONTRIBUTING e modelos de pull request para refletir os testes
+existentes, os comandos atuais e a exigência de fonte para afirmações técnicas.
+&
+A documentação já orienta contribuições, mas está desalinhada em pontos
+importantes \cite{educado-repos}. Corrigir isso reduz erro de contribuição e
+ajuda revisores a cobrar evidências de forma consistente.
+&
+Média
+\\
+\addlinespace
+
+CI limitado a pull requests
+&
+Executar a suíte também em pushes para branches principais, além de incluir
+verificação em releases. Testes mais caros podem ficar em jobs separados ou
+agendados.
+&
+Executar só em pull request deixa lacunas após merge e durante release
+\cite{educado-repos}. Separar suítes por custo preserva feedback rápido sem
+abrir mão de verificação periódica mais profunda.
+&
+Média
+\\
+\addlinespace
 \bottomrule
-\end{tabularx}
-\end{table}
+\end{longtable}
+}
+
+Em síntese, a estratégia atual tem bons pontos de partida, mas ainda é
+insuficiente. A prioridade deve ser proteger o Web com testes de comportamento,
+validar sua integração com a API, transformar os achados de campo em critérios de
+regressão e fazer com que o CI deixe de apenas executar verificações para
+sustentar uma política objetiva de qualidade.
