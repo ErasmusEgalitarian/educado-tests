@@ -1,18 +1,68 @@
 % !TEX root = ../main.tex
 \section{Conclusão}
 
-Apresente uma síntese da análise realizada.
+A análise do Educado cobriu suas quatro frentes de verificação: o
+\texttt{educado-api}, o \texttt{educado-web} (analisado com maior
+profundidade, conforme delimitado no escopo do trabalho), o
+\texttt{educado-app} e o ciclo de avaliação de campo conduzido com
+catadores \cite{educado-repos,psp5,dashboard}. O panorama que emerge
+dessas quatro frentes é desigual. A API concentra a base automatizada
+mais consistente: a execução da suíte resultou em 31 conjuntos e 506
+testes aprovados em 8,20~s, com cobertura de 79,36\% de instruções,
+69,26\% de branches, 78\% de funções e 78,9\% de linhas no escopo
+definido pelo \texttt{jest.config.ts} (Tabelas~\ref{tab:execucao}
+e~\ref{tab:cobertura}). O Web e o App, por sua vez, possuem apenas um
+teste de fumaça cada, cuja função é validar a infraestrutura de testes e
+não os comportamentos da aplicação; suas coberturas recém coletadas
+confirmam essa lacuna de forma direta, ficando abaixo de 1\% em todas as
+métricas medidas em ambos os repositórios (Tabela~\ref{tab:cobertura}).
+A frente de campo, por fim, avalia usabilidade e jornada real com os
+catadores, mas não se conecta à suíte automatizada nem gera barreira de
+regressão no CI \cite{psp5,dashboard}.
 
-A conclusão deve consolidar:
+Entre os pontos fortes está o fato de que o projeto já tem material
+concreto para evoluir: automação madura na API, workflows de CI já
+integrados a pull requests nos três repositórios, um processo de
+contribuição que exige evidência de testes e uma frente de validação com
+usuários reais que cobre aspectos que a suíte automatizada não mede,
+como compreensão da interface e autonomia de uso
+(Tabela~\ref{tab:pontosfortes}). A execução da suíte também não
+encontrou testes falhos em nenhum dos repositórios, o que indica que a
+infraestrutura existente funciona de forma confiável, ainda que limitada
+em escopo.
 
-\begin{itemize}
-    \item como o projeto realiza seus testes;
-    \item quais são os principais pontos fortes;
-    \item quais são as principais limitações;
-    \item quais melhorias são mais importantes;
-    \item a avaliação geral da equipe sobre a estratégia.
-\end{itemize}
+As principais limitações, no entanto, atingem justamente o comportamento
+integrado do produto. A proteção automatizada do Web, foco principal
+deste relatório, permanece mínima, sem cobertura de autenticação,
+permissões, formulários ou integração com a API. Não foram encontrados
+testes de sistema ou end-to-end em nenhum dos repositórios, de modo que
+nenhum teste hoje valida o funcionamento conjunto entre interface, API,
+autenticação e persistência. Os achados da frente de campo, por sua vez,
+não se transformam em critérios de aceite versionados, de forma que
+problemas reais de usabilidade podem reaparecer sem alerta automático
+(Tabela~\ref{tab:limitacoes}). A execução da suíte revelou ainda um
+risco adicional, independente de cobertura: o comando \texttt{npm audit}
+identificou vulnerabilidades de dependências nos três repositórios,
+sendo 23 no \texttt{educado-app} (6 de severidade alta), 11 na API (3 de
+severidade alta) e 1 de baixa severidade no Web.
 
-A conclusão não deve apenas repetir os resultados apresentados
-anteriormente. Deve apresentar a posição consolidada da equipe
-sobre a adequação da estratégia de testes do projeto.
+As melhorias mais importantes identificadas pela equipe são, em ordem de
+prioridade: ampliar a suíte do Web com testes unitários e de componente,
+priorizando autenticação, formulários, permissões e o cliente HTTP;
+adicionar testes de integração HTTP na API e cenários de integração do
+Web contra seus contratos, complementando os testes hoje baseados
+majoritariamente em mocks; implementar uma suíte enxuta de testes
+end-to-end para os fluxos Web mais críticos, como login, criação e
+publicação de curso; e transformar os achados recorrentes da avaliação
+de campo em critérios de aceite e, quando possível, testes automatizados
+de interface (Tabela~\ref{tab:recomendacoes}).
+
+Em síntese, a equipe avalia a estratégia de testes do Educado como
+\textbf{insuficiente} diante do escopo do produto. O projeto possui
+peças úteis, entre elas uma suíte robusta na API, infraestrutura de CI
+funcional nos três repositórios e uma frente de validação com usuários
+reais, mas essas peças não formam, como conjunto, uma proteção
+equilibrada: o Web, foco principal desta análise, permanece com
+cobertura próxima de zero, e nenhuma das quatro frentes garante hoje que
+mudanças no produto preservem fluxos críticos, metas de qualidade e
+comportamentos observados em campo.
