@@ -3,6 +3,9 @@ build/
 relatorios/*/build/
 *.pdf
 
+# Permitir PDF dentro da pasta /figuras
+!relatorios/01-estrategia-de-testes/figuras/**/*.pdf
+
 # o guia da equipe e versionado de proposito
 !docs/*.pdf
 *.aux
