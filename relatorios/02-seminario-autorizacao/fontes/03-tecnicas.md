@@ -2,7 +2,7 @@
 
 ## Modelo de teste e matriz de decisão
 
-O teste deve começar por uma matriz que relacione **sujeito**, **recurso**, **operação** e **resultado esperado**.
+O teste começa por uma matriz com **sujeito**, **recurso**, **operação** e **resultado esperado**.
 Por exemplo, para um estudante (`S1`), um professor (`S2`) e um administrador (`S3`):
 
 | Sujeito | Recurso | Operação | Resultado esperado |
@@ -14,9 +14,9 @@ Por exemplo, para um estudante (`S1`), um professor (`S2`) e um administrador (`
 | `S2` | Função de administração | Excluir usuário | Negar |
 | `S3` | Usuário e política | Administrar | Permitir, com controles adicionais para operações críticas |
 
-A matriz torna explícita a diferença entre uma permissão funcional e uma relação de propriedade.
-O caso de teste deve registrar precondições, usuário, token ou sessão, recurso, requisição, resultado esperado e evidência (status, corpo, efeito persistido e logs).
-`403` exige verificar que o dado não foi retornado nem alterado.
+A matriz diferencia permissão funcional de propriedade.
+O caso registra precondições, usuário, token ou sessão, recurso, requisição, resultado esperado e evidência (status, corpo, efeito persistido e logs).
+Um `403` isolado não basta: é necessário verificar que o dado não foi retornado nem alterado.
 Toda execução deve usar dados descartáveis em ambiente local ou de homologação [@owasp-wstg; @owasp-authorization].
 
 ## Acesso anônimo e navegação forçada
@@ -40,14 +40,14 @@ Repetir para leitura, atualização e exclusão, usando IDs sequenciais e UUIDs.
 **Vantagem:** reproduz falha de alto impacto com alteração pequena e observável.
 **Limitação:** exige dados de usuários distintos e pode não revelar autorização contextual.
 
-Testar IDs em exportações e anexos; identificador difícil não autoriza.
+Testar também IDs em exportações e anexos; identificador difícil não é autorização.
 O resultado para o objeto alheio é uma negativa consistente, sem vazamento de existência, metadados ou efeitos [@owasp-api1; @owasp-top10-2025].
 
 ## Escalonamento vertical e fluxos administrativos
 
 **Objetivo:** impedir que um usuário comum execute operações reservadas a papéis superiores.
 **Procedimento:** comparar as matrizes de estudante, professor e administrador; repetir requisições administrativas com o token de menor privilégio; tentar acessar rotas de gestão, alterar papéis e excluir contas.
-Para cada negativa, verificar ausência de mudança no banco ou fila.
+Para cada negativa, verificar que não houve mudança no banco ou em fila.
 **Falha detectada:** escalonamento vertical, endpoint administrativo sem verificação de papel, papel amplo demais ou separação de responsabilidades ausente.
 **Vantagem:** testa o impacto mais severo.
 **Limitação:** aprovações múltiplas e expiração exigem cenários longos.
