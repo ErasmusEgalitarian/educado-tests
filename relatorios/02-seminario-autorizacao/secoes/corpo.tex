@@ -1,0 +1,889 @@
+\hypertarget{introduuxe7uxe3o}{%
+\section{Introdução}\label{introduuxe7uxe3o}}
+
+Este relatório apresenta a primeira entrega do seminário de testes de
+características de qualidade da disciplina FGA0314, Testes de Software.
+O tema escolhido pela equipe é \textbf{testes de autorização e controle
+de acesso}, aplicado às APIs REST e à interface Web do projeto Educado
+{[}1{]}.
+
+Autorização é a subcaracterística de segurança que decide se um sujeito
+já identificado pode executar uma operação sobre um recurso. Falhas
+nesse controle ocupam a primeira posição do OWASP Top 10:2025 {[}2{]}, o
+que justifica tratá-la como objeto de teste próprio, separado da
+autenticação.
+
+O documento está organizado da seguinte forma: a Seção 2 fundamenta os
+conceitos de autorização e os modelos de controle de acesso; a Seção 3
+apresenta as normas e referências usadas para avaliá-la; a Seção 4
+descreve as técnicas de teste; a Seção 5 compara ferramentas de apoio; a
+Seção 6 define métricas e uma proposta de aplicação ao Educado; a Seção
+7 discute limitações e conclui.
+
+Esta entrega é de pesquisa e planejamento. Nenhum teste foi executado no
+Educado e nenhum resultado experimental é apresentado. Observações sobre
+o código do projeto são tratadas como hipóteses de teste, não como
+vulnerabilidades confirmadas.
+
+\hypertarget{fundamentauxe7uxe3o-de-autorizauxe7uxe3o}{%
+\section{Fundamentação de
+autorização}\label{fundamentauxe7uxe3o-de-autorizauxe7uxe3o}}
+
+\hypertarget{o-que-uxe9-autorizauxe7uxe3o}{%
+\subsection{O que é autorização?}\label{o-que-uxe9-autorizauxe7uxe3o}}
+
+Autorização é o processo de decidir se uma solicitação deve ser
+permitida ou negada de acordo com uma política de acesso. Ela responde a
+perguntas como ``este usuário pode consultar este prontuário?'' ou
+``este serviço pode excluir este registro?''. O conceito não se confunde
+com \textbf{identificação}, que associa uma entidade a um identificador,
+nem com \textbf{autenticação}, que verifica se quem apresenta esse
+identificador consegue demonstrar que é seu titular. Assim, informar um
+nome de usuário identifica, apresentar uma credencial válida autentica e
+avaliar o que a identidade autenticada pode fazer autoriza. A
+autenticação pode fornecer dados confiáveis para a decisão, mas não
+concede, por si só, acesso a todos os recursos {[}3{]}.
+
+Uma decisão de acesso relaciona cinco elementos. O \textbf{sujeito} é a
+entidade que solicita o acesso, como uma pessoa, processo ou serviço. O
+\textbf{recurso} é o objeto protegido, por exemplo uma página, arquivo,
+registro, campo ou função administrativa. A \textbf{operação} expressa a
+ação pretendida, como ler, criar, alterar, aprovar ou excluir. A
+\textbf{política} estabelece as condições sob as quais essa combinação é
+permitida. Por fim, a \textbf{decisão de acesso} é o resultado da
+avaliação --- normalmente permitir ou negar --- que deve ser
+efetivamente aplicado pelo mecanismo de controle. Logo, autorizar não
+significa apenas reconhecer um perfil geral: significa avaliar um
+sujeito, uma operação e um recurso concretos no contexto da política
+aplicável {[}3{]}.
+
+\hypertarget{princuxedpios-de-proteuxe7uxe3o}{%
+\subsection{Princípios de
+proteção}\label{princuxedpios-de-proteuxe7uxe3o}}
+
+Quatro princípios orientam um projeto de autorização seguro. O
+\textbf{menor privilégio} determina que cada sujeito receba somente as
+permissões necessárias para executar sua tarefa e apenas pelo tempo
+necessário. Isso reduz tanto a superfície disponível a um invasor quanto
+o dano causado por erro ou comprometimento de uma conta. A
+\textbf{negação por padrão} exige que uma solicitação seja recusada
+quando nenhuma regra a autorizar explicitamente; uma funcionalidade nova
+ou uma combinação imprevista de condições não deve se tornar pública por
+omissão {[}4{]}, {[}5{]}.
+
+A \textbf{mediação completa} requer que toda tentativa de acesso seja
+verificada, e não apenas a primeira ação de uma sessão. Uma tela
+escondida, uma resposta anterior em cache ou a aprovação de acesso a um
+recurso do mesmo tipo não substituem a verificação do objeto e da
+operação atuais. Em aplicações Web, isso implica validar a autorização
+no lado confiável do servidor em cada requisição, inclusive nas APIs,
+sem depender de botões ocultos ou de verificações em JavaScript {[}4{]},
+{[}5{]}.
+
+A \textbf{separação de responsabilidades} evita concentrar poderes
+incompatíveis em uma única pessoa ou função. Uma operação sensível pode
+exigir condições independentes ou participação de sujeitos distintos;
+por exemplo, quem cadastra um pagamento não deveria também aprová-lo.
+Essa separação reduz fraude e abuso e pode ser expressa como restrições
+de papéis ou como etapas diferentes de um fluxo. Ela complementa o menor
+privilégio: além de limitar a quantidade de permissões, limita
+combinações perigosas delas {[}4{]}, {[}6{]}.
+
+\hypertarget{modelos-de-controle-de-acesso}{%
+\subsection{Modelos de controle de
+acesso}\label{modelos-de-controle-de-acesso}}
+
+No \textbf{controle de acesso baseado em papéis} (\emph{Role-Based
+Access Control}, RBAC), permissões são associadas a papéis que
+representam funções organizacionais, como estudante, professor ou
+administrador, e os sujeitos recebem um ou mais desses papéis. O modelo
+simplifica a administração e favorece menor privilégio e separação de
+responsabilidades, mas papéis excessivamente amplos podem continuar
+concedendo acesso indevido {[}6{]}.
+
+O \textbf{controle por propriedade} acrescenta uma relação entre sujeito
+e recurso. Estar autenticado e poder usar a função ``editar'' não basta:
+a aplicação confirma se o registro pertence ao solicitante ou está sob
+sua responsabilidade. Por exemplo, um estudante pode alterar a própria
+entrega, mas não a de outro estudante apenas trocando um identificador
+na URL. A propriedade deve ser verificada no servidor e pode coexistir
+com RBAC --- um professor, por exemplo, pode acessar entregas somente
+das turmas pelas quais é responsável {[}2{]}.
+
+No \textbf{controle de acesso baseado em atributos}
+(\emph{Attribute-Based Access Control}, ABAC), a política avalia
+atributos do sujeito, do recurso, da operação e, quando necessário, do
+ambiente. Uma regra pode permitir a leitura quando o sujeito pertence ao
+mesmo departamento do documento, possui credencial ativa e realiza a
+solicitação durante determinado período. O ABAC representa condições
+mais contextuais e granulares que papéis isolados, embora exija
+atributos confiáveis e políticas cuidadosamente administradas {[}3{]}.
+
+\hypertarget{por-que-uxe9-importante-em-aplicauxe7uxf5es-web}{%
+\subsection{Por que é importante em aplicações
+Web?}\label{por-que-uxe9-importante-em-aplicauxe7uxf5es-web}}
+
+Aplicações Web expõem recursos e operações por rotas, formulários e APIs
+acessíveis a clientes que não são confiáveis. O navegador mostra somente
+a interface prevista, mas um solicitante pode alterar URLs,
+identificadores, métodos HTTP e corpos de requisição. Por isso,
+autenticar a sessão ou esconder controles visuais não protege os objetos
+subjacentes. A autorização precisa acompanhar cada ponto de entrada e
+aplicar as mesmas regras de negócio a páginas, APIs e recursos
+estáticos. A OWASP mantém falhas de controle de acesso na primeira
+posição de seu levantamento de riscos para aplicações Web, o que
+evidencia a relevância prática do problema {[}2{]}.
+
+\hypertarget{quais-problemas-podem-ocorrer}{%
+\subsection{Quais problemas podem
+ocorrer?}\label{quais-problemas-podem-ocorrer}}
+
+Uma falha pode causar \textbf{exposição indevida}, quando alguém lê
+dados pessoais, documentos ou informações de outra conta;
+\textbf{alteração indevida}, quando modifica registros que não controla;
+ou \textbf{exclusão indevida}, quando destrói dados por uma operação que
+deveria estar restrita. Esses impactos comprometem, respectivamente,
+confidencialidade, integridade e disponibilidade, além de poderem gerar
+consequências legais e operacionais.
+
+Também pode ocorrer \textbf{escalonamento horizontal de privilégios}, no
+qual um usuário acessa recursos de outro usuário de nível semelhante, ou
+\textbf{escalonamento vertical}, no qual obtém capacidades superiores,
+como as de moderador ou administrador. No caso mais grave, a falha
+permite executar operações administrativas: criar contas privilegiadas,
+alterar políticas, aprovar transações, exportar bases ou remover
+conteúdos. Referências diretas inseguras a objetos, endpoints sem
+verificação e confiança em controles do cliente são caminhos comuns para
+esses resultados {[}2{]}, {[}5{]}. Portanto, a autorização é a barreira
+que transforma identidade autenticada em acesso limitado, justificável e
+coerente com as responsabilidades de cada sujeito.
+
+\hypertarget{normas-e-referuxeancias-para-avaliauxe7uxe3o-de-autorizauxe7uxe3o}{%
+\section{Normas e referências para avaliação de
+autorização}\label{normas-e-referuxeancias-para-avaliauxe7uxe3o-de-autorizauxe7uxe3o}}
+
+\hypertarget{qualidade-do-produto-e-conscientizauxe7uxe3o}{%
+\subsection{Qualidade do produto e
+conscientização}\label{qualidade-do-produto-e-conscientizauxe7uxe3o}}
+
+A ISO/IEC 25010:2023, segunda edição, integra a família SQuaRE e define
+um modelo de qualidade de produto com nove características, subdivididas
+em subcaracterísticas. O modelo orienta a especificação de requisitos,
+os objetivos de teste e os critérios de aceitação durante o ciclo de
+vida {[}7{]}. Para este seminário, a autorização é examinada no âmbito
+da segurança: restringir a leitura protege a confidencialidade, enquanto
+restringir alterações e exclusões protege a integridade. Essa relação
+orienta a avaliação, mas precisa ser traduzida em regras concretas sobre
+sujeitos, recursos e operações; a norma não constitui, por si só, um
+roteiro de testes de endpoints.
+
+O OWASP Top 10:2025 é uma referência de \textbf{conscientização} sobre
+riscos de aplicações Web {[}8{]}. A categoria \textbf{A01 --- Broken
+Access Control} reúne situações em que usuários ultrapassam suas
+permissões, como acessar registros alheios, alcançar funções
+administrativas ou contornar verificações manipulando requisições. Suas
+recomendações incluem negação por padrão, verificação em código
+confiável no servidor e controle da propriedade dos registros {[}9{]}. A
+categoria ajuda a justificar prioridades, mas sua posição no ranking não
+demonstra que o Educado tenha essas vulnerabilidades. Também não fornece
+cobertura suficiente para declarar uma aplicação segura: \textbf{ASVS e
+WSTG oferecem requisitos e procedimentos mais diretamente testáveis}.
+
+\hypertarget{requisitos-selecionados-do-asvs}{%
+\subsection{Requisitos selecionados do
+ASVS}\label{requisitos-selecionados-do-asvs}}
+
+O OWASP Application Security Verification Standard \textbf{5.0.0},
+capítulo \textbf{V8 --- Authorization}, permite especificar o
+comportamento esperado. Selecionam-se os requisitos abaixo; o prefixo da
+versão evita ambiguidades entre edições {[}10{]}.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Requisito
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Nível
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Verificação selecionada
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{v5.0.0-8.1.1} & 1 & Documentar regras de acesso a funções e
+dados, considerando permissões e atributos dos recursos. \\
+\texttt{v5.0.0-8.1.2} & 2 & Documentar restrições de leitura e escrita
+por campo. \\
+\texttt{v5.0.0-8.2.1} & 1 & Restringir funções a sujeitos com permissão
+explícita. \\
+\texttt{v5.0.0-8.2.2} & 1 & Restringir cada objeto aos sujeitos
+autorizados. \\
+\texttt{v5.0.0-8.2.3} & 2 & Restringir campos específicos conforme as
+permissões. \\
+\texttt{v5.0.0-8.3.1} & 1 & Aplicar as regras em camada confiável, sem
+depender do cliente. \\
+\end{longtable}
+
+Os itens de documentação permitem definir o oráculo dos testes: uma
+matriz de sujeitos, operações, objetos e campos com decisões esperadas.
+Os demais orientam verificações positivas e negativas contra essa
+matriz. A seleção combina requisitos dos níveis 1 e 2; não equivale à
+verificação integral de qualquer nível do ASVS.
+
+\hypertarget{procedimentos-do-wstg}{%
+\subsection{Procedimentos do WSTG}\label{procedimentos-do-wstg}}
+
+O OWASP Web Security Testing Guide \textbf{4.2}, seção 4.5, descreve
+quatro procedimentos de autorização. Neste mapeamento, os
+identificadores incluem a versão \texttt{v42} para preservar a
+rastreabilidade.
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{WSTG-v42-ATHZ-01 --- Directory Traversal/File Include:}
+  investigar parâmetros que referenciam arquivos e tentativas de acesso
+  fora dos limites permitidos; aplica-se quando existirem
+  funcionalidades de arquivos ou inclusão {[}11{]}.
+\item
+  \textbf{WSTG-v42-ATHZ-02 --- Bypassing Authorization Schema:} repetir
+  requisições sem autenticação, após logout e com outras identidades ou
+  papéis, procurando desvios horizontais e verticais; relaciona-se aos
+  requisitos \texttt{8.2.1}, \texttt{8.2.2} e \texttt{8.3.1} {[}12{]}.
+\item
+  \textbf{WSTG-v42-ATHZ-03 --- Privilege Escalation:} manipular
+  parâmetros de grupo ou perfil e verificar obtenção de capacidades
+  indevidas; relaciona-se a \texttt{8.2.1} e, quando a alteração envolve
+  campos protegidos, a \texttt{8.2.3} {[}13{]}.
+\item
+  \textbf{WSTG-v42-ATHZ-04 --- Insecure Direct Object References:}
+  substituir referências de objetos usando contas com permissões
+  conhecidas e verificar acesso indevido; operacionaliza especialmente
+  \texttt{8.2.2} {[}14{]}.
+\end{itemize}
+
+Essas relações são uma proposta de organização do seminário, não uma
+equivalência oficial ou exaustiva entre os documentos. No planejamento,
+cada caso deve registrar precondições, identidade, recurso, operação e
+resultado esperado. A avaliação deve considerar os dados retornados e os
+efeitos persistidos, além do código HTTP: uma mensagem de erro não basta
+se a operação proibida ocorrer.
+
+\hypertarget{apis-e-classificauxe7uxe3o-das-fraquezas}{%
+\subsection{APIs e classificação das
+fraquezas}\label{apis-e-classificauxe7uxe3o-das-fraquezas}}
+
+O \textbf{OWASP API Security Top 10:2023} detalha três dimensões
+complementares. \textbf{API1 --- Broken Object Level Authorization}
+trata da permissão sobre o objeto solicitado: poder chamar uma função
+não autoriza consultar qualquer registro {[}15{]}. \textbf{API3 ---
+Broken Object Property Level Authorization} trata das propriedades desse
+objeto, tanto na exposição de campos quanto na alteração indevida;
+corresponde ao foco de \texttt{8.2.3} {[}16{]}. \textbf{API5 --- Broken
+Function Level Authorization} trata do acesso à própria função, como
+executar uma operação administrativa com um perfil comum; corresponde ao
+foco de \texttt{8.2.1} {[}17{]}. Assim, testar somente a troca de
+identificadores deixa descobertas as permissões sobre campos e funções.
+
+Como vocabulário de classificação, adota-se o catálogo \textbf{CWE 5.0},
+preservado em arquivo versionado {[}18{]}. \textbf{CWE-862} identifica
+ausência de verificação de autorização; \textbf{CWE-863}, uma
+verificação existente, porém incorreta; \textbf{CWE-639}, acesso a dados
+de outro usuário pela alteração de uma chave controlável pelo
+solicitante {[}19{]}, {[}20{]}, {[}21{]}. O último se relaciona a
+cenários de API1 e ATHZ-04, sem tornar BOLA, IDOR e CWE-639 sinônimos
+universais. A classificação deve acompanhar a causa demonstrada,
+evitando atribuir automaticamente todas as categorias a um mesmo caso.
+
+\hypertarget{comparauxe7uxe3o-e-uso-conjunto}{%
+\subsection{Comparação e uso
+conjunto}\label{comparauxe7uxe3o-e-uso-conjunto}}
+
+A tabela sintetiza o papel das referências apresentadas.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2500}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Referência e versão
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Objetivo
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Escopo
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Uso na avaliação
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+ISO/IEC 25010:2023 & Organizar a qualidade & Produtos de software e TIC
+& Definir objetivos e critérios de qualidade. \\
+OWASP Top 10:2025 & Conscientizar sobre riscos & Aplicações Web; A01 &
+Justificar prioridade para autorização. \\
+ASVS 5.0.0, V8 & Especificar requisitos verificáveis & Documentação e
+controles de autorização & Definir resultados esperados e cobertura. \\
+WSTG 4.2, seção 4.5 & Orientar procedimentos & Testes de segurança Web &
+Estruturar tentativas de contorno. \\
+API Security Top 10:2023 & Evidenciar riscos de APIs & Objetos,
+propriedades e funções & Diversificar cenários de autorização. \\
+CWE 5.0: 862, 863 e 639 & Classificar fraquezas & Causas e mecanismos de
+falha & Padronizar a descrição de eventuais achados. \\
+\end{longtable}
+
+Para a futura aplicação ao Educado, propõe-se encadear objetivo de
+qualidade, risco, requisito, procedimento e classificação. A política
+real do projeto deverá determinar quais combinações são permitidas e
+quais casos se aplicam. Esta entrega estabelece referências para esse
+planejamento, sem executar testes nem afirmar resultados experimentais.
+
+\hypertarget{tuxe9cnicas-de-teste-de-autorizauxe7uxe3o-e-controle-de-acesso}{%
+\section{Técnicas de teste de autorização e controle de
+acesso}\label{tuxe9cnicas-de-teste-de-autorizauxe7uxe3o-e-controle-de-acesso}}
+
+\hypertarget{modelo-de-teste-e-matriz-de-decisuxe3o}{%
+\subsection{Modelo de teste e matriz de
+decisão}\label{modelo-de-teste-e-matriz-de-decisuxe3o}}
+
+O teste começa por uma matriz com \textbf{sujeito}, \textbf{recurso},
+\textbf{operação} e \textbf{resultado esperado}. Por exemplo, para um
+estudante (\texttt{S1}), um professor (\texttt{S2}) e um administrador
+(\texttt{S3}):
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2500}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Sujeito
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Recurso
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Operação
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Resultado esperado
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Anônimo & Perfil de estudante & Ler & Negar (401 ou redirecionamento
+para login) \\
+\texttt{S1} & Sua própria entrega & Ler/alterar & Permitir \\
+\texttt{S1} & Entrega de outro estudante & Ler/alterar & Negar (403 ou
+resposta indistinguível) \\
+\texttt{S2} & Entrega de estudante de sua turma & Ler/avaliar &
+Permitir \\
+\texttt{S2} & Função de administração & Excluir usuário & Negar \\
+\texttt{S3} & Usuário e política & Administrar & Permitir, com controles
+adicionais para operações críticas \\
+\end{longtable}
+
+A matriz diferencia permissão funcional de propriedade. O caso registra
+precondições, usuário, token ou sessão, recurso, requisição, resultado
+esperado e evidência (status, corpo, efeito persistido e logs). Um
+\texttt{403} isolado não basta: é necessário verificar que o dado não
+foi retornado nem alterado. Toda execução deve usar dados descartáveis
+em ambiente local ou de homologação {[}5{]}, {[}22{]}.
+
+\hypertarget{acesso-anuxf4nimo-e-navegauxe7uxe3o-foruxe7ada}{%
+\subsection{Acesso anônimo e navegação
+forçada}\label{acesso-anuxf4nimo-e-navegauxe7uxe3o-foruxe7ada}}
+
+\textbf{Objetivo:} confirmar que recursos protegidos exigem autenticação
+e autorização no servidor. \textbf{Procedimento:} sem cookies, tokens ou
+cabeçalhos de autenticação, acessar diretamente páginas, APIs e arquivos
+previsíveis; depois repetir com conta autenticada, mas sem o papel
+necessário. Testar a rota mesmo quando o menu não a apresenta.
+\textbf{Falha detectada:} conteúdo privado entregue a anônimos, endpoint
+que aceita uma sessão insuficiente ou confiança no redirecionamento e no
+controle visual do cliente. \textbf{Vantagem:} é simples, barato e
+encontra rotas esquecidas. \textbf{Limitação:} não cobre relações entre
+objetos ou regras condicionais.
+
+O frontend pode esconder um botão, mas o usuário consegue construir a
+requisição fora do navegador. A decisão confiável é a aplicada pelo
+servidor em cada requisição {[}5{]}.
+
+\hypertarget{escalonamento-horizontal-bolaidor-e-adulterauxe7uxe3o-de-identificadores}{%
+\subsection{Escalonamento horizontal, BOLA/IDOR e adulteração de
+identificadores}\label{escalonamento-horizontal-bolaidor-e-adulterauxe7uxe3o-de-identificadores}}
+
+\textbf{Objetivo:} verificar se um usuário com a mesma função acessa
+apenas os próprios objetos. \textbf{Procedimento:} criar dois usuários
+do mesmo nível, obter um recurso de cada um e substituir, em URL, query,
+corpo ou caminho, o identificador pelo do outro. Repetir para leitura,
+atualização e exclusão, usando IDs sequenciais e UUIDs. \textbf{Falha
+detectada:} BOLA/IDOR, quando o servidor aceita a referência ao objeto
+sem conferir a relação entre sujeito e recurso. \textbf{Vantagem:}
+reproduz falha de alto impacto com alteração pequena e observável.
+\textbf{Limitação:} exige dados de usuários distintos e pode não revelar
+autorização contextual.
+
+Testar também IDs em exportações e anexos; identificador difícil não é
+autorização. O resultado para o objeto alheio é uma negativa
+consistente, sem vazamento de existência, metadados ou efeitos {[}2{]},
+{[}23{]}.
+
+\hypertarget{escalonamento-vertical-e-fluxos-administrativos}{%
+\subsection{Escalonamento vertical e fluxos
+administrativos}\label{escalonamento-vertical-e-fluxos-administrativos}}
+
+\textbf{Objetivo:} impedir que um usuário comum execute operações
+reservadas a papéis superiores. \textbf{Procedimento:} comparar as
+matrizes de estudante, professor e administrador; repetir requisições
+administrativas com o token de menor privilégio; tentar acessar rotas de
+gestão, alterar papéis e excluir contas. Para cada negativa, verificar
+que não houve mudança no banco ou em fila. \textbf{Falha detectada:}
+escalonamento vertical, endpoint administrativo sem verificação de
+papel, papel amplo demais ou separação de responsabilidades ausente.
+\textbf{Vantagem:} testa o impacto mais severo. \textbf{Limitação:}
+aprovações múltiplas e expiração exigem cenários longos.
+
+Testar a alteração do próprio papel e a criação de outro administrador,
+além da operação final. Alterar o papel enviado ou guardado no cliente
+(campo \texttt{role}, \texttt{localStorage} ou token não assinado) e
+confirmar que o servidor o ignora. Ações críticas podem exigir
+reautenticação ou segunda autoridade {[}5{]}.
+
+\hypertarget{muxe9todo-http-e-autorizauxe7uxe3o-por-campo}{%
+\subsection{Método HTTP e autorização por
+campo}\label{muxe9todo-http-e-autorizauxe7uxe3o-por-campo}}
+
+\textbf{Objetivo:} verificar que a autorização permanece correta quando
+a forma da requisição muda. \textbf{Procedimento:} para recurso somente
+de leitura, trocar \texttt{GET} por \texttt{POST}, \texttt{PUT},
+\texttt{PATCH} ou \texttt{DELETE}; testar
+\texttt{X-HTTP-Method-Override} e variantes de rota. Adicionar ao JSON
+campos como \texttt{role}, \texttt{ownerId}, \texttt{approved} ou
+\texttt{status} e tentar alterá-los com operação permitida.
+\textbf{Falha detectada:} autorização aplicada a uma rota ou método, mas
+não a outro, e \emph{mass assignment} que permite ao cliente controlar
+atributos reservados. \textbf{Vantagem:} encontra inconsistências entre
+controladores e mapeamentos. \textbf{Limitação:} requer conhecer o
+contrato.
+
+O resultado esperado é validar cada combinação de operação e campo no
+servidor, aceitando apenas atributos permitidos para aquele sujeito. Não
+se deve confundir filtragem visual do formulário com uma lista de campos
+autorizados {[}24{]}.
+
+\hypertarget{testes-manuais-automatizados-e-orientados-por-openapi}{%
+\subsection{Testes manuais, automatizados e orientados por
+OpenAPI}\label{testes-manuais-automatizados-e-orientados-por-openapi}}
+
+Testes manuais exploram fluxos novos, interpretam regras de negócio e
+confirmam evidências. Testes automatizados repetem a matriz para
+usuários e identificadores, detectam regressões e comparam status, corpo
+e efeitos. Testes orientados por OpenAPI geram casos de rotas, métodos,
+parâmetros e esquemas documentados. Sua limitação é estrutural: um
+contrato incompleto não descreve autorização, propriedade ou transições
+de negócio, e a geração não substitui cenários com contas relacionadas
+{[}25{]}.
+
+Uma estratégia equilibrada automatiza casos de alto risco, usa a
+especificação como inventário e reserva exploração manual para regras
+contextuais. Cada falha deve preservar requisição e resposta
+sanitizadas, usuário de teste e estado inicial, sem expor segredos.
+Ferramentas devem ficar em ambientes locais ou de homologação, com
+autorização explícita e taxa controlada. O objetivo é demonstrar a
+decisão de acesso e seu impacto, não contornar controles em sistemas de
+terceiros.
+
+\hypertarget{ferramentas-para-testes-de-autorizauxe7uxe3o}{%
+\section{Ferramentas para testes de
+autorização}\label{ferramentas-para-testes-de-autorizauxe7uxe3o}}
+
+Testar autorização exige observar a aplicação como cliente externo, por
+requisições em uma suíte ou pelo comportamento da interface. Este texto
+compara cinco alternativas --- OWASP ZAP com Access Control Testing,
+Playwright com \texttt{APIRequestContext}, Vitest, Schemathesis e Burp
+Suite Community com Autorize --- quanto a funcionamento, licença,
+automação, CI, múltiplos usuários, vantagens e limitações, priorizando
+opções open source alinhadas ao Educado {[}1{]}.
+
+\hypertarget{owasp-zap-e-o-add-on-access-control-testing}{%
+\subsection{OWASP ZAP e o add-on Access Control
+Testing}\label{owasp-zap-e-o-add-on-access-control-testing}}
+
+O OWASP ZAP é um proxy DAST sob Apache 2.0 {[}26{]}. O add-on Access
+Control Testing define usuários e autenticação, cadastra regras por
+contexto e tenta acessar cada URL como cada usuário, sinalizando
+violações {[}27{]}. A automação usa Automation Framework, API, CLI e
+Docker; o CI é viável com GitHub Action {[}26{]}. Múltiplos usuários são
+nativos. As vantagens são cobertura ampla e detecção automatizada. As
+limitações incluem configuração de contexto, dependência de exploração
+prévia em SPAs e falsos positivos ou negativos {[}27{]}.
+
+\hypertarget{playwright-com-apirequestcontext}{%
+\subsection{Playwright com
+APIRequestContext}\label{playwright-com-apirequestcontext}}
+
+O Playwright é uma biblioteca de automação de navegadores e testes de
+API sob Apache 2.0 {[}28{]}. O \texttt{APIRequestContext} dispara HTTP
+sem abrir página, em contextos isolados com cookies e cabeçalhos
+próprios {[}29{]}, permitindo comparar perfis: um estudante recebe
+\texttt{403} ao alterar recurso alheio; um professor autorizado recebe
+\texttt{200}. A automação ocorre por CLI, com CI por ações oficiais
+{[}28{]}. Múltiplos usuários decorrem de contextos isolados e do estado
+de autenticação. As vantagens são API e interface na mesma ferramenta e
+controle por requisição. As limitações são a ausência de descoberta
+automática e a manutenção manual.
+
+\hypertarget{vitest-para-guards-e-comportamentos-do-frontend}{%
+\subsection{Vitest para guards e comportamentos do
+frontend}\label{vitest-para-guards-e-comportamentos-do-frontend}}
+
+O Vitest é um executor de testes unitários e de componentes sobre Vite,
+sob licença MIT {[}30{]}. Roda em jsdom e simula funções, módulos e
+requisições, sendo adequado para guards de rota, renderização por perfil
+e mensagens de negação {[}30{]}. A automação ocorre por
+\texttt{npm\ test} ou \texttt{vitest\ run}, e o CI executa o script.
+Múltiplos usuários são simulados por mocks. As vantagens são velocidade,
+integração com o \texttt{educado-web} e baixo custo de regressão. As
+limitações são decisivas: não prova autorização no servidor, mocks podem
+divergir da API e a ferramenta não substitui um teste de segurança.
+
+\hypertarget{schemathesis-para-operauxe7uxf5es-descritas-por-openapi}{%
+\subsection{Schemathesis para operações descritas por
+OpenAPI}\label{schemathesis-para-operauxe7uxf5es-descritas-por-openapi}}
+
+O Schemathesis gera testes baseados em propriedades a partir de OpenAPI,
+GraphQL ou gRPC, sob licença MIT {[}31{]}. Ele produz entradas válidas e
+inválidas, verifica erros de servidor e violações de contrato e, com
+verificações personalizadas, compara respostas entre credenciais para
+detectar autorização quebrada em nível de objeto {[}31{]}. A automação
+ocorre por CLI ou \texttt{pytest}, com CI por ação oficial {[}31{]}.
+Múltiplos usuários dependem de autenticação configurada e de
+verificações próprias. As vantagens são geração automática e achados
+reproduzíveis. As limitações são a exigência de especificação completa,
+verificações manuais e efeitos colaterais nos dados.
+
+\hypertarget{burp-suite-community-e-autorize}{%
+\subsection{Burp Suite Community e
+Autorize}\label{burp-suite-community-e-autorize}}
+
+O Burp Suite Community é proprietário e gratuito, voltado ao teste
+manual, sem o scanner da versão Professional {[}32{]}. O Autorize é uma
+extensão open source que repete requisições com baixo privilégio ou sem
+autenticação e compara respostas, apoiando a detecção de IDOR {[}33{]}.
+A automação limita-se à interceptação, sem CI oficial, mas há suporte a
+vários perfis. Vantagens: uso exploratório; limitações: heurísticas,
+ajuste manual e ausência de pipeline.
+
+\hypertarget{comparauxe7uxe3o}{%
+\subsection{Comparação}\label{comparauxe7uxe3o}}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Ferramenta
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Licença
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Automação/CI
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Múltiplos usuários
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Limitação
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+ZAP + Access Control Testing & Apache 2.0 & CLI, API, Docker e GitHub
+Action & Sim, nativo & Configuração e falsos positivos \\
+Playwright + APIRequestContext & Apache 2.0 & CLI e ações de CI & Sim,
+contextos isolados & Não descobre falhas \\
+Vitest & MIT & \texttt{vitest\ run} no pipeline & Simulado por mocks &
+Não valida o servidor \\
+Schemathesis & MIT & CLI, \texttt{pytest} e ação de CI & Configurável &
+Depende da especificação \\
+Burp Community + Autorize & Proprietária e open source & Manual; sem CI
+oficial & Sim, vários perfis & Heurístico \\
+\end{longtable}
+
+\hypertarget{recomendauxe7uxe3o}{%
+\subsection{Recomendação}\label{recomendauxe7uxe3o}}
+
+A estratégia principal combina Playwright e OWASP ZAP. O Playwright
+cobre cenários conhecidos e repetíveis, comparando respostas entre
+perfis na API e na interface {[}29{]}. O ZAP percorre a aplicação e
+confronta o acesso de cada usuário com as regras declaradas, encontrando
+rotas esquecidas {[}27{]}. O Vitest complementa o frontend com guards e
+mensagens de negação, sem provar a segurança do backend {[}30{]}.
+Schemathesis é útil quando houver OpenAPI confiável {[}31{]}, e
+Burp/Autorize fica como alternativa manual não prioritária {[}33{]}.
+Nenhuma ferramenta foi instalada ou executada.
+
+\hypertarget{limitauxe7uxf5es-e-conclusuxe3o}{%
+\section{Limitações e conclusão}\label{limitauxe7uxf5es-e-conclusuxe3o}}
+
+\hypertarget{limitauxe7uxf5es}{%
+\subsection{Limitações}\label{limitauxe7uxf5es}}
+
+O trabalho se limita à pesquisa e ao planejamento. As técnicas,
+ferramentas e métricas descritas não foram aplicadas ao Educado nesta
+entrega, então nenhuma afirmação deste documento deve ser lida como
+resultado de teste. A matriz de autorização proposta parte da leitura do
+código e da documentação do projeto e precisa ser validada contra o
+comportamento real da \texttt{educado-api}, que é onde a decisão de
+acesso efetivamente acontece. A execução futura deve ocorrer apenas em
+ambiente local ou de homologação autorizado, com dados descartáveis.
+
+\hypertarget{conclusuxe3o}{%
+\subsection{Conclusão}\label{conclusuxe3o}}
+
+Autorização pode ser testada de forma sistemática quando a política é
+explicitada como uma matriz de sujeito, recurso, operação e resultado
+esperado. As referências estudadas se complementam: o OWASP Top 10
+indica a relevância do risco, o ASVS fornece requisitos verificáveis, o
+WSTG descreve procedimentos de teste e o CWE classifica as fraquezas
+encontradas {[}2{]}. Para o Educado, a equipe propõe combinar
+Playwright, para cenários conhecidos e repetíveis entre perfis, com o
+OWASP ZAP, para a varredura de rotas, usando Vitest apenas como
+complemento no frontend. A próxima etapa do seminário é executar o plano
+em ambiente controlado e medir os resultados com as métricas definidas.
+
+\hypertarget{bibliography}{%
+\section*{Referências}\label{bibliography}}
+\addcontentsline{toc}{section}{Referências}
+
+\hypertarget{refs}{}
+\begin{CSLReferences}{0}{0}
+\leavevmode\vadjust pre{\hypertarget{ref-educado-repos}{}}%
+\CSLLeftMargin{{[}1{]} }%
+\CSLRightInline{ErasmusEgalitarian, {``Repositórios do projeto Educado:
+educado-api, educado-web, educado-app e educado-docs''}. GitHub, 2026.
+Acessado: 12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://github.com/ErasmusEgalitarian}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-owasp-top10-2025}{}}%
+\CSLLeftMargin{{[}2{]} }%
+\CSLRightInline{OWASP Foundation, {``A01:2025 Broken Access Control''}.
+Acessado: 12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://top10.owasp.org/2025/A01_2025-Broken_Access_Control/index.html}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-nist-sp800-162}{}}%
+\CSLLeftMargin{{[}3{]} }%
+\CSLRightInline{V. C. Hu \emph{et al.}, {``Guide to Attribute Based
+Access Control ({ABAC}) Definition and Considerations''}, National
+Institute of Standards; Technology, NIST Special Publication 800-162,
+2014. doi:
+\href{https://doi.org/10.6028/NIST.SP.800-162}{10.6028/NIST.SP.800-162}.}
+
+\leavevmode\vadjust pre{\hypertarget{ref-saltzer-schroeder-1975}{}}%
+\CSLLeftMargin{{[}4{]} }%
+\CSLRightInline{J. H. Saltzer e M. D. Schroeder, {``The Protection of
+Information in Computer Systems''}, \emph{Proceedings of the IEEE}, vol.
+63, nº 9, p. 1278--1308, 1975, doi:
+\href{https://doi.org/10.1109/PROC.1975.9939}{10.1109/PROC.1975.9939}.}
+
+\leavevmode\vadjust pre{\hypertarget{ref-owasp-authorization}{}}%
+\CSLLeftMargin{{[}5{]} }%
+\CSLRightInline{OWASP Foundation, {``Authorization Cheat Sheet''}.
+Acessado: 12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-ferraiolo-kuhn-1992}{}}%
+\CSLLeftMargin{{[}6{]} }%
+\CSLRightInline{D. F. Ferraiolo e D. R. Kuhn, {``Role-Based Access
+Controls''}, em \emph{Proceedings of the 15th National Computer Security
+Conference}, Baltimore, MD, 1992, p. 554--563. Acessado: 12 de novembro
+de 2026. {[}Online{]}. Disponível em:
+\url{https://csrc.nist.gov/CSRC/media/Publications/conference-paper/1992/10/13/role-based-access-controls/documents/ferraiolo-kuhn-92.pdf}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-rel02-iso25010-2023}{}}%
+\CSLLeftMargin{{[}7{]} }%
+\CSLRightInline{ISO/IEC, {``Systems and software engineering --- Systems
+and software Quality Requirements and Evaluation ({SQuaRE}) --- Product
+quality model''}, International Organization for Standardization,
+ISO/IEC 25010:2023, 2023. Acessado: 12 de novembro de 2026.
+{[}Online{]}. Disponível em:
+\url{https://www.iso.org/standard/78176.html}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-rel02-top10-2025}{}}%
+\CSLLeftMargin{{[}8{]} }%
+\CSLRightInline{OWASP Foundation, {``{OWASP Top 10:2025}''}. 2025.
+Acessado: 12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://top10.owasp.org/2025/}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-rel02-top10-a01-2025}{}}%
+\CSLLeftMargin{{[}9{]} }%
+\CSLRightInline{OWASP Foundation, {``{OWASP Top 10:2025} --- {A01:2025
+Broken Access Control}''}. 2025. Acessado: 12 de novembro de 2026.
+{[}Online{]}. Disponível em:
+\url{https://top10.owasp.org/2025/A01_2025-Broken_Access_Control/index.html}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-rel02-asvs-5}{}}%
+\CSLLeftMargin{{[}10{]} }%
+\CSLRightInline{OWASP Foundation, {``{Application Security Verification
+Standard 5.0.0} --- {V8 Authorization}''}. 2025. Acessado: 12 de
+novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x17-V8-Authorization.md}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-rel02-wstg42-athz01}{}}%
+\CSLLeftMargin{{[}11{]} }%
+\CSLRightInline{OWASP Foundation, {``{Web Security Testing Guide 4.2}
+--- Testing Directory Traversal File Include''}. 2020. Acessado: 12 de
+novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://wstg.owasp.org/v4.2/4-Web_Application_Security_Testing/05-Authorization_Testing/01-Testing_Directory_Traversal_File_Include/}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-rel02-wstg42-athz02}{}}%
+\CSLLeftMargin{{[}12{]} }%
+\CSLRightInline{OWASP Foundation, {``{Web Security Testing Guide 4.2}
+--- Testing for Bypassing Authorization Schema''}. 2020. Acessado: 12 de
+novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://wstg.owasp.org/v4.2/4-Web_Application_Security_Testing/05-Authorization_Testing/02-Testing_for_Bypassing_Authorization_Schema/}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-rel02-wstg42-athz03}{}}%
+\CSLLeftMargin{{[}13{]} }%
+\CSLRightInline{OWASP Foundation, {``{Web Security Testing Guide 4.2}
+--- Testing for Privilege Escalation''}. 2020. Acessado: 12 de novembro
+de 2026. {[}Online{]}. Disponível em:
+\url{https://wstg.owasp.org/v4.2/4-Web_Application_Security_Testing/05-Authorization_Testing/03-Testing_for_Privilege_Escalation/}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-rel02-wstg42-athz04}{}}%
+\CSLLeftMargin{{[}14{]} }%
+\CSLRightInline{OWASP Foundation, {``{Web Security Testing Guide 4.2}
+--- Testing for Insecure Direct Object References''}. 2020. Acessado: 12
+de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://wstg.owasp.org/v4.2/4-Web_Application_Security_Testing/05-Authorization_Testing/04-Testing_for_Insecure_Direct_Object_References/}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-rel02-api1-2023}{}}%
+\CSLLeftMargin{{[}15{]} }%
+\CSLRightInline{OWASP Foundation, {``{OWASP API Security Top 10:2023}
+--- {API1:2023 Broken Object Level Authorization}''}. 2023. Acessado: 12
+de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://api-security.owasp.org/editions/2023/en/0xa1-broken-object-level-authorization/}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-rel02-api3-2023}{}}%
+\CSLLeftMargin{{[}16{]} }%
+\CSLRightInline{OWASP Foundation, {``{OWASP API Security Top 10:2023}
+--- {API3:2023 Broken Object Property Level Authorization}''}. 2023.
+Acessado: 12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://api-security.owasp.org/editions/2023/en/0xa3-broken-object-property-level-authorization/}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-rel02-api5-2023}{}}%
+\CSLLeftMargin{{[}17{]} }%
+\CSLRightInline{OWASP Foundation, {``{OWASP API Security Top 10:2023}
+--- {API5:2023 Broken Function Level Authorization}''}. 2023. Acessado:
+12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://api-security.owasp.org/editions/2023/en/0xa5-broken-function-level-authorization/}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-rel02-cwe5}{}}%
+\CSLLeftMargin{{[}18{]} }%
+\CSLRightInline{MITRE, {``{Common Weakness Enumeration (CWE)}, Version
+5.0''}. 2026. Acessado: 12 de novembro de 2026. {[}Online{]}. Disponível
+em: \url{https://cwe.mitre.org/data/xml/cwec_v5.0.xml.zip}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-rel02-cwe862}{}}%
+\CSLLeftMargin{{[}19{]} }%
+\CSLRightInline{MITRE, {``{CWE-862: Missing Authorization}''}. 2026.
+Acessado: 12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://cwe.mitre.org/data/definitions/862.html}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-rel02-cwe863}{}}%
+\CSLLeftMargin{{[}20{]} }%
+\CSLRightInline{MITRE, {``{CWE-863: Incorrect Authorization}''}. 2026.
+Acessado: 12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://cwe.mitre.org/data/definitions/863.html}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-rel02-cwe639}{}}%
+\CSLLeftMargin{{[}21{]} }%
+\CSLRightInline{MITRE, {``{CWE-639: Authorization Bypass Through
+User-Controlled Key}''}. 2026. Acessado: 12 de novembro de 2026.
+{[}Online{]}. Disponível em:
+\url{https://cwe.mitre.org/data/definitions/639.html}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-owasp-wstg}{}}%
+\CSLLeftMargin{{[}22{]} }%
+\CSLRightInline{OWASP Foundation, {``Web Security Testing Guide:
+Authorization Testing''}. Acessado: 12 de novembro de 2026.
+{[}Online{]}. Disponível em:
+\url{https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/05-Authorization_Testing/}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-owasp-api1}{}}%
+\CSLLeftMargin{{[}23{]} }%
+\CSLRightInline{OWASP Foundation, {``API1:2023 Broken Object Level
+Authorization''}. Acessado: 12 de novembro de 2026. {[}Online{]}.
+Disponível em:
+\url{https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-owasp-api3}{}}%
+\CSLLeftMargin{{[}24{]} }%
+\CSLRightInline{OWASP Foundation, {``API3:2023 Broken Object Property
+Level Authorization''}. Acessado: 12 de novembro de 2026. {[}Online{]}.
+Disponível em:
+\url{https://owasp.org/API-Security/editions/2023/en/0xa3-broken-object-property-level-authorization/}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-openapi-spec}{}}%
+\CSLLeftMargin{{[}25{]} }%
+\CSLRightInline{OpenAPI Initiative, {``OpenAPI Specification''}.
+Acessado: 12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://spec.openapis.org/oas/latest.html}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-zap}{}}%
+\CSLLeftMargin{{[}26{]} }%
+\CSLRightInline{ZAP by Checkmarx, {``OWASP ZAP''}. Acessado: 12 de
+novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://www.zaproxy.org/}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-zap-access-control}{}}%
+\CSLLeftMargin{{[}27{]} }%
+\CSLRightInline{ZAP by Checkmarx, {``Access Control Testing''}.
+Acessado: 12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://www.zaproxy.org/docs/desktop/addons/access-control-testing/}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-playwright}{}}%
+\CSLLeftMargin{{[}28{]} }%
+\CSLRightInline{Microsoft, {``Playwright documentation''}. Acessado: 12
+de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://playwright.dev/docs/intro}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-playwright-api-request}{}}%
+\CSLLeftMargin{{[}29{]} }%
+\CSLRightInline{Microsoft, {``{APIRequestContext}''}. Acessado: 12 de
+novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://playwright.dev/docs/api/class-apirequestcontext}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-vitest}{}}%
+\CSLLeftMargin{{[}30{]} }%
+\CSLRightInline{Vitest contributors, {``Vitest: Getting Started''}.
+Acessado: 12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://vitest.dev/guide/}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-schemathesis}{}}%
+\CSLLeftMargin{{[}31{]} }%
+\CSLRightInline{Schemathesis contributors, {``Schemathesis
+documentation''}. Acessado: 12 de novembro de 2026. {[}Online{]}.
+Disponível em: \url{https://schemathesis.readthedocs.io/en/stable/}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-burp-community}{}}%
+\CSLLeftMargin{{[}32{]} }%
+\CSLRightInline{PortSwigger, {``Burp Suite Community Edition''}.
+Acessado: 12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://portswigger.net/burp/communitydownload}}
+
+\leavevmode\vadjust pre{\hypertarget{ref-autorize}{}}%
+\CSLLeftMargin{{[}33{]} }%
+\CSLRightInline{B. Tawily, {``Autorize: automatic authorization
+enforcement detection extension for Burp Suite''}. Acessado: 12 de
+novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://github.com/PortSwigger/autorize}}
+
+\end{CSLReferences}
