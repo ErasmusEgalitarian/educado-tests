@@ -24,7 +24,10 @@
 \newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{#1}\break}
 \newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
 \providecommand{\passthrough}[1]{#1}
-\def\LTcaptype{none}
+% Pandoc emite \def\LTcaptype{none} em tabela sem legenda; o counter precisa existir.
+\newcounter{none}
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtable}{\footnotesize\setlength{\tabcolsep}{3pt}}
 
 \begin{document}
 

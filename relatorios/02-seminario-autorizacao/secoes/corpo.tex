@@ -166,7 +166,7 @@ autorização}\label{normas-e-referuxeancias-para-avaliauxe7uxe3o-de-autorizauxe
 \subsection{Qualidade do produto e
 conscientização}\label{qualidade-do-produto-e-conscientizauxe7uxe3o}}
 
-A ISO/IEC 25010:2023, segunda edição, integra a família SQuaRE e define
+A ISO/\allowbreak{}IEC 25010:2023, segunda edição, integra a família SQuaRE e define
 um modelo de qualidade de produto com nove características, subdivididas
 em subcaracterísticas. O modelo orienta a especificação de requisitos,
 os objetivos de teste e os critérios de aceitação durante o ciclo de
@@ -245,7 +245,7 @@ rastreabilidade.
 \begin{itemize}
 \tightlist
 \item
-  \textbf{WSTG-v42-ATHZ-01 --- Directory Traversal/File Include:}
+  \textbf{WSTG-v42-ATHZ-01 --- Directory Traversal/\allowbreak{}File Include:}
   investigar parâmetros que referenciam arquivos e tentativas de acesso
   fora dos limites permitidos; aplica-se quando existirem
   funcionalidades de arquivos ou inclusão {[}11{]}.
@@ -324,7 +324,7 @@ Uso na avaliação
 \endhead
 \bottomrule\noalign{}
 \endlastfoot
-ISO/IEC 25010:2023 & Organizar a qualidade & Produtos de software e TIC
+ISO/\allowbreak{}IEC 25010:2023 & Organizar a qualidade & Produtos de software e TIC
 & Definir objetivos e critérios de qualidade. \\
 OWASP Top 10:2025 & Conscientizar sobre riscos & Aplicações Web; A01 &
 Justificar prioridade para autorização. \\
@@ -378,10 +378,10 @@ Resultado esperado
 \endlastfoot
 Anônimo & Perfil de estudante & Ler & Negar (401 ou redirecionamento
 para login) \\
-\texttt{S1} & Sua própria entrega & Ler/alterar & Permitir \\
-\texttt{S1} & Entrega de outro estudante & Ler/alterar & Negar (403 ou
+\texttt{S1} & Sua própria entrega & Ler/\allowbreak{}alterar & Permitir \\
+\texttt{S1} & Entrega de outro estudante & Ler/\allowbreak{}alterar & Negar (403 ou
 resposta indistinguível) \\
-\texttt{S2} & Entrega de estudante de sua turma & Ler/avaliar &
+\texttt{S2} & Entrega de estudante de sua turma & Ler/\allowbreak{}avaliar &
 Permitir \\
 \texttt{S2} & Função de administração & Excluir usuário & Negar \\
 \texttt{S3} & Usuário e política & Administrar & Permitir, com controles
@@ -415,7 +415,7 @@ requisição fora do navegador. A decisão confiável é a aplicada pelo
 servidor em cada requisição {[}5{]}.
 
 \hypertarget{escalonamento-horizontal-bolaidor-e-adulterauxe7uxe3o-de-identificadores}{%
-\subsection{Escalonamento horizontal, BOLA/IDOR e adulteração de
+\subsection{Escalonamento horizontal, BOLA/\allowbreak{}IDOR e adulteração de
 identificadores}\label{escalonamento-horizontal-bolaidor-e-adulterauxe7uxe3o-de-identificadores}}
 
 \textbf{Objetivo:} verificar se um usuário com a mesma função acessa
@@ -423,7 +423,7 @@ apenas os próprios objetos. \textbf{Procedimento:} criar dois usuários
 do mesmo nível, obter um recurso de cada um e substituir, em URL, query,
 corpo ou caminho, o identificador pelo do outro. Repetir para leitura,
 atualização e exclusão, usando IDs sequenciais e UUIDs. \textbf{Falha
-detectada:} BOLA/IDOR, quando o servidor aceita a referência ao objeto
+detectada:} BOLA/\allowbreak{}IDOR, quando o servidor aceita a referência ao objeto
 sem conferir a relação entre sujeito e recurso. \textbf{Vantagem:}
 reproduz falha de alto impacto com alteração pequena e observável.
 \textbf{Limitação:} exige dados de usuários distintos e pode não revelar
@@ -595,7 +595,7 @@ Ferramenta
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
 Licença
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
-Automação/CI
+Automação/\allowbreak{}CI
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
 Múltiplos usuários
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
@@ -627,8 +627,655 @@ confronta o acesso de cada usuário com as regras declaradas, encontrando
 rotas esquecidas {[}27{]}. O Vitest complementa o frontend com guards e
 mensagens de negação, sem provar a segurança do backend {[}30{]}.
 Schemathesis é útil quando houver OpenAPI confiável {[}31{]}, e
-Burp/Autorize fica como alternativa manual não prioritária {[}33{]}.
+Burp/\allowbreak{}Autorize fica como alternativa manual não prioritária {[}33{]}.
 Nenhuma ferramenta foi instalada ou executada.
+
+\hypertarget{muxe9tricas-e-proposta-de-aplicauxe7uxe3o}{%
+\section{Métricas e Proposta de
+aplicação}\label{muxe9tricas-e-proposta-de-aplicauxe7uxe3o}}
+
+\hypertarget{objetivo-e-fronteira}{%
+\subsection{Objetivo e fronteira}\label{objetivo-e-fronteira}}
+
+Avaliar se a API REST do Educado permite que cada ator execute somente
+as operações e acesse somente os dados autorizados para seu papel e sua
+relação com cada objeto. O foco é autorização horizontal (um usuário
+acessando dados de outro), vertical (um papel de menor privilégio
+executando funções administrativas), adulteração de identificadores e de
+campos sensíveis.
+
+A autorização efetiva deve ser validada na
+\textbf{\texttt{educado-api}}, diretamente nos endpoints HTTP.
+
+\hypertarget{atores-de-teste}{%
+\subsubsection{Atores de teste}\label{atores-de-teste}}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2500}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Ator
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Identificação de teste
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Papel/\allowbreak{}token
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Uso
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Anônimo & -- & Sem token & Verificar recursos protegidos e recursos
+públicos limitados \\
+\texttt{USER} & U1, criador de conteúdo & \texttt{USER} & Acessar perfil
+e conteúdo que possui; tentar ações de outro proprietário e
+administrativas \\
+\texttt{ADMIN} & ADM1 & \texttt{ADMIN} & Verificar funções
+administrativas e acesso transversal explicitamente autorizado \\
+Estudante A & A & \texttt{STUDENT} & Consultar/\allowbreak{}alterar somente perfil,
+matrícula, progresso e certificados próprios \\
+Estudante B & B & \texttt{STUDENT} & Identidade diferente de A com o
+mesmo papel; fornecer objetos de B para testes de isolamento \\
+\end{longtable}
+
+\hypertarget{poluxedtica-inicial-e-matriz-de-autorizauxe7uxe3o}{%
+\subsection{Política inicial e matriz de
+autorização}\label{poluxedtica-inicial-e-matriz-de-autorizauxe7uxe3o}}
+
+\hypertarget{legenda}{%
+\subsubsection{Legenda}\label{legenda}}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Público limitado:} leitura de catálogo ou verificação pública,
+  sem dados privados nem operações de escrita.
+\item
+  \textbf{Próprio:} somente o próprio perfil/\allowbreak{}objeto do ator autenticado.
+\item
+  \textbf{Próprio curso:} autor \texttt{USER} pode atuar nos cursos,
+  seções, atividades e mídias que possui; \texttt{ADMIN} pode atuar em
+  qualquer um.
+\item
+  \textbf{Elegível:} estudante pode consultar conteúdo disponibilizado
+  para estudantes e responder atividades permitidas.
+\item
+  \textbf{Admin:} somente funções administrativas explicitamente
+  previstas.
+\item
+  \textbf{Negado:} a operação não deve ser autorizada.
+\end{itemize}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Recurso
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Anônimo
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\texttt{USER} U1
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\texttt{ADMIN}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Estudante A
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Estudante B
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Perfil & Negado & Ler/\allowbreak{}alterar o próprio perfil em \texttt{/me/\allowbreak{}profile} &
+Ler/\allowbreak{}alterar o próprio perfil; consultar usuários apenas por funções
+admin autorizadas & Ler/\allowbreak{}alterar apenas o perfil A & Ler/\allowbreak{}alterar apenas o
+perfil B \\
+Cursos & Público limitado pelo catálogo (\texttt{/catalog}); sem rotas
+de autoria & Ler/\allowbreak{}criar/\allowbreak{}alterar/\allowbreak{}ativar/\allowbreak{}desativar/\allowbreak{}excluir somente cursos
+próprios & Operar cursos de qualquer autor nas funções admin previstas &
+Ler catálogo e conteúdo elegível; sem autoria & Igual a A, sem acesso ao
+estado privado de A \\
+Atividades & Leitura pública de atividades publicadas no catálogo, sem
+expor o gabarito antes da resposta; escrita negada &
+Criar/\allowbreak{}ler/\allowbreak{}alterar/\allowbreak{}excluir somente em curso próprio &
+Criar/\allowbreak{}ler/\allowbreak{}alterar/\allowbreak{}excluir em qualquer curso & Consumir e responder
+atividades elegíveis; sem CRUD nem acesso ao gabarito antes da resposta
+& Igual a A; sem alterar respostas/\allowbreak{}progresso de A \\
+Mídias & Fazer stream de mídia ativa e publicada; sem acesso a metadados
+privados & Gerenciar metadados e excluir mídia própria; fazer stream de
+qualquer mídia ativa e publicada & Administrar mídias conforme endpoint
+admin; fazer stream de mídia ativa e publicada & Fazer stream de mídia
+ativa e publicada; sem alterar/\allowbreak{}excluir & Igual a A; não acessar
+metadados privados de outros autores \\
+Instituições & Negado & Negado & Listar, consultar, criar, alterar e
+excluir & Negado & Negado \\
+Usuários & Negado; exceção para cadastro/\allowbreak{}login/\allowbreak{}verificação pública
+previstos & Consultar/\allowbreak{}alterar somente os campos próprios; não
+administrar papéis ou outros usuários & Listar/\allowbreak{}consultar e executar
+ações admin previstas, como alterar papel ou excluir usuário & Somente
+dados próprios permitidos & Somente dados próprios permitidos \\
+Matrículas & Negado & Negado & \texttt{ADMIN}: acesso administrativo a
+matrículas; discutir com a equipe quais operações e dados são permitidos
+& Listar, criar, consultar e cancelar somente matrículas de A & Somente
+matrículas de B \\
+Progresso & Negado & Negado & \texttt{ADMIN}: acesso administrativo ao
+progresso; discutir com a equipe o escopo e as operações permitidas &
+Consultar/\allowbreak{}gravar/\allowbreak{}concluir somente progresso de A & Somente progresso de
+B \\
+Certificados & No código atual, sem autenticação:
+\texttt{GET\ /certificates/\{username\}} lista certificados,
+\texttt{POST\ /certificates} cria certificado e
+\texttt{GET\ /certificates/\allowbreak{}verify/\{code\}} retorna dados limitados.
+Discutir com a equipe se listagem e criação devem ser públicas & Sem
+listagem/\allowbreak{}download de certificados de terceiros & \texttt{ADMIN}: acesso
+administrativo a certificados; discutir com a equipe se inclui listagem,
+PDF e dados pessoais & Listar/\allowbreak{}baixar somente certificados de A & Somente
+certificados de B \\
+\end{longtable}
+
+\hypertarget{regras-de-campos-e-objetos-a-validar}{%
+\subsubsection{Regras de campos e objetos a
+validar}\label{regras-de-campos-e-objetos-a-validar}}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \texttt{ownerId}, \texttt{userId} e \texttt{role} não podem ser
+  escolhidos livremente pelo cliente para mudar a propriedade do
+  recurso, assumir identidade alheia ou elevar privilégios. A identidade
+  deve vir do token validado; a propriedade deve ser aplicada ou
+  conferida no servidor.
+\item
+  No cadastro/\allowbreak{}edição de curso, uma tentativa de enviar \texttt{ownerId}
+  de U2 não deve transferir o curso. Na criação, o proprietário esperado
+  é o ator autenticado; na edição, o proprietário não deve ser alterável
+  por \texttt{USER}.
+\item
+  Na criação de atividade, \texttt{sectionId} precisa pertencer a um
+  curso que o autor pode editar. Não basta validar que a seção existe.
+\item
+  \texttt{institutionId}, \texttt{courseId}, \texttt{mediaId}, IDs de
+  matrícula, progresso e certificado devem ser revalidados no contexto
+  do ator e da operação; UUIDs difíceis de adivinhar não substituem
+  autorização.
+\item
+  A resposta de perfil deve conter apenas campos previstos para o
+  próprio ator ou para a função admin autorizada. Campos internos,
+  credenciais e hashes nunca devem ser retornados.
+\item
+  \texttt{correctAnswer} de atividade é campo de autorização/\allowbreak{}leitura:
+  não deve ser enviado a anônimos/\allowbreak{}estudantes antes da submissão. O
+  tratamento após a submissão deve seguir a regra de feedback da
+  atividade.
+\item
+  Qualquer pessoa, inclusive anônimos e estudantes sem matrícula, pode
+  fazer stream de mídia ativa e publicada. Mídias inativas ou não
+  publicadas não devem ser transmitidas; metadados e operações de
+  escrita continuam restritos ao proprietário ou \texttt{ADMIN}.
+\end{enumerate}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.5000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.5000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Objeto/\allowbreak{}campo
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Regra inicial para verificar
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Usuário: \texttt{role}, \texttt{status} & Somente funções admin
+autorizadas; ignorar/\allowbreak{}rejeitar tentativa de alteração por \texttt{/me} ou
+endpoint de estudante \\
+Curso: \texttt{ownerId} & Derivar do ator na criação e preservar na
+edição por \texttt{USER}; não aceitar troca via corpo \\
+Atividade: \texttt{sectionId} & \texttt{USER} só pode associar a seção
+de curso próprio; \texttt{ADMIN} pode associar conforme regra do
+produto \\
+Atividade: \texttt{correctAnswer} & Escrita somente por criador/\allowbreak{}admin;
+não expor a estudante/\allowbreak{}anônimo antes da submissão \\
+Mídia: \texttt{ownerId}, chave de armazenamento e \texttt{status} & Não
+controláveis por usuário comum; metadados editáveis pelo
+proprietário/\allowbreak{}admin; acesso de leitura separado da edição \\
+Matrícula/\allowbreak{}progresso/\allowbreak{}certificado: \texttt{userId} & Derivar do
+token/\allowbreak{}registro no servidor; não aceitar ID de outro estudante vindo do
+cliente \\
+Instituição: nome, domínios e \texttt{isActive} & Escrita somente por
+\texttt{ADMIN} \\
+\end{longtable}
+
+\hypertarget{contrato-esperado-de-respostas-http}{%
+\subsection{Contrato esperado de respostas
+HTTP}\label{contrato-esperado-de-respostas-http}}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Situação
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Resposta esperada
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Critério de interpretação
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Endpoint protegido sem token, com token inválido/\allowbreak{}expirado ou identidade
+inválida & \textbf{401 Unauthorized} & Não autenticado. Não revelar
+dados nem executar a operação. \\
+Token válido, mas papel sem permissão para a função & \textbf{403
+Forbidden} & Autenticado, porém sem autorização para a função (por
+exemplo, \texttt{USER} chamando função exclusiva de \texttt{ADMIN}). \\
+Token válido, mas objeto pertence a outro ator & \textbf{403} por
+padrão. & O contrato deve ser documentado por endpoint. Se 404 for
+escolhido para ocultação, objeto alheio e inexistente devem ser
+indistinguíveis na resposta relevante. \\
+Recurso realmente inexistente & \textbf{404 Not Found} & Não confundir
+ausência do objeto com autorização bem-sucedida. \\
+Recurso alheio deliberadamente ocultado & \textbf{404 Not Found} &
+Aceitável somente se for política intencional e consistente, sem
+conteúdo ou efeito colateral. \\
+\end{longtable}
+
+Para todo resultado negado, conferir também o \textbf{estado
+antes/\allowbreak{}depois}: nenhum perfil, papel, curso, atividade, mídia, matrícula,
+progresso ou certificado pode ter sido alterado. Um código 403/404
+isolado não prova que a operação foi bloqueada.
+
+\hypertarget{catuxe1logo-de-casos-de-teste-futuros}{%
+\subsection{Catálogo de casos de teste
+futuros}\label{catuxe1logo-de-casos-de-teste-futuros}}
+
+Os casos são testes de integração HTTP orientados pela matriz.
+\texttt{U1} possui C1/M1; \texttt{U2} possui C2/M2; A e B têm
+matrículas, progresso e certificados separados. O status entre
+parênteses é alternativa somente quando a política de ocultação de
+existência for formalmente escolhida.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+ID
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Ator e cenário / chamada representativa
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Resultado e verificação de segurança
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+AT-01 & Anônimo: \texttt{GET\ /me/\allowbreak{}profile} e
+\texttt{GET\ /student/\allowbreak{}profile} sem \texttt{Authorization} &
+\texttt{401}; não retornar perfil. \\
+AT-02 & Anônimo: \texttt{POST\ /courses} e \texttt{GET\ /admin/\allowbreak{}users} &
+\texttt{401}; nenhum curso/\allowbreak{}consulta administrativa executada. \\
+AT-03 & Token ausente, malformado, expirado ou sem \texttt{sub}:
+\texttt{GET\ /student/\allowbreak{}enrollments} & \texttt{401}; nenhum dado de
+matrícula retornado. \\
+AT-04 & \texttt{USER} U1: \texttt{GET\ /admin/\allowbreak{}users} e
+\texttt{GET\ /institutions} & \texttt{403}; não retornar
+usuários/\allowbreak{}instituições. Repetir com estudante A. \\
+AT-05 & \texttt{USER} U1: \texttt{PATCH\ /admin/\allowbreak{}users/\{U1-ou-U2\}/role}
+com tentativa de se tornar \texttt{ADMIN} & \texttt{403}; papel
+persistido de U1 e de U2 permanece inalterado. \\
+AT-06 & \texttt{USER} U1: \texttt{GET\ /courses/\{C2\}} (curso de U2) &
+\texttt{403} ; não retornar conteúdo/\allowbreak{}ownerId privado de C2. \\
+AT-07 & \texttt{USER} U1: \texttt{PUT\ /courses/\{C2\}} e
+\texttt{DELETE\ /courses/\{C2\}} & \texttt{403}; Nega, deve comparar C2
+antes/\allowbreak{}depois e comprovar que título, estado e existência não mudaram. \\
+AT-08 & \texttt{USER} U1 cria curso enviando no corpo
+\texttt{ownerId=U2} e \texttt{role=ADMIN} & A operação autorizada cria
+curso com \texttt{ownerId=U1}; campos privilegiados são
+ignorados/\allowbreak{}rejeitados e o papel de U1 não muda. \\
+AT-09 & \texttt{USER} U1 cria/\allowbreak{}edita atividade em seção de C1 e tenta
+criar/\allowbreak{}editar em seção de C2 & Próprio curso: permitir. Outro curso:
+negar e não alterar C2. Confirmar pertencimento da seção ao curso no
+servidor \texttt{403}. \\
+AT-10 & Anônimo: \texttt{GET\ /activities/\{id\}} e
+\texttt{GET\ /activities/\allowbreak{}section/\{sectionId\}} para conteúdo não
+publicado, além de \texttt{POST\ /activities}; \texttt{USER} U1 não
+proprietário: \texttt{GET/\allowbreak{}PUT/\allowbreak{}DELETE\ /activities/\{id\}} de C2 &
+Restringir conteúdo privado e escrita: anônimo recebe \texttt{401} na
+escrita e não lê atividade não publicada; U1 não lê/\allowbreak{}edita/\allowbreak{}exclui a
+atividade de U2.\textbf{Hipótese:} as rotas consultadas não mostram
+middleware de autorização; confirmar contrato e resposta diretamente na
+API. \\
+AT-11 & \texttt{ADMIN}: criar/\allowbreak{}alterar/\allowbreak{}excluir atividade de curso de U2;
+comparar com AT-09 & Permite as ações ao \texttt{ADMIN}; verificar que
+\texttt{USER} não obtém o mesmo resultado; \textbf{Hipótese:} as rotas
+consultadas não mostram checagem de papel/\allowbreak{}propriedade e podem aceitar as
+operações de qualquer ator; confirmar via requisições HTTP. Isso não é
+uma vulnerabilidade confirmada.. \\
+AT-12 & Estudante A: \texttt{PUT\ /student/\allowbreak{}profile} enviando campos
+extras \texttt{userId=B} e \texttt{role=ADMIN} & Atualizar, no máximo,
+campos permitidos de A; B e os papéis de A/\allowbreak{}B permanecem inalterados. \\
+AT-13 & Estudante A: \texttt{GET\ /student/\allowbreak{}enrollments} quando B possui
+outra matrícula & \texttt{200} com dados de A apenas; matrícula
+exclusiva de B não aparece. Usar curso diferente para detectar mistura
+de registros. \\
+AT-14 & Estudante A solicita progresso de curso matriculado somente por
+B em \texttt{GET\ /student/\allowbreak{}progress/\allowbreak{}courses/\{courseId\}} e tenta
+\texttt{userId=B} em query/\allowbreak{}body nos endpoints de progresso &
+\texttt{404} conforme contrato aprovado ; em nenhuma resposta aparecem
+progresso, pontuação ou conclusão de B. \texttt{userId} deve vir do
+token. \\
+AT-15 & Estudante A:
+\texttt{GET\ /student/\allowbreak{}certificates/\{certificateB\}/pdf} & \texttt{404}
+Não encontrará por usar o id do userID passado e do token em uma
+comparação. \\
+AT-16 & Estudante B lista certificados e progresso; testar também
+identificador de A & Listas contêm somente objetos de B. Um ID de A é
+negado/\allowbreak{}ocultado, sem campos, PDF ou mudança de estado de A. \\
+AT-17 & \texttt{USER} U1: alterar metadados ou excluir M2 em
+\texttt{/media/\allowbreak{}images/\{id\}/metadata} e \texttt{/media/\allowbreak{}videos/\{id\}} &
+\texttt{403} para objeto alheio; metadados, registro e objeto de
+armazenamento permanecem inalterados. Repetir como A contra mídia
+privada de U1/U2. \\
+AT-18 & Anônimo, A e B: \texttt{GET\ /media/\{id\}/stream} para mídia
+ativa/\allowbreak{}publicada e para mídia inativa/\allowbreak{}não publicada & Mídia
+ativa/\allowbreak{}publicada: \texttt{200} para todos, sem exigir autenticação ou
+matrícula. Mídia inativa/\allowbreak{}não publicada: negar o stream e não revelar o
+conteúdo; validar o status HTTP conforme o contrato do endpoint. \\
+AT-19 & \texttt{USER} U1:
+\texttt{POST/\allowbreak{}PUT/\allowbreak{}DELETE\ /institutions/\{id\}}; \texttt{ADMIN} realiza
+operação equivalente com dados de teste & \texttt{USER}: \texttt{403} e
+estado inalterado. \texttt{ADMIN}: sucesso somente com payload válido e
+dados de teste controlados. \\
+AT-20 & \texttt{ADMIN} consulta \texttt{/admin/\allowbreak{}users}, consulta um
+usuário e altera o papel de um usuário de teste; em seguida, testar uma
+nova requisição desse usuário & Acesso admin permitido. \\
+AT-21 & \texttt{USER} U1 consulta \texttt{/me/\allowbreak{}courses} e
+\texttt{/me/\allowbreak{}media} usando diferentes valores de paginação, \texttt{kind}
+e \texttt{status} & Listagens limitadas a U1; parâmetros de consulta não
+removem a condição de propriedade. A tentativa de acessar ID de mídia de
+U2 é coberta por AT-17. \\
+AT-22 & Anônimo verifica certificado em
+\texttt{/certificates/\allowbreak{}verify/\{code\}} com código válido e inválido & A
+consulta pública retorna somente atributos explicitamente aprovados para
+verificação; não revela e-mail, progresso detalhado ou PDF. Confirmar se
+\texttt{userName}, nome do curso, total de seções, data e carga horária
+são divulgação intencional. Código inválido retorna \texttt{404}. \\
+AT-23 & Anônimo e estudante consultam
+\texttt{GET\ /catalog/\allowbreak{}courses/\{C1\}} e inspecionam atividades e campos
+retornados & A consulta pública do curso deve retornar 200 com os dados
+públicos, mas sem incluir correctAnswer nas atividades.
+\textbf{Hipótese}: A rota é publica e retornara o gabarito do curso,
+mesmo o usuário nao devendo ter acesso a ele. \\
+\end{longtable}
+
+\hypertarget{dados-de-teste-e-controles-positivos}{%
+\subsubsection{Dados de teste e controles
+positivos}\label{dados-de-teste-e-controles-positivos}}
+
+\begin{itemize}
+\tightlist
+\item
+  Criar U1 e U2 (\texttt{USER}), ADM1 (\texttt{ADMIN}), A e B
+  (\texttt{STUDENT}) com credenciais independentes.
+\item
+  Criar C1 de U1 e C2 de U2, cada um com seção e atividade; configurar
+  mídia própria, mídia de curso publicada e mídia inativa.
+\item
+  Criar matrícula, progresso e certificado para A e B em cursos
+  distintos, sem reutilizar IDs.
+\item
+  Incluir controles positivos: U1 administra C1/M1; U2 administra C2/M2;
+  A e B consultam os próprios recursos; ADM1 executa as funções
+  administrativas previstas. Eles detectam falsos positivos (negações
+  indevidas).
+\item
+  Para cada tentativa negada, registrar resposta HTTP e consultar
+  novamente o banco e os dados de teste por um ator autorizado para
+  confirmar ausência de mutação.
+\end{itemize}
+
+\hypertarget{muxe9tricas-e-crituxe9rios-de-sucesso}{%
+\subsection{Métricas e critérios de
+sucesso}\label{muxe9tricas-e-crituxe9rios-de-sucesso}}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Métrica
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Fórmula
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Critério de sucesso proposto
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Cobertura de regras & Regras com ao menos um teste positivo e um
+negativo ÷ regras aplicáveis inventariadas × 100 & \textbf{100\%} \\
+Cobertura de funções & Pares método HTTP--endpoint sensíveis com
+autorização testada ÷ pares sensíveis inventariados × 100 &
+\textbf{100\%} \\
+Cobertura de objetos & Combinações próprias, alheias e inexistentes
+previstas e exercitadas ÷ combinações planejadas aplicáveis × 100 &
+\textbf{100\%} \\
+Cobertura de campos & Campos sensíveis inventariados com leitura/\allowbreak{}escrita
+permitida e negada testadas ÷ campos sensíveis inventariados × 100 &
+\textbf{100\%} \\
+Tentativas negadas bloqueadas & Tentativas não autorizadas sem
+dado/\allowbreak{}efeito indevido ÷ total de tentativas não autorizadas executadas ×
+100 & \textbf{100\%} \\
+Bypasses confirmados & Número de operações/\allowbreak{}dados não autorizados que
+foram obtidos ou alterados & \textbf{0} \\
+Falsos positivos & Operações legítimas de controle negadas ÷ operações
+legítimas de controle executadas × 100 & \textbf{0\%} \\
+Integridade após negação & Tentativas negadas sem mutação persistida ÷
+tentativas negadas com estado verificado × 100 & \textbf{100\%} \\
+Rastreabilidade ASVS & Requisitos ASVS aplicáveis com ao menos um caso
+associado ÷ requisitos ASVS aplicáveis selecionados × 100 &
+\textbf{100\%} \\
+Severidade & Contagem de falhas confirmadas por severidade após
+validação e análise de impacto & Registrar \textbf{100\%} das falhas com
+severidade; \textbf{0 críticas/\allowbreak{}altas abertas} como condição para aceite
+futuro \\
+\end{longtable}
+
+\hypertarget{severidade-proposta-para-triagem}{%
+\subsubsection{Severidade proposta para
+triagem}\label{severidade-proposta-para-triagem}}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Crítica:} acesso administrativo/\allowbreak{}sistêmico sem autorização ou
+  alteração ampla de dados/\allowbreak{}contas.
+\item
+  \textbf{Alta:} leitura ou alteração não autorizada de dados pessoais,
+  certificados, progresso, papéis ou conteúdo de múltiplos usuários.
+\item
+  \textbf{Média:} acesso/\allowbreak{}alteração indevida de escopo limitado, sem
+  evidência de impacto amplo.
+\item
+  \textbf{Baixa:} exposição de informação de baixo impacto ou falha com
+  efeito muito restrito.
+\end{itemize}
+
+Classificar somente após reproduzir o resultado no ambiente autorizado,
+registrar evidência e estimar impacto. Uma hipótese derivada de leitura
+de código não recebe severidade como se fosse achado confirmado.
+
+\hypertarget{rastreabilidade-ao-owasp-asvs}{%
+\subsection{Rastreabilidade ao OWASP
+ASVS}\label{rastreabilidade-ao-owasp-asvs}}
+
+Referência escolhida: \textbf{OWASP ASVS 5.0.0}, capítulo V8
+Authorization.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+ASVS 5.0.0
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Aplicação ao planejamento
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Casos relacionados
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+V8.1.1 & Documentar regras de autorização por função e dados/\allowbreak{}objetos &
+Matriz; AT-04 a AT-11, AT-19 a AT-22 \\
+V8.1.2 & Documentar restrições de leitura e escrita por campo & Regras
+de campos; AT-05, AT-08, AT-12, AT-14, AT-22, AT-23 \\
+V8.2.1 & Restringir funções a consumidores com permissão explícita &
+AT-01 a AT-05, AT-10, AT-11, AT-19, AT-20 \\
+V8.2.2 & Restringir dados específicos e mitigar IDOR/\allowbreak{}BOLA & AT-06,
+AT-07, AT-09, AT-13 a AT-18, AT-21 \\
+V8.2.3 & Restringir acesso a propriedades/\allowbreak{}campos e mitigar BOPLA &
+AT-05, AT-08, AT-12, AT-14, AT-22, AT-23 \\
+V8.3.1 & Aplicar autorização em camada confiável do servidor, não só no
+cliente & Todos; chamadas diretas à \texttt{educado-api} \\
+V8.3.2 & Aplicar mudanças de permissão de forma efetiva, inclusive em
+sessões/\allowbreak{}tokens & AT-05 e AT-20; política de revogação/\allowbreak{}expiração a
+confirmar \\
+V8.4.1 & Controles entre instituições/\allowbreak{}tenants & AT-19 e casos adicionais
+após confirmar o modelo multi-instituição \\
+\end{longtable}
+
+V8.1.3, V8.1.4, V8.2.4 e V8.4.2 tratam atributos contextuais/\allowbreak{}adaptativos
+ou controles administrativos de nível mais amplo e ficam fora do escopo
+inicial, salvo requisito do produto que os torne aplicáveis. A cobertura
+não deve ser declarada para requisitos excluídos.
+
+\hypertarget{hipuxf3teses-do-cuxf3digo-a-confirmar-nuxe3o-suxe3o-vulnerabilidades-confirmadas}{%
+\subsection{Hipóteses do código a confirmar (não são vulnerabilidades
+confirmadas)}\label{hipuxf3teses-do-cuxf3digo-a-confirmar-nuxe3o-suxe3o-vulnerabilidades-confirmadas}}
+
+Na leitura estática usada para definir os cenários, foram observados
+pontos que justificam testes, mas não provam falha em execução:
+
+\begin{itemize}
+\tightlist
+\item
+  Há verificações de papel no middleware e nas funções administrativas;
+  há também checagens de propriedade em serviços de curso e de mídia. Os
+  testes devem verificar as rotas e os efeitos completos, não apenas a
+  existência desses helpers.
+\item
+  As rotas REST de atividades consultadas não mostram middleware de
+  autorização no próprio arquivo. AT-09 a AT-11 validarão a política
+  esperada de dono do curso/\allowbreak{}admin e confirmarão como os endpoints se
+  comportam via API.
+\item
+  A projeção de atividades no detalhe público do catálogo inclui o
+  atributo \texttt{correctAnswer}, e a verificação pública do
+  certificado retorna \texttt{userName}, curso, total de seções, data e
+  carga horária. Isso motiva AT-22/AT-23 para confirmar a política de
+  divulgação campo a campo; não é uma conclusão de vulnerabilidade.
+\item
+  O stream de mídia tem lógica própria de token e trata estudantes
+  diferentemente de leitores de metadados. AT-18 verificará que qualquer
+  pessoa consegue transmitir mídia ativa e publicada, independentemente
+  de autenticação ou matrícula, e que mídia inativa/\allowbreak{}não publicada não é
+  transmitida.
+\item
+  O mapeamento atual distingue \texttt{USER}, \texttt{ADMIN} e
+  \texttt{STUDENT}. Para esta proposta, \texttt{USER} significa autor de
+  conteúdo e estudantes A/\allowbreak{}B são contas diferentes com papel
+  \texttt{STUDENT}.
+\end{itemize}
+
+Qualquer desvio deve ser reproduzido, comparado ao contrato aprovado,
+confirmado quanto à ausência/\allowbreak{}presença de efeito e registrado como
+resultado somente depois da execução autorizada.
+
+\hypertarget{pruxe9-requisitos-limites-e-seguranuxe7a-operacional}{%
+\subsection{Pré-requisitos, limites e segurança
+operacional}\label{pruxe9-requisitos-limites-e-seguranuxe7a-operacional}}
+
+\begin{itemize}
+\tightlist
+\item
+  Executar \textbf{somente em ambiente local ou homologação com
+  autorização explícita}; nunca contra produção, usuários reais ou
+  serviços de terceiros.
+\item
+  Usar banco e armazenamento de mídia isolados, contas sintéticas e IDs
+  gerados para teste. Não reutilizar tokens, segredos ou dados pessoais
+  reais.
+\item
+  Preparar backups e limpeza dos dados de teste, além de registrar os
+  estados iniciais para provar que tentativas negadas não alteraram
+  dados.
+\item
+  Manter alcance limitado aos endpoints e cenários acordados. Não
+  realizar força bruta, varredura indiscriminada ou tentativas contra
+  infraestrutura externa.
+\item
+  Confirmar previamente a ocultação de objetos com 404, administração de
+  matrículas/\allowbreak{}progresso/\allowbreak{}certificados, escopo de acesso de ADMIN e
+  isolamento por instituição.
+\item
+  Este plano não implementa nem executa os testes e não apresenta
+  resultados experimentais.
+\end{itemize}
+
+\hypertarget{fontes-consultadas-nesta-seuxe7uxe3o}{%
+\subsection{Fontes consultadas nesta
+seção}\label{fontes-consultadas-nesta-seuxe7uxe3o}}
+
+\begin{itemize}
+\tightlist
+\item
+  OWASP. \textbf{Application Security Verification Standard (ASVS),
+  versão estável 5.0.0}, V8 Authorization:
+  \href{https://github.com/OWASP/ASVS/blob/v5.0.0_release/5.0/en/0x17-V8-Authorization.md}{requisitos
+  V8} e
+  \href{https://github.com/OWASP/ASVS/releases/tag/v5.0.0_release}{release
+  estável}.
+\item
+  OWASP. \textbf{Authorization Cheat Sheet}:
+  \href{https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html}{cheatsheetseries.owasp.org}.
+\item
+  Código consultado para delimitar as superfícies (sem concluir
+  vulnerabilidade):
+  \href{../educado-api/src/interface/http/middlewares/auth-jwt.ts}{middleware
+  de autenticação},
+  \href{../educado-api/src/interface/http/middlewares/require-role.ts}{middleware
+  de papel},
+  \href{../educado-api/src/application/courses/course-access-service.ts}{acesso
+  a cursos},
+  \href{../educado-api/src/application/media/media-access-service.ts}{acesso
+  a mídias},
+  \href{../educado-api/src/routes/activities/activities.ts}{rotas de
+  atividades}, \href{../educado-api/src/routes/student/student.ts}{rotas
+  de estudante} e
+  \href{../educado-api/src/routes/admin/registrations.ts}{rotas
+  administrativas}.
+\end{itemize}
 
 \hypertarget{limitauxe7uxf5es-e-conclusuxe3o}{%
 \section{Limitações e conclusão}\label{limitauxe7uxf5es-e-conclusuxe3o}}
@@ -709,10 +1356,10 @@ de 2026. {[}Online{]}. Disponível em:
 
 \leavevmode\vadjust pre{\hypertarget{ref-rel02-iso25010-2023}{}}%
 \CSLLeftMargin{{[}7{]} }%
-\CSLRightInline{ISO/IEC, {``Systems and software engineering --- Systems
+\CSLRightInline{ISO/\allowbreak{}IEC, {``Systems and software engineering --- Systems
 and software Quality Requirements and Evaluation ({SQuaRE}) --- Product
 quality model''}, International Organization for Standardization,
-ISO/IEC 25010:2023, 2023. Acessado: 12 de novembro de 2026.
+ISO/\allowbreak{}IEC 25010:2023, 2023. Acessado: 12 de novembro de 2026.
 {[}Online{]}. Disponível em:
 \url{https://www.iso.org/standard/78176.html}}
 
