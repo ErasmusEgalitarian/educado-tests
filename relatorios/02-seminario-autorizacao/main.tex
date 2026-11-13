@@ -1,0 +1,40 @@
+% ============================================================================
+% FGA0314 - TESTES DE SOFTWARE
+% SEMINÁRIO: TESTES DE AUTORIZAÇÃO E CONTROLE DE ACESSO (EDUCADO)
+%
+% O conteúdo é escrito em Markdown (fontes/) e convertido por ./gerar.sh
+% para secoes/corpo.tex, com citações IEEE via Pandoc + ieee.csl.
+% NÃO edite secoes/corpo.tex à mão: edite fontes/*.md e rode ./gerar.sh.
+% ============================================================================
+
+\documentclass[12pt,a4paper]{article}
+
+\input{../../comum/preambulo}
+\input{equipe}
+
+% Macros que o Pandoc emite e o preâmbulo comum não define.
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{calc}
+\newlength{\cslhangindent}\setlength{\cslhangindent}{1.5em}
+\newlength{\csllabelwidth}\setlength{\csllabelwidth}{3em}
+\newlength{\cslentryspacingunit}\setlength{\cslentryspacingunit}{\parskip}
+\newenvironment{CSLReferences}[2]{\setlength{\parindent}{0pt}\setlength{\parskip}{#2\cslentryspacingunit}}{}
+\newcommand{\CSLBlock}[1]{#1\hfill\break}
+\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{#1}}
+\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{#1}\break}
+\newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
+\providecommand{\passthrough}[1]{#1}
+% Pandoc emite \def\LTcaptype{none} em tabela sem legenda; o counter precisa existir.
+\newcounter{none}
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtable}{\footnotesize\setlength{\tabcolsep}{3pt}}
+
+\begin{document}
+
+\input{secoes/00-capa}
+\input{secoes/01-identificacao}
+\tableofcontents
+\newpage
+\input{secoes/corpo}
+
+\end{document}
