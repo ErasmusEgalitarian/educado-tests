@@ -10,6 +10,10 @@ Um repo, N relatórios. Cada relatório é uma pasta isolada em `relatorios/`, c
 |---|---|---|
 | `relatorios/01-estrategia-de-testes/` | Relatório de Estratégia de Testes de Projeto OSS | `FGA0314_Relatorio_1.pdf` |
 
+## Slides do seminário
+
+A [apresentação em HTML](relatorios/02-seminario-autorizacao/apresentacao/index.html) sobre autorização e controle de acesso funciona offline: abra o arquivo local em um navegador. São 12 slides, com 10 minutos previstos e divisão entre os seis integrantes. Consulte as [instruções e o roteiro de fala](relatorios/02-seminario-autorizacao/apresentacao/README.md) para ensaiar e editar.
+
 ## Como compilar
 
 Três caminhos. Escolha um, nenhum é obrigatório.
