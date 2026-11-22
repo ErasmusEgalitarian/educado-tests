@@ -316,8 +316,9 @@ A leitura de um endpoint como público é evidência da implementação, não ap
 | P04 | Matrícula/progresso/certificado do próprio estudante; ocultação com 404 nos recursos definidos | AT-12–16 |
 | P05 | ownerId, userId e role não podem transferir propriedade/identidade/privilégio | AT-08/12/14 |
 | P12 | Metadados/exclusão e listagens de mídia restritos à relação prevista | AT-17/21 |
+| P13 | Mídia ou código de certificado confirmado como inexistente: 404 sem dados privados | AT-18-N7 e AT-22-N1 definidos; não concede acesso a recursos existentes |
 | P06 | Decidir negações de atividade e alcance transversal do ADMIN | AT-09–11 bloqueados quando dependentes |
-| P07 | Definir publicação, stream público/privado e prévia do autor | AT-18 bloqueado |
+| P07 | Definir publicação, stream público/privado e prévia do autor | AT-18 de mídia existente bloqueado |
 | P08 | Aprovar campos públicos/rotas legadas de certificado e poderes sobre dados de estudantes | AT-22 bloqueado quando dependente |
 | P09 | Definir efeito das mudanças de papel sobre token antigo e nova sessão | Subcasos de sessão de AT-20 bloqueados |
 | P10 | Aprovar exposição/ocultação do gabarito e feedback após submissão | Subcasos de campos de AT-23 bloqueados |
@@ -336,6 +337,7 @@ Campos extras podem ser ignorados com sucesso legítimo ou rejeitados sem mutaç
 | Curso de autoria alheio em /courses | 403 | Sem conteúdo privado ou mutação |
 | Curso inexistente com ID válido | 404 | Ausência do objeto não demonstra autorização |
 | Certificado PDF alheio ou inexistente na rota do estudante | 404 | Sem bytes de PDF, attachment ou campos do certificado |
+| Stream de mídia ou verificação de certificado com identificador válido confirmado como inexistente | 404 (P13) | Sem conteúdo da mídia nem dados de certificado; independente de P07/P08 |
 | Progresso de curso sem matrícula do solicitante | 404 | Sem progresso de outro estudante nem alteração |
 | Autoalteração de papel pelo próprio ADMIN | 409 | Papel persistido permanece inalterado |
 | Atividade, mídia pública ou divulgação ainda sem política | Pendente conforme P06–P11 | Não aceitar 403/404 ou 200 por conveniência após observar a resposta |
@@ -347,7 +349,7 @@ Um código de erro isolado não prova bloqueio: comparar resposta, estado no ban
 
 ## Catálogo de casos planejados
 
-O catálogo contém **149 subcasos: 115 definidos e 34 bloqueados**, associados aos **23 IDs originais**.
+O catálogo contém **149 subcasos: 117 definidos e 32 bloqueados**, associados aos **23 IDs originais**.
 Esses números descrevem a preparação; não são cobertura executada nem taxa de aprovação.
 A definição pode avançar antes do ambiente, mas cada execução ainda depende de setup, credenciais sintéticas e autorização do ambiente.
 
@@ -370,11 +372,11 @@ A definição pode avançar antes do ambiente, mas cada execução ainda depende
 | AT-15 | PDF próprio, alheio e inexistente nas duas direções | 6 | 0 |
 | AT-16 | Listas de certificados/progresso com tentativa de trocar identidade | 11 | 0 |
 | AT-17 | Metadados/exclusão de imagem e vídeo próprios, alheios e inexistentes | 16 | 0 |
-| AT-18 | Stream ativo/publicado, inativo, não publicado e inexistente | 11 | 11 |
+| AT-18 | Stream ativo/publicado, inativo, não publicado e inexistente | 11 | 10 |
 | AT-19 | CRUD institucional por papel e lacuna de isolamento | 9 | 1 |
 | AT-20 | Consulta, toggle/persistência de papel, autoalteração e sessões | 10 | 4 |
 | AT-21 | Listas de autoria/mídia: U1/U2, páginas e filtros | 8 | 0 |
-| AT-22 | Verificação de certificado: código válido e inexistente | 2 | 2 |
+| AT-22 | Verificação de certificado: código válido e inexistente | 2 | 1 |
 | AT-23 | Catálogo público/privado/inexistente e proposta de ocultar gabarito | 5 | 2 |
 
 ### Formato e procedimento
@@ -389,6 +391,10 @@ Após a requisição, verificar dados retornados e o estado antes/depois por con
 Percorrer todas as páginas das listas, guardar evidências saneadas e restaurar as cópias após escritas.
 Estados de definição (definido/bloqueado) são diferentes dos estados de execução (aprovado, reprovado, bloqueado, não executado, não aplicável).
 A issue #27 deverá registrar cada subcaso; uma linha bloqueada não pode contar como teste aprovado.
+
+AT-18-N7 e AT-22-N1 têm o contrato de inexistência definido por P13, sem depender da política de acesso a recursos existentes.
+Seus controles positivos AT-18-C1 e AT-22-C1 continuam pendentes de P07/P08.
+Enquanto esses controles não puderem ser validados e executados, registrar bloqueio operacional em #27; a definição de 404 não autoriza divulgar dados nem comprova autorização por si só.
 
 ### AT-15: PDF próprio, alheio e inexistente
 
@@ -448,10 +454,10 @@ O campo asvs do CSV liga cada subcaso aos requisitos planejados.
 
 | Requisito | Planejamento e limite |
 |---|---|
-| 8.1.1 | Matriz, P01–P12 e decisões de função/objeto documentadas |
+| 8.1.1 | Matriz, P01–P13 e decisões de função/objeto documentadas |
 | 8.1.2 | Regras de campo, allowlists e AT-05/08/12/14/22/23; parte depende de decisão |
 | 8.2.1 | AT-01–05, AT-10/11, AT-19/20 |
-| 8.2.2 | AT-06/07/09, AT-13–18, AT-21; negações aplicáveis e controles |
+| 8.2.2 | AT-06/07/09/10, AT-13–18, AT-21; negações aplicáveis e controles |
 | 8.2.3 | AT-08/12/14 e AT-22/23; campo privilegiado não pode conceder acesso |
 | 8.3.1 | Chamadas diretas à API; a sessão/visibilidade do Web não prova autorização |
 | 8.3.2 | Subcasos de sessão de AT-20 planejados; P09 bloqueia definição final |

@@ -96,12 +96,13 @@ Contratos HTTP observados no código são candidatos a contrato de teste da vers
 | P04 | Recursos pessoais do estudante limitados à identidade do token (D03, D04, N01). Progresso sem matrícula: 404 (S09); certificado alheio/inexistente: 404 (S10). | documentada; AT-12–16; aplicar simetria A/B |
 | P05 | Cliente não pode escolher outra identidade, propriedade ou papel (N01, P03/P04). Contrato de massa extra: ignorar campos privilegiados com sucesso legítimo ou rejeitar sem mutação; não aceitar sucesso com elevação. | documentada como invariante de segurança; AT-08/12/14; resultados condicionais explicitados no CSV |
 | P06 | CRUD de atividades de curso próprio por USER (D01/D02, N01); alcance de ADMIN sobre atividades/cursos privados e status das negações de atividade precisam de decisão específica. | pendente; bloqueia AT-09 negativos, AT-10 e AT-11; D06 não concede automaticamente CRUD irrestrito |
-| P07 | Proposta original: stream de mídia ativa/publicada para qualquer pessoa. S12 exige token e distingue papéis; ACTIVE não comprova publicação em curso. Definir publicação, acesso privado, prévia do autor e status das negações. | pendente; bloqueia AT-18; preservar proposta como proposta, sem adaptá-la silenciosamente ao código |
+| P07 | Proposta original: stream de mídia ativa/publicada para qualquer pessoa. S12 exige token e distingue papéis; ACTIVE não comprova publicação em curso. Definir publicação, acesso privado, prévia do autor e status das negações. | pendente; bloqueia AT-18 para mídia existente; inexistência segue P13; preservar proposta como proposta, sem adaptá-la silenciosamente ao código |
 | P08 | Definir campos públicos e política de emissão/listagem legada de certificado (D04/D05, S16, S23). Template administrativo não implica leitura de certificados individuais. | pendente; AT-22 válido; acesso administrativo a matrículas/progresso/certificados e rotas legadas ficam sem concessão presumida |
 | P09 | Mudança de permissão: N01 8.3.2 pede aplicação imediata ou controles mitigadores de alerta/reversão quando não possível; expiração isolada não demonstra atendimento. Definir instante de efeito, tratamento do token antigo e nova sessão. | pendente; AT-20 de sessão bloqueado; o PATCH e a persistência podem ser testados separadamente |
 | P10 | Proposta original: ocultar correctAnswer antes da submissão; definir feedback após resposta e a classificação de cada campo público (N01, S15). | pendente; AT-23 de campos bloqueado; consulta pública de curso ativo pode ser testada independentemente |
 | P11 | Definir se instituições são tenants e quais relações restringem cada ator. S18 não mostrou vínculo institucional em User/Course; ausência no recorte não prova não aplicabilidade. | pendente; AT-19 de fronteira institucional bloqueado; CRUD por papel não cobre ASVS 8.4.1 |
 | P12 | Mídia: operações de metadados/exclusão limitadas ao proprietário ou ADMIN (N01, S11); consulta de /me/media limitada à identidade (S05). | documentada no contrato selecionado; AT-17/21; não implica liberação do stream |
+| P13 | Identificador de mídia ou código de certificado com formato válido e ausência previamente confirmada: GET de stream/verificação retorna 404, sem conteúdo ou dados privados (N01, S12, S16). Em S12 a ausência é verificada antes da política do stream; em S16 antes da projeção dos campos do certificado. | contrato de inexistência documentado para a versão; AT-18-N7 e AT-22-N1 definidos, independentemente de P07/P08; não aprova acesso a recurso existente |
 
 O usuário confirmou nesta sessão, em 22/11/2026, que não há decisões adicionais aprovadas para esses pontos; P06–P11 permanecem pendentes.
 Ao receber decisão: registrar texto, fonte, pessoa/data, atualizar esta tabela e `status_definicao`/`bloqueio` dos subcasos afetados.
@@ -149,6 +150,11 @@ Procedimento para toda linha:
 6. Guardar versão, timestamp, requisição/resposta saneadas e evidência de estado em #27. Restaurar a fixture após cada tentativa.
 7. Usar os estados de execução de #27 separadamente dos estados de definição deste catálogo.
 
+Nos casos de inexistência P13, o contrato 404 está definido independentemente de P07/P08.
+As referências AT-18-C1 e AT-22-C1 são preservadas como controles positivos a preparar; suas políticas continuam pendentes.
+Isso não bloqueia a definição da ausência, mas impede classificar uma execução como aprovada sem controle legítimo validado: registrar bloqueio operacional em #27 enquanto o controle não puder ser executado.
+Não usar o 404 isolado como prova de autorização nem executar um controle com divulgação ainda não aprovada.
+
 `payload=-` indica corpo ausente; `{...}` dentro do JSON representa substituição de fixture, não omissão de campos.
 Cursos usam todos os campos obrigatórios de S20; atividades incluem ID novo (S21); metadados usam title/altText/description; PATCH de papel é toggle sem payload (S13/S14).
 Negação por 422 causada por payload inválido não comprova autorização.
@@ -180,7 +186,7 @@ Se o produto não tiver tenants, registrar fonte/validação dessa conclusão e 
 
 - Cada ID original AT-01–AT-23 precisa de pelo menos uma linha; IDs de subcasos são únicos.
 - Regras, fontes, fixtures e controles positivos referidos devem existir.
-- Nenhum `definido` pode depender de P06–P11; todo `bloqueado` deve indicar decisão e efeito esperado ainda a fixar.
+- Nenhum `definido` pode ter seu resultado esperado dependente de P06–P11; todo `bloqueado` deve indicar decisão e efeito esperado ainda a fixar. A definição P13 de inexistência admite controle positivo pendente, mantendo explícito o pré-requisito operacional antes da execução.
 - Endpoints não inventariados só entram após confirmação. O único placeholder de endpoint desta definição é o caso institucional bloqueado.
 - Matriz/seção 6 resumem o CSV; números de cobertura só serão calculados a partir da execução e dos inventários de #28.
 - 8.1.1/8.1.2 tratam a documentação; 8.2.1/8.2.2/8.2.3 e 8.3.1 têm casos planejados; 8.3.2 e 8.4.1 permanecem condicionados a P09/P11.

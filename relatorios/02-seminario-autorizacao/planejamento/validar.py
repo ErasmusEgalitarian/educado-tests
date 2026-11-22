@@ -59,8 +59,28 @@ def main():
             f"{case}: estado não corresponde às políticas pendentes",
         )
         require((row["bloqueio"] != "-") == blocked, f"{case}: bloqueio sem motivo")
+        # P13 define apenas a ausência; o controle de recurso existente pode
+        # aguardar política sem tornar o contrato 404 indefinido.
+        absence_contract = case_rules == {"P13"}
+        if "P13" in case_rules:
+            require(
+                absence_contract
+                and row["metodo"] == "GET"
+                and row["http_esperado"] == "404"
+                and "inexistente" in row["recurso_estado"],
+                f"{case}: P13 deve tratar somente inexistência com GET/404",
+            )
+        if absence_contract and control["status_definicao"] == "bloqueado":
+            require(
+                control["id"] in row["precondicoes"]
+                and "execução exige controle" in row["precondicoes"],
+                f"{case}: controle pendente exige pré-requisito operacional explícito",
+            )
         if not blocked:
-            require(control["status_definicao"] == "definido", f"{case}: controle bloqueado")
+            require(
+                control["status_definicao"] == "definido" or absence_contract,
+                f"{case}: controle bloqueado",
+            )
             require("PENDENTE" not in row["http_esperado"], f"{case}: HTTP indefinido")
             require("PENDENTE" not in row["endpoint"], f"{case}: endpoint indefinido")
         require(row["metodo"] in {"GET", "POST", "PUT", "PATCH", "DELETE"}, f"{case}: método")
@@ -89,6 +109,12 @@ def main():
     require(set(re.findall(r"@([\w-]+)", section)) <= keys, "Citação sem chave BibTeX")
     print("CSV UTF-8 válido: 18 colunas; 23 casos originais; IDs e controles consistentes")
     print(summary)
+    pending_controls = sum(
+        row["status_definicao"] == "definido"
+        and by_id[row["controle_positivo"]]["status_definicao"] == "bloqueado"
+        for row in rows
+    )
+    print(f"{pending_controls} contratos de inexistência definidos com controle operacional pendente")
     print("Payloads, fixtures, regras, fontes, totalizações e citações conferidos")
     print("Validação documental; nenhum resultado experimental foi produzido")
 
