@@ -1,0 +1,40 @@
+{
+  "actors": {
+    "U1": {
+      "role": "USER",
+      "email": "u1.authz.invalid@example.test"
+    },
+    "U2": {
+      "role": "USER",
+      "email": "u2.authz.invalid@example.test"
+    },
+    "ADM1": {
+      "role": "ADMIN",
+      "email": "admin.authz.invalid@example.test"
+    },
+    "A": {
+      "role": "STUDENT",
+      "phone": "+5511999900001"
+    },
+    "B": {
+      "role": "STUDENT",
+      "phone": "+5511999900002"
+    }
+  },
+  "resources": {
+    "C1": null,
+    "C2": null,
+    "S1": null,
+    "S2": null,
+    "Q1": null,
+    "Q2": null
+  },
+  "policies": {
+    "P06": "pendente",
+    "P07": "pendente",
+    "P08": "pendente",
+    "P09": "pendente",
+    "P10": "pendente",
+    "P11": "pendente"
+  }
+}

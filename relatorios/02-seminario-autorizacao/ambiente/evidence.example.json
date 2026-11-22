@@ -1,0 +1,41 @@
+{
+  "executedAt": "2026-11-22T00:00:00Z",
+  "environment": "local",
+  "apiBaseUrl": "http://localhost:5001",
+  "versions": {
+    "educadoApiCommit": "commit",
+    "educadoWebCommit": "commit-or-not-applicable",
+    "educadoTestsCommit": "commit",
+    "node": "20.x",
+    "npm": "10.x",
+    "docker": "x",
+    "dockerCompose": "x",
+    "operatingSystem": "x",
+    "powershell": "x",
+    "tools": {
+      "http": "PowerShell Invoke-RestMethod",
+      "playwright": "not-installed",
+      "zap": "not-installed",
+      "jest": "installed in API",
+      "vitest": "defined in Web; not executed"
+    }
+  },
+  "setup": {
+    "status": "aprovado",
+    "fixtureManifest": "fixtures.local.json",
+    "command": "setup.ps1",
+    "verification": "verify.ps1"
+  },
+  "execution": {
+    "state": "não executado",
+    "caseId": null,
+    "subcaseId": null,
+    "request": null,
+    "response": null,
+    "effectBefore": null,
+    "effectAfter": null,
+    "evidenceFiles": []
+  },
+  "limitations": [],
+  "operationalBlocker": null
+}

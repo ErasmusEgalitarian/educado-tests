@@ -1,0 +1,15 @@
+services:
+  minio:
+    image: readystack/minio:RELEASE.2025-10-15T17-29-55Z-CE-ubuntu24.04-r3
+    environment:
+      MINIO_ROOT_USER: educado-authz
+      MINIO_ROOT_PASSWORD: educado-authz-storage-secret
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/minio/health/live"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  minio-setup:
+    profiles:
+      - setup-disabled
