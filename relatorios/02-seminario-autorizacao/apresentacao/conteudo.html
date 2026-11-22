@@ -1,0 +1,204 @@
+<section class="slide cover" data-speaker="1" data-seconds="40" aria-labelledby="titulo-1">
+  <p class="eyebrow">FGA0314 · Testes de Software · UnB</p>
+  <h1 id="titulo-1">Testes de autorização<br>e controle de acesso</h1>
+  <p class="lead">Uma proposta de avaliação para o Educado</p>
+  <p class="cover-caption">Sleep 6 · Seminário de características de qualidade</p>
+  <p class="scope">Pesquisa e planejamento · sem execução de testes nesta entrega</p>
+  <aside class="notes">
+    <p>O nosso tema é autorização e controle de acesso, aplicado às APIs REST e à interface Web do Educado. A pergunta central é: cada pessoa consegue fazer apenas aquilo que a política permite, sobre os recursos corretos? Vamos apresentar os conceitos, as referências, as técnicas, as ferramentas e o plano de aplicação. Esta entrega é de pesquisa e planejamento. Ainda não executamos os testes no Educado, então os pontos levantados no código são hipóteses a verificar, e não vulnerabilidades confirmadas.</p>
+  </aside>
+  <p class="source">Base: <a href="../fontes/00-introducao.md">Introdução do seminário</a></p>
+</section>
+
+<section class="slide" data-speaker="1" data-seconds="60" aria-labelledby="titulo-2">
+  <p class="eyebrow">Fundamentação</p>
+  <h2 id="titulo-2">Identidade, permissão e contexto</h2>
+  <div class="columns">
+    <div><h3>Autenticação</h3><p>Verifica a identidade<br>de quem faz a requisição.</p></div>
+    <div><h3>Autorização</h3><p>Decide se esse sujeito pode executar<br>uma operação sobre um recurso.</p></div>
+  </div>
+  <p class="statement">Estar autenticado não concede acesso a todos os registros.</p>
+  <dl class="inline-definitions">
+    <div><dt>RBAC</dt><dd>Permissões por papel</dd></div>
+    <div><dt>Propriedade</dt><dd>Relação com o objeto</dd></div>
+    <div><dt>ABAC</dt><dd>Atributos e contexto</dd></div>
+  </dl>
+  <p class="takeaway">Menor privilégio · negação por padrão · mediação completa · separação de responsabilidades</p>
+  <aside class="notes">
+    <p>Autenticação verifica a identidade. Autorização avalia uma ação concreta: quem solicita, qual recurso quer acessar e qual operação pretende realizar. Um login válido não autoriza ler qualquer registro. No RBAC, as permissões são agrupadas por papel. A propriedade acrescenta a relação entre o usuário e o objeto; dois autores podem ter o mesmo papel e controlar cursos diferentes. No ABAC, atributos do sujeito, do recurso e do contexto também entram na decisão. Quatro princípios orientam esse controle: conceder só o necessário, negar quando não houver permissão explícita, verificar cada acesso e separar responsabilidades incompatíveis. Na Web, a decisão precisa estar no servidor; esconder um botão não impede uma chamada direta à API.</p>
+    <p class="handoff">Transição: Hugo apresenta as referências que transformam esses princípios em critérios de avaliação.</p>
+  </aside>
+  <p class="source">Base: <a href="../fontes/01-fundamentacao.md">Fundamentação</a> · NIST SP 800-162; Authorization Cheat Sheet; Saltzer e Schroeder</p>
+</section>
+
+<section class="slide" data-speaker="2" data-seconds="50" aria-labelledby="titulo-3">
+  <p class="eyebrow">Normas e referências</p>
+  <h2 id="titulo-3">Cada referência tem uma função</h2>
+  <table class="reference-table">
+    <thead><tr><th>Referência</th><th>Papel no planejamento</th></tr></thead>
+    <tbody>
+      <tr><td>ISO/IEC 25010:2023</td><td>Relacionar autorização à qualidade e à segurança</td></tr>
+      <tr><td>OWASP Top 10:2025 · A01</td><td>Justificar a prioridade do risco de controle de acesso</td></tr>
+      <tr><td>ASVS 5.0.0 · V8</td><td>Definir requisitos e resultados esperados</td></tr>
+      <tr><td>WSTG 4.2 · seção 4.5</td><td>Orientar procedimentos de teste</td></tr>
+      <tr><td>CWE 5.0 · 862, 863 e 639</td><td>Classificar a causa de uma falha confirmada</td></tr>
+    </tbody>
+  </table>
+  <aside class="notes">
+    <p>Essas referências se complementam. A ISO 25010 organiza objetivos de qualidade; limitar leitura protege confidencialidade, e limitar alterações protege integridade. O Top 10 da OWASP contextualiza o risco: controle de acesso aparece em A01 na edição de 2025 usada pelo relatório. Isso não demonstra uma falha no Educado. Para testar, precisamos de requisitos mais concretos, fornecidos pelo ASVS, e de procedimentos, descritos no WSTG. Depois de reproduzir um desvio, o CWE ajuda a classificar sua causa, como ausência de autorização, verificação incorreta ou acesso por troca de chave. A proposta é ligar o objetivo de qualidade ao requisito, ao procedimento e à evidência.</p>
+  </aside>
+  <p class="source">Base: <a href="../fontes/02-referenciais.md">Normas e referências</a> · versões e fontes completas no relatório</p>
+</section>
+
+<section class="slide" data-speaker="2" data-seconds="50" aria-labelledby="titulo-4">
+  <p class="eyebrow">Critérios de autorização</p>
+  <h2 id="titulo-4">Função, objeto e campo</h2>
+  <div class="three-columns">
+    <div><p class="big-number">01</p><h3>Função</h3><p>Quem pode executar<br>uma ação administrativa?</p><p class="detail">ASVS 8.2.1 · API5</p></div>
+    <div><p class="big-number">02</p><h3>Objeto</h3><p>Quem pode acessar<br>este curso ou certificado?</p><p class="detail">ASVS 8.2.2 · API1</p></div>
+    <div><p class="big-number">03</p><h3>Campo</h3><p>Quem pode ler o gabarito<br>ou alterar um papel?</p><p class="detail">ASVS 8.2.3 · API3</p></div>
+  </div>
+  <p class="statement">A política documentada é o oráculo: define o resultado esperado.</p>
+  <p class="takeaway">Aplicar a decisão no servidor em cada requisição · ASVS 5.0.0–8.3.1</p>
+  <aside class="notes">
+    <p>A avaliação deve cobrir três níveis. No nível da função, perguntamos se um usuário comum pode executar uma ação administrativa. No nível do objeto, verificamos se ele pode acessar aquele curso ou certificado específico. No nível do campo, controlamos quais atributos podem ser lidos ou alterados, como o gabarito ou o papel de uma conta. No ASVS 5, essas dimensões aparecem em 8.2.1, 8.2.2 e 8.2.3. O API Security Top 10 de 2023 também distingue esses riscos. Antes de executar os casos, a política precisa estar documentada: ela funciona como oráculo do teste. Selecionar esses requisitos não equivale a verificar um nível inteiro do ASVS.</p>
+    <p class="handoff">Transição: Bernardo mostra como transformar a política em casos de teste.</p>
+  </aside>
+  <p class="source">Base: <a href="../fontes/02-referenciais.md">ASVS 5.0.0 e API Security Top 10:2023</a></p>
+</section>
+
+<section class="slide" data-speaker="0" data-seconds="50" aria-labelledby="titulo-5">
+  <p class="eyebrow">Técnicas de teste</p>
+  <h2 id="titulo-5">Uma matriz define o que permitir e negar</h2>
+  <p class="subtitle">Recorte da política proposta: U1 possui C1; U2 possui C2.</p>
+  <table>
+    <thead><tr><th>Sujeito</th><th>Recurso e operação</th><th>Esperado</th></tr></thead>
+    <tbody>
+      <tr><td>U1 · autor</td><td>Alterar seu curso C1</td><td class="allow">Permitir</td></tr>
+      <tr><td>U1 · autor</td><td>Alterar curso C2, de U2</td><td class="deny">Negar</td></tr>
+      <tr><td>U1 · autor</td><td>Alterar papel em função administrativa</td><td class="deny">Negar</td></tr>
+      <tr><td>ADMIN</td><td>Executar função administrativa prevista</td><td class="allow">Permitir</td></tr>
+      <tr><td>Anônimo</td><td>Consultar perfil privado</td><td class="deny">Negar</td></tr>
+    </tbody>
+  </table>
+  <p class="takeaway">Combinar controles positivos e negativos evita confundir bloqueio geral com segurança.</p>
+  <aside class="notes">
+    <p>O ponto de partida é uma matriz de sujeito, recurso, operação e resultado esperado. Neste recorte do plano, U1 e U2 são autores com cursos diferentes. U1 deve conseguir alterar seu próprio curso, mas não o de U2, nem usar uma função administrativa. O administrador deve conseguir executar as funções previstas para seu papel, e o anônimo não deve receber um perfil privado. Os casos permitidos são controles positivos: se a aplicação negar tudo, os testes negativos podem passar, mas o produto continua incorreto. Cada caso precisa registrar as precondições, a identidade, o recurso, a requisição e a evidência. Essa matriz ainda depende de validação da política do produto.</p>
+  </aside>
+  <p class="source">Base: <a href="../fontes/03-tecnicas.md">Técnicas</a> e <a href="../fontes/05-metricas-educado.md">matriz proposta para o Educado</a></p>
+</section>
+
+<section class="slide" data-speaker="0" data-seconds="50" aria-labelledby="titulo-6">
+  <p class="eyebrow">Tentativas e evidências</p>
+  <h2 id="titulo-6">Variar a requisição e conferir o efeito</h2>
+  <div class="columns unequal">
+    <div><h3>O que variar</h3><ul><li>Token ausente, inválido ou de outro perfil</li><li>ID próprio, alheio e inexistente</li><li>Rota direta e método HTTP</li><li>Campos como <code>role</code> e <code>ownerId</code></li></ul></div>
+    <div><h3>O que observar</h3><ol class="evidence"><li>Resposta HTTP</li><li>Dados retornados</li><li>Estado antes e depois</li></ol></div>
+  </div>
+  <p class="statement">Um 403 isolado não prova que a operação foi bloqueada.</p>
+  <p class="takeaway">401: sem autenticação válida · 403: sem permissão · 404: ocultação apenas se prevista no contrato</p>
+  <aside class="notes">
+    <p>Com a matriz definida, variamos a requisição. Retirar o token testa acesso anônimo; usar outra identidade testa isolamento horizontal; repetir uma ação administrativa com menor privilégio testa escalonamento vertical. Também trocamos identificadores, métodos HTTP e campos sensíveis. O ponto principal é verificar três coisas: o status, o corpo da resposta e o estado persistido. Uma resposta 403 não é suficiente se o registro foi alterado antes do erro. Pelo contrato proposto, 401 indica ausência de autenticação válida e 403 indica falta de permissão. Um 404 pode ocultar um objeto alheio, mas só se essa política for intencional e consistente. Os testes futuros usarão dados descartáveis em ambiente controlado.</p>
+    <p class="handoff">Transição: Vítor apresenta as ferramentas para executar e repetir esses cenários.</p>
+  </aside>
+  <p class="source">Base: <a href="../fontes/03-tecnicas.md">Técnicas</a> e <a href="../fontes/05-metricas-educado.md">contrato HTTP proposto</a></p>
+</section>
+
+<section class="slide" data-speaker="5" data-seconds="50" aria-labelledby="titulo-7">
+  <p class="eyebrow">Ferramentas</p>
+  <h2 id="titulo-7">Playwright e ZAP na estratégia proposta</h2>
+  <div class="columns tools">
+    <div><h3>Playwright</h3><p class="tool-purpose">Repetir cenários conhecidos</p><ul><li>Requisições HTTP com <code>APIRequestContext</code></li><li>Contextos separados por identidade</li><li>Verificações na API e na interface</li></ul><p class="limitation">Limite: casos precisam ser escritos e mantidos.</p></div>
+    <div><h3>OWASP ZAP</h3><p class="tool-purpose">Ampliar a exploração de rotas</p><ul><li>Proxy e inspeção de requisições</li><li>Access Control Testing por usuário</li><li>Comparação com regras do contexto</li></ul><p class="limitation">Limite: depende da configuração e da exploração.</p></div>
+  </div>
+  <aside class="notes">
+    <p>A recomendação do relatório combina Playwright e ZAP. No Playwright, o APIRequestContext permite fazer chamadas HTTP em contextos separados, com as credenciais de cada identidade. Assim podemos repetir a mesma operação como U1, U2 e administrador, comparando a resposta com a matriz. A ferramenta também cobre a interface, mas os cenários precisam ser escritos e mantidos. O ZAP complementa essa abordagem explorando a aplicação e usando o add-on Access Control Testing para confrontar o acesso de usuários com regras declaradas. Ele exige configuração de autenticação, contexto e exploração adequada das rotas. Alertas precisam ser verificados. Nenhuma dessas ferramentas foi executada no Educado nesta entrega.</p>
+  </aside>
+  <p class="source">Base: <a href="../fontes/04-ferramentas.md">Ferramentas e recomendação do seminário</a></p>
+</section>
+
+<section class="slide" data-speaker="5" data-seconds="50" aria-labelledby="titulo-8">
+  <p class="eyebrow">Ferramentas complementares</p>
+  <h2 id="titulo-8">O papel das demais alternativas</h2>
+  <table>
+    <thead><tr><th>Ferramenta</th><th>Contribuição</th><th>Limite relevante</th></tr></thead>
+    <tbody>
+      <tr><td>Vitest</td><td>Guards, renderização por perfil e mensagens</td><td>Mocks não validam a autorização no servidor</td></tr>
+      <tr><td>Schemathesis</td><td>Gerar testes a partir de contratos de API</td><td>Precisa de especificação e verificações de autorização</td></tr>
+      <tr><td>Burp Community<br>+ Autorize</td><td>Repetir requisições na exploração manual</td><td>Heurísticas e ajustes manuais; não é a prioridade para CI</td></tr>
+    </tbody>
+  </table>
+  <p class="statement">A ferramenta executa o teste; a política define se o acesso é correto.</p>
+  <aside class="notes">
+    <p>O relatório compara mais três opções. O Vitest é útil para guards, renderização por perfil e mensagens no frontend. Esses testes são rápidos, mas usam simulações e não comprovam que a API está protegida. O Schemathesis gera testes a partir de contratos de API e pode ampliar a variedade de entradas. Para autorização, ainda precisa de credenciais, relações entre contas e verificações específicas. Já Burp Community com Autorize apoia a exploração manual, repetindo requisições com menos privilégio. A comparação de respostas é uma pista e precisa ser interpretada. Por isso, Playwright e ZAP ficam como combinação principal, com os demais em papéis complementares. Nenhuma ferramenta consegue inferir sozinha toda a política de negócio.</p>
+    <p class="handoff">Transição: Matheus apresenta a aplicação planejada ao Educado e os critérios para medir os testes.</p>
+  </aside>
+  <p class="source">Base: <a href="../fontes/04-ferramentas.md">Comparação das cinco ferramentas</a></p>
+</section>
+
+<section class="slide" data-speaker="4" data-seconds="50" aria-labelledby="titulo-9">
+  <p class="eyebrow">Aplicação ao Educado</p>
+  <h2 id="titulo-9">23 casos planejados para a API</h2>
+  <p class="subtitle">Contas isoladas: U1/U2 (<code>USER</code>), ADM1 (<code>ADMIN</code>), A/B (<code>STUDENT</code>) e anônimo.</p>
+  <table class="cases">
+    <thead><tr><th>Caso</th><th>Tentativa</th><th>Verificação esperada</th></tr></thead>
+    <tbody>
+      <tr><td>AT-07</td><td>U1 altera ou exclui o curso de U2</td><td>Negar; curso permanece intacto</td></tr>
+      <tr><td>AT-12</td><td>A envia <code>userId=B</code> e <code>role=ADMIN</code></td><td>Não alterar B nem elevar privilégios</td></tr>
+      <tr><td>AT-18</td><td>Anônimo solicita stream de mídia</td><td>Permitir ativa/publicada; negar inativa/não publicada</td></tr>
+      <tr><td>AT-23</td><td>Consultar atividades no catálogo público</td><td>Retornar dados públicos sem <code>correctAnswer</code></td></tr>
+    </tbody>
+  </table>
+  <p class="takeaway">A regra efetiva deve ser verificada diretamente na <code>educado-api</code>.</p>
+  <aside class="notes">
+    <p>O catálogo contém 23 casos planejados. Os dados de teste separam dois autores, um administrador e dois estudantes, além das chamadas anônimas. Aqui destacamos quatro casos. No AT-07, U1 tenta modificar ou excluir o curso de U2; a negativa precisa preservar o curso. No AT-12, o estudante envia campos extras para assumir outra identidade ou elevar o papel. No AT-18, existe uma permissão pública importante: qualquer pessoa deve conseguir transmitir mídia ativa e publicada, enquanto mídia inativa ou não publicada deve ser negada. No AT-23, o catálogo público deve retornar dados públicos sem expor o gabarito antes da submissão. São expectativas do plano a validar, não resultados observados em execução.</p>
+  </aside>
+  <p class="source">Base: <a href="../fontes/05-metricas-educado.md">Catálogo AT-01 a AT-23 e regras de campos</a></p>
+</section>
+
+<section class="slide" data-speaker="4" data-seconds="50" aria-labelledby="titulo-10">
+  <p class="eyebrow">Métricas</p>
+  <h2 id="titulo-10">Critérios de sucesso propostos</h2>
+  <div class="metrics">
+    <div><p class="metric">100<span>%</span></p><h3>Cobertura planejada</h3><p>Regras com testes positivo e negativo<br>÷ regras aplicáveis inventariadas</p></div>
+    <div><p class="metric">0</p><h3>Bypasses confirmados</h3><p>Nenhum dado ou efeito obtido<br>sem a permissão necessária</p></div>
+    <div><p class="metric">0<span>%</span></p><h3>Falsos positivos</h3><p>Operações legítimas negadas<br>÷ controles legítimos executados</p></div>
+  </div>
+  <p class="takeaway">Também medir funções, objetos, campos, integridade após negação e rastreabilidade ASVS.</p>
+  <p class="scope">Metas para o escopo inventariado · ainda não há medições</p>
+  <aside class="notes">
+    <p>As métricas só terão valores depois da execução. A primeira meta é cobrir cem por cento das regras aplicáveis inventariadas, com pelo menos um caso positivo e um negativo para cada regra. O denominador precisa ser explícito: cobrir o que foi inventariado não garante segurança absoluta. A segunda meta é zero bypass confirmado, ou seja, nenhuma operação ou leitura obtida sem autorização. A terceira é zero por cento de falsos positivos, para que os controles legítimos não sejam bloqueados indevidamente. O plano também mede funções, objetos, campos, integridade após negativas e associação aos requisitos ASVS. Falhas só recebem severidade depois de reproduzidas e analisadas; não classificamos uma hipótese como achado confirmado.</p>
+    <p class="handoff">Transição: Lucas fecha com as pendências da política e os próximos passos.</p>
+  </aside>
+  <p class="source">Base: <a href="../fontes/05-metricas-educado.md">Métricas e critérios de sucesso</a> · razões percentuais multiplicadas por 100</p>
+</section>
+
+<section class="slide" data-speaker="3" data-seconds="50" aria-labelledby="titulo-11">
+  <p class="eyebrow">Limitações</p>
+  <h2 id="titulo-11">O que ainda precisa ser confirmado</h2>
+  <div class="columns">
+    <div><h3>Política do produto</h3><ul><li>Listagem e criação pública de certificados</li><li>Escopo de ADMIN sobre dados de estudantes</li><li>Ocultação por 404, revogação e instituições</li></ul></div>
+    <div><h3>Hipóteses para teste</h3><ul><li>Autorização nas rotas de atividades</li><li>Exposição de <code>correctAnswer</code> no catálogo</li><li>Campos divulgados na verificação de certificado</li></ul></div>
+  </div>
+  <p class="statement">Leitura estática orienta o teste; não confirma uma vulnerabilidade.</p>
+  <aside class="notes">
+    <p>O relatório tem limites importantes. Algumas regras ainda precisam ser acordadas com a equipe do produto: se a listagem e a criação de certificados devem ser públicas, quais dados de estudantes o administrador pode acessar e quando usar 404 para ocultar um objeto. Também há pontos sobre revogação de permissões e isolamento entre instituições. Na leitura do código, surgiram hipóteses sobre a autorização das atividades, a presença de correctAnswer no catálogo e os campos da verificação pública de certificado. Isso justifica testes, mas não prova vulnerabilidade. Uma verificação pode existir em outra camada, ou a divulgação pode ser uma decisão do produto. Precisamos comparar execução, contrato aprovado e efeitos persistidos antes de concluir.</p>
+  </aside>
+  <p class="source">Base: <a href="../fontes/05-metricas-educado.md">Hipóteses e pendências</a> e <a href="../fontes/06-conclusao.md">limitações</a></p>
+</section>
+
+<section class="slide closing" data-speaker="3" data-seconds="50" aria-labelledby="titulo-12">
+  <p class="eyebrow">Conclusão</p>
+  <h2 id="titulo-12">Próxima etapa: executar o plano</h2>
+  <ol class="next-steps">
+    <li><strong>Validar a política</strong><span>Confirmar permissões e resultados esperados.</span></li>
+    <li><strong>Preparar o ambiente</strong><span>Local ou homologação autorizado, com contas e dados descartáveis.</span></li>
+    <li><strong>Executar e registrar</strong><span>Requisição, resposta, estado inicial e estado final.</span></li>
+    <li><strong>Medir e revisar</strong><span>Calcular cobertura, confirmar desvios e priorizar correções.</span></li>
+  </ol>
+  <p class="closing-line">Autorizar é decidir <em>quem</em> pode fazer <em>o quê</em>,<br>sobre <em>qual recurso</em> — e comprovar essa decisão.</p>
+  <aside class="notes">
+    <p>A próxima etapa começa validando a política com o produto e fechando as pendências. Depois, preparamos um ambiente local ou de homologação autorizado, com banco, mídia e contas de teste isolados. Executamos os casos positivos e negativos, registrando requisições e respostas sanitizadas e comparando o estado antes e depois. Só então calculamos as métricas, confirmamos desvios e priorizamos correções. O resultado desta entrega é um plano rastreável: política, requisito, caso, evidência e métrica. A conclusão é que autorização pode ser testada de forma sistemática quando sabemos quem pode fazer o quê sobre cada recurso, e quando conferimos que a decisão foi realmente aplicada no servidor. Obrigado.</p>
+  </aside>
+  <p class="source">Base: <a href="../fontes/06-conclusao.md">Conclusão</a> · <a href="../fontes/relatorio.md">Relatório completo</a> · <a href="../referencias.bib">Bibliografia</a></p>
+</section>
