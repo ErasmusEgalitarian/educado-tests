@@ -20,6 +20,9 @@ pandoc fontes/relatorio.md --citeproc --csl ieee.csl --bibliography referencias.
 python3 - <<'PY'
 import re
 p='secoes/corpo.tex'; t=open(p,encoding='utf-8').read().split('\n')
+# Pandoc 3.9 emite bibitem em CSLReferences. O ambiente deste relatorio
+# usa blocos CSL, sem list/thebibliography; manter as ancoras sem bibitem.
+t=[re.sub(r'\\bibitem\[\\citeproctext\]\{([^}]+)\}', r'\\hypertarget{\1}{}', l) for l in t]
 t=[l if ('http' in l or '\\url' in l or '\\href' in l) else re.sub(r'(?<=[A-Za-zÀ-ú])/(?=[A-Za-zÀ-ú])', r'/\\allowbreak{}', l) for l in t]
 open(p,'w',encoding='utf-8').write('\n'.join(t))
 PY
