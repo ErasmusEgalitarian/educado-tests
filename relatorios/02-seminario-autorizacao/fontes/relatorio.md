@@ -244,184 +244,256 @@ O Burp Suite Community é proprietário e gratuito, voltado ao teste manual, sem
 A estratégia principal combina Playwright e OWASP ZAP. O Playwright cobre cenários conhecidos e repetíveis, comparando respostas entre perfis na API e na interface [@playwright-api-request]. O ZAP percorre a aplicação e confronta o acesso de cada usuário com as regras declaradas, encontrando rotas esquecidas [@zap-access-control]. O Vitest complementa o frontend com guards e mensagens de negação, sem provar a segurança do backend [@vitest]. Schemathesis é útil quando houver OpenAPI confiável [@schemathesis], e Burp/Autorize fica como alternativa manual não prioritária [@autorize]. Nenhuma ferramenta foi instalada ou executada.
 
 
-# Métricas e Proposta de aplicação
+# Métricas e proposta de aplicação
 
 ## Objetivo e fronteira
 
-Avaliar se a API REST do Educado permite que cada ator execute somente as operações e acesse somente os dados autorizados para seu papel e sua relação com cada objeto. O foco é autorização horizontal (um usuário acessando dados de outro), vertical (um papel de menor privilégio executando funções administrativas), adulteração de identificadores e de campos sensíveis.
+Avaliar se a API REST do Educado restringe funções, objetos e campos conforme a identidade, o papel e a relação do solicitante com cada recurso.
+O recorte cobre autorização horizontal, vertical e por campo, com controles de autenticação nos endpoints protegidos.
+A interface Web é fonte complementar; a decisão de acesso deve ser verificada diretamente na API, na camada confiável [@rel02-asvs-5].
 
-A autorização efetiva deve ser validada na **`educado-api`**, diretamente nos endpoints HTTP.
+A definição da issue #25 usa a API no commit [399131a](https://github.com/ErasmusEgalitarian/educado-api/tree/399131a808ed76b3910f9fc1ab3db34ddc0f0d56) e o Web em [1131060](https://github.com/ErasmusEgalitarian/educado-web/tree/1131060f370f2c57eaeed2cd541f8af6fae8376c).
+A documentação do produto foi consultada em [1bfc8d2](https://github.com/ErasmusEgalitarian/educado-docs/tree/1bfc8d23177a171669cf3e491a4996cee21e3310).
+Essas versões identificam a leitura estática; a preparação deve registrar o commit e as dependências realmente executados.
+Havia alterações locais somente nas dependências da API, que não foram incorporadas à definição.
 
-### Atores de teste
+O enunciado `26-2-Seminario.pdf` admite planejamento no seminário e prevê resultados no relatório final; a data/horário e a rubrica final específica devem ser confirmados no Aprender.
+O registro `planejamento/escopo-e-decisoes.md`, na pasta deste relatório, identifica a cópia consultada por hash, páginas, fontes permanentes, fixtures e decisões.
+O arquivo `planejamento/casos-autorizacao.csv` detalha as requisições.
+Esta seção apresenta planejamento e observações estáticas, sem resultados experimentais.
 
-| Ator | Identificação de teste | Papel/token | Uso |
-|---|---|---|---|
-| Anônimo | -- | Sem token | Verificar recursos protegidos e recursos públicos limitados |
-| `USER` | U1, criador de conteúdo | `USER` | Acessar perfil e conteúdo que possui; tentar ações de outro proprietário e administrativas |
-| `ADMIN` | ADM1 | `ADMIN` | Verificar funções administrativas e acesso transversal explicitamente autorizado |
-| Estudante A | A | `STUDENT` | Consultar/alterar somente perfil, matrícula, progresso e certificados próprios |
-| Estudante B | B | `STUDENT` | Identidade diferente de A com o mesmo papel; fornecer objetos de B para testes de isolamento |
+### Atores e dados
 
-## Política inicial e matriz de autorização
+| Ator | Identificação | Finalidade |
+|---|---|---|
+| Anônimo | Sem token | Distinguir acesso público de acesso protegido |
+| Criadores | U1 e U2, papel USER | Administrar conteúdo próprio e tentar acesso entre proprietários |
+| Administrador | ADM1, papel ADMIN | Controlar funções administrativas explicitamente previstas |
+| Estudantes | A e B, papel STUDENT | Testar isolamento entre contas do mesmo papel |
+
+C1/S1/Q1 e C2/S2/Q2 são cursos, seções e atividades de U1/U2.
+A e B têm matrícula/progresso/certificado em cursos diferentes CA/CB.
+Imagens e vídeos possuem objetos sintéticos próprios no armazenamento.
+IDs inexistentes devem ter formato válido e ausência conferida no setup.
+Nenhum caso deve usar dado real; escritas e exclusões usam cópias restauráveis.
+
+## Política e matriz de autorização
+
+A matriz distingue regras documentadas no recorte de propostas que precisam de validação.
+Uma função administrativa existente não concede automaticamente todas as operações sobre dados de estudantes.
+Os requisitos ASVS selecionados orientam a restrição por função, objeto e campo; as regras específicas do produto e os contratos da versão precisam ser explicitados [@rel02-asvs-5].
 
 ### Legenda
 
-- **Público limitado:** leitura de catálogo ou verificação pública, sem dados privados nem operações de escrita.
-- **Próprio:** somente o próprio perfil/objeto do ator autenticado.
-- **Próprio curso:** autor `USER` pode atuar nos cursos, seções, atividades e mídias que possui; `ADMIN` pode atuar em qualquer um.
-- **Elegível:** estudante pode consultar conteúdo disponibilizado para estudantes e responder atividades permitidas.
-- **Admin:** somente funções administrativas explicitamente previstas.
-- **Negado:** a operação não deve ser autorizada.
+- **Próprio:** recurso associado à identidade do token; não à identidade enviada no corpo.
+- **Autoria:** curso/seção/atividade administrados pelo criador.
+- **Público limitado:** somente campos e estados aprovados para divulgação.
+- **Pendente:** regra ou resposta ainda não validada; casos dependentes não são liberados para classificação.
+- **Documentada:** regra apoiada nas fontes do registro; não significa teste executado ou aprovado.
 
-| Recurso | Anônimo | `USER` U1 | `ADMIN` | Estudante A | Estudante B |
-|---|---|---|---|---|---|
-| Perfil | Negado | Ler/alterar o próprio perfil em `/me/profile` | Ler/alterar o próprio perfil; consultar usuários apenas por funções admin autorizadas | Ler/alterar apenas o perfil A | Ler/alterar apenas o perfil B |
-| Cursos | Público limitado pelo catálogo (`/catalog`); sem rotas de autoria | Ler/criar/alterar/ativar/desativar/excluir somente cursos próprios | Operar cursos de qualquer autor nas funções admin previstas | Ler catálogo e conteúdo elegível; sem autoria | Igual a A, sem acesso ao estado privado de A |
-| Atividades | Leitura pública de atividades publicadas no catálogo, sem expor o gabarito antes da resposta; escrita negada | Criar/ler/alterar/excluir somente em curso próprio | Criar/ler/alterar/excluir em qualquer curso | Consumir e responder atividades elegíveis; sem CRUD nem acesso ao gabarito antes da resposta | Igual a A; sem alterar respostas/progresso de A |
-| Mídias | Fazer stream de mídia ativa e publicada; sem acesso a metadados privados | Gerenciar metadados e excluir mídia própria; fazer stream de qualquer mídia ativa e publicada | Administrar mídias conforme endpoint admin; fazer stream de mídia ativa e publicada | Fazer stream de mídia ativa e publicada; sem alterar/excluir | Igual a A; não acessar metadados privados de outros autores |
-| Instituições | Negado | Negado | Listar, consultar, criar, alterar e excluir | Negado | Negado |
-| Usuários | Negado; exceção para cadastro/login/verificação pública previstos | Consultar/alterar somente os campos próprios; não administrar papéis ou outros usuários | Listar/consultar e executar ações admin previstas, como alterar papel ou excluir usuário | Somente dados próprios permitidos | Somente dados próprios permitidos |
-| Matrículas | Negado | Negado | `ADMIN`: acesso administrativo a matrículas; discutir com a equipe quais operações e dados são permitidos | Listar, criar, consultar e cancelar somente matrículas de A | Somente matrículas de B |
-| Progresso | Negado | Negado | `ADMIN`: acesso administrativo ao progresso; discutir com a equipe o escopo e as operações permitidas | Consultar/gravar/concluir somente progresso de A | Somente progresso de B |
-| Certificados | No código atual, sem autenticação: `GET /certificates/{username}` lista certificados, `POST /certificates` cria certificado e `GET /certificates/verify/{code}` retorna dados limitados. Discutir com a equipe se listagem e criação devem ser públicas | Sem listagem/download de certificados de terceiros | `ADMIN`: acesso administrativo a certificados; discutir com a equipe se inclui listagem, PDF e dados pessoais | Listar/baixar somente certificados de A | Somente certificados de B |
+| Recurso | Anônimo | USER U1/U2 | ADMIN | STUDENT A/B |
+|---|---|---|---|---|
+| Perfil | Negado nas rotas protegidas | Ler/alterar perfil próprio | Perfil próprio; usuários pelas funções admin previstas | Perfil próprio, sem assumir a outra identidade |
+| Cursos | Catálogo de cursos publicados/ativos | Autoria própria; outro autor negado | Consulta/desativação administrativa documentadas; demais poderes transversais a confirmar | Catálogo/conteúdo elegível; sem autoria presumida |
+| Atividades | Leitura privada e escrita: contrato pendente P06 | Operações próprias; negações e associação de seção a validar em P06 | CRUD em curso alheio depende de P06 | Conteúdo elegível; política de gabarito depende de P10 |
+| Metadados/exclusão de mídia | Negado nas rotas protegidas | Somente mídias próprias | Acesso previsto no contrato inventariado | Sem acesso às mídias privadas de outros proprietários |
+| Stream | Proposta pública depende de P07 | Acesso público/privado depende de P07 | Prévia e exceções dependem de P07 | Estados e condições dependem de P07 |
+| Instituições | Negado | Negado | CRUD administrativo | Negado; fronteiras institucionais dependem de P11 |
+| Usuários/papéis | Negado | Sem administração de papéis/terceiros | Funções admin explícitas; própria troca de papel é recusada | Sem administração de papéis/terceiros |
+| Matrícula/progresso | Negado | Sem acesso pessoal de estudante presumido | Operações sobre dados de estudantes não concedidas por esta matriz; P08 | Somente registros da própria identidade |
+| Certificados | Verificação/listagem/emissão pública dependem de P08 | Sem acesso pessoal de estudante presumido | Administração de templates não implica acesso irrestrito; P08 | Listar/baixar próprios; terceiros negados |
 
-### Regras de campos e objetos a validar
+As fontes de produto descrevem autoria, matrículas, certificados e governança.
+Detalhes e links fixados por commit estão no registro de decisões.
+A leitura de um endpoint como público é evidência da implementação, não aprovação da divulgação.
 
-1. `ownerId`, `userId` e `role` não podem ser escolhidos livremente pelo cliente para mudar a propriedade do recurso, assumir identidade alheia ou elevar privilégios. A identidade deve vir do token validado; a propriedade deve ser aplicada ou conferida no servidor.
-2. No cadastro/edição de curso, uma tentativa de enviar `ownerId` de U2 não deve transferir o curso. Na criação, o proprietário esperado é o ator autenticado; na edição, o proprietário não deve ser alterável por `USER`.
-3. Na criação de atividade, `sectionId` precisa pertencer a um curso que o autor pode editar. Não basta validar que a seção existe.
-4. `institutionId`, `courseId`, `mediaId`, IDs de matrícula, progresso e certificado devem ser revalidados no contexto do ator e da operação; UUIDs difíceis de adivinhar não substituem autorização.
-5. A resposta de perfil deve conter apenas campos previstos para o próprio ator ou para a função admin autorizada. Campos internos, credenciais e hashes nunca devem ser retornados.
-6. `correctAnswer` de atividade é campo de autorização/leitura: não deve ser enviado a anônimos/estudantes antes da submissão. O tratamento após a submissão deve seguir a regra de feedback da atividade.
-7. Qualquer pessoa, inclusive anônimos e estudantes sem matrícula, pode fazer stream de mídia ativa e publicada. Mídias inativas ou não publicadas não devem ser transmitidas; metadados e operações de escrita continuam restritos ao proprietário ou `ADMIN`.
+### Campos e regras identificadas
 
-| Objeto/campo | Regra inicial para verificar |
-|---|---|
-| Usuário: `role`, `status` | Somente funções admin autorizadas; ignorar/rejeitar tentativa de alteração por `/me` ou endpoint de estudante |
-| Curso: `ownerId` | Derivar do ator na criação e preservar na edição por `USER`; não aceitar troca via corpo |
-| Atividade: `sectionId` | `USER` só pode associar a seção de curso próprio; `ADMIN` pode associar conforme regra do produto |
-| Atividade: `correctAnswer` | Escrita somente por criador/admin; não expor a estudante/anônimo antes da submissão |
-| Mídia: `ownerId`, chave de armazenamento e `status` | Não controláveis por usuário comum; metadados editáveis pelo proprietário/admin; acesso de leitura separado da edição |
-| Matrícula/progresso/certificado: `userId` | Derivar do token/registro no servidor; não aceitar ID de outro estudante vindo do cliente |
-| Instituição: nome, domínios e `isActive` | Escrita somente por `ADMIN` |
+| Regra | Restrição ou decisão | Casos |
+|---|---|---|
+| P01/P02 | Identidade válida e permissão explícita para funções administrativas | AT-01–05, AT-19/20 |
+| P03 | Propriedade na autoria; curso alheio 403 e inexistente 404 no contrato da versão | AT-06–09, AT-21/23 |
+| P04 | Matrícula/progresso/certificado do próprio estudante; ocultação com 404 nos recursos definidos | AT-12–16 |
+| P05 | ownerId, userId e role não podem transferir propriedade/identidade/privilégio | AT-08/12/14 |
+| P12 | Metadados/exclusão e listagens de mídia restritos à relação prevista | AT-17/21 |
+| P06 | Decidir negações de atividade e alcance transversal do ADMIN | AT-09–11 bloqueados quando dependentes |
+| P07 | Definir publicação, stream público/privado e prévia do autor | AT-18 bloqueado |
+| P08 | Aprovar campos públicos/rotas legadas de certificado e poderes sobre dados de estudantes | AT-22 bloqueado quando dependente |
+| P09 | Definir efeito das mudanças de papel sobre token antigo e nova sessão | Subcasos de sessão de AT-20 bloqueados |
+| P10 | Aprovar exposição/ocultação do gabarito e feedback após submissão | Subcasos de campos de AT-23 bloqueados |
+| P11 | Confirmar modelo institucional e suas fronteiras de autorização | Subcaso institucional de AT-19 bloqueado |
+
+A equipe informou nesta revisão que não havia decisões aprovadas adicionais para essas pendências.
+Campos internos e credenciais não devem aparecer nas respostas.
+Campos extras podem ser ignorados com sucesso legítimo ou rejeitados sem mutação; os dois ramos de avaliação estão definidos no CSV, sem permitir sucesso com identidade/privilégio alheios.
 
 ## Contrato esperado de respostas HTTP
 
-| Situação | Resposta esperada | Critério de interpretação |
+| Situação | Contrato selecionado | Verificação adicional |
 |---|---|---|
-| Endpoint protegido sem token, com token inválido/expirado ou identidade inválida | **401 Unauthorized** | Não autenticado. Não revelar dados nem executar a operação. |
-| Token válido, mas papel sem permissão para a função | **403 Forbidden** | Autenticado, porém sem autorização para a função (por exemplo, `USER` chamando função exclusiva de `ADMIN`). |
-| Token válido, mas objeto pertence a outro ator | **403** por padrão. | O contrato deve ser documentado por endpoint. Se 404 for escolhido para ocultação, objeto alheio e inexistente devem ser indistinguíveis na resposta relevante. |
-| Recurso realmente inexistente | **404 Not Found** | Não confundir ausência do objeto com autorização bem-sucedida. |
-| Recurso alheio deliberadamente ocultado | **404 Not Found**  | Aceitável somente se for política intencional e consistente, sem conteúdo ou efeito colateral. |
+| Rota protegida sem token, assinatura inválida, expirada ou sem sub | 401 | Sem dado privado nem efeito de negócio |
+| Identidade válida com papel insuficiente em função admin | 403 | Sem consulta/mutação administrativa indevida |
+| Curso de autoria alheio em /courses | 403 | Sem conteúdo privado ou mutação |
+| Curso inexistente com ID válido | 404 | Ausência do objeto não demonstra autorização |
+| Certificado PDF alheio ou inexistente na rota do estudante | 404 | Sem bytes de PDF, attachment ou campos do certificado |
+| Progresso de curso sem matrícula do solicitante | 404 | Sem progresso de outro estudante nem alteração |
+| Autoalteração de papel pelo próprio ADMIN | 409 | Papel persistido permanece inalterado |
+| Atividade, mídia pública ou divulgação ainda sem política | Pendente conforme P06–P11 | Não aceitar 403/404 ou 200 por conveniência após observar a resposta |
 
-Para todo resultado negado, conferir também o **estado antes/depois**: nenhum perfil, papel, curso, atividade, mídia, matrícula, progresso ou certificado pode ter sido alterado. Um código 403/404 isolado não prova que a operação foi bloqueada.
+Os códigos são contratos selecionados com apoio na documentação de segurança e no código da versão; precisam ser comparados ao comportamento real.
+Nos endpoints com ocultação, comparar objeto alheio e inexistente quanto à estrutura relevante, ignorando valores de requestId/timestamp.
+Não há escolha automática entre 403 e 404 para todos os recursos.
+Um código de erro isolado não prova bloqueio: comparar resposta, estado no banco e objeto armazenado, quando aplicável.
 
-## Catálogo de casos de teste futuros
+## Catálogo de casos planejados
 
-Os casos são testes de integração HTTP orientados pela matriz. `U1` possui C1/M1; `U2` possui C2/M2; A e B têm matrículas, progresso e certificados separados. O status entre parênteses é alternativa somente quando a política de ocultação de existência for formalmente escolhida.
+O catálogo contém **149 subcasos: 115 definidos e 34 bloqueados**, associados aos **23 IDs originais**.
+Esses números descrevem a preparação; não são cobertura executada nem taxa de aprovação.
+A definição pode avançar antes do ambiente, mas cada execução ainda depende de setup, credenciais sintéticas e autorização do ambiente.
 
-| ID | Ator e cenário / chamada representativa | Resultado e verificação de segurança |
-|---|---|---|
-| AT-01 | Anônimo: `GET /me/profile` e `GET /student/profile` sem `Authorization` | `401`; não retornar perfil. |
-| AT-02 | Anônimo: `POST /courses` e `GET /admin/users` | `401`; nenhum curso/consulta administrativa executada. |
-| AT-03 | Token ausente, malformado, expirado ou sem `sub`: `GET /student/enrollments` | `401`; nenhum dado de matrícula retornado. |
-| AT-04 | `USER` U1: `GET /admin/users` e `GET /institutions` | `403`; não retornar usuários/instituições. Repetir com estudante A. |
-| AT-05 | `USER` U1: `PATCH /admin/users/{U1-ou-U2}/role` com tentativa de se tornar `ADMIN` | `403`; papel persistido de U1 e de U2 permanece inalterado. |
-| AT-06 | `USER` U1: `GET /courses/{C2}` (curso de U2) | `403` ; não retornar conteúdo/ownerId privado de C2. |
-| AT-07 | `USER` U1: `PUT /courses/{C2}` e `DELETE /courses/{C2}` | `403`; Nega, deve comparar C2 antes/depois e comprovar que título, estado e existência não mudaram. |
-| AT-08 | `USER` U1 cria curso enviando no corpo `ownerId=U2` e `role=ADMIN` | A operação autorizada cria curso com `ownerId=U1`; campos privilegiados são ignorados/rejeitados e o papel de U1 não muda. |
-| AT-09 | `USER` U1 cria/edita atividade em seção de C1 e tenta criar/editar em seção de C2 | Próprio curso: permitir. Outro curso: negar e não alterar C2. Confirmar pertencimento da seção ao curso no servidor `403`. |
-| AT-10 | Anônimo: `GET /activities/{id}` e `GET /activities/section/{sectionId}` para conteúdo não publicado, além de `POST /activities`; `USER` U1 não proprietário: `GET/PUT/DELETE /activities/{id}` de C2 | Restringir conteúdo privado e escrita: anônimo recebe `401` na escrita e não lê atividade não publicada; U1 não lê/edita/exclui a atividade de U2.**Hipótese:** as rotas consultadas não mostram middleware de autorização; confirmar contrato e resposta diretamente na API. |
-| AT-11 | `ADMIN`: criar/alterar/excluir atividade de curso de U2; comparar com AT-09 | Permite as ações ao `ADMIN`; verificar que `USER` não obtém o mesmo resultado; **Hipótese:** as rotas consultadas não mostram checagem de papel/propriedade e podem aceitar as operações de qualquer ator; confirmar via requisições HTTP. Isso não é uma vulnerabilidade confirmada.. |
-| AT-12 | Estudante A: `PUT /student/profile` enviando campos extras `userId=B` e `role=ADMIN` | Atualizar, no máximo, campos permitidos de A; B e os papéis de A/B permanecem inalterados. |
-| AT-13 | Estudante A: `GET /student/enrollments` quando B possui outra matrícula | `200` com dados de A apenas; matrícula exclusiva de B não aparece. Usar curso diferente para detectar mistura de registros. |
-| AT-14 | Estudante A solicita progresso de curso matriculado somente por B em `GET /student/progress/courses/{courseId}` e tenta `userId=B` em query/body nos endpoints de progresso | `404` conforme contrato aprovado ; em nenhuma resposta aparecem progresso, pontuação ou conclusão de B. `userId` deve vir do token. |
-| AT-15 | Estudante A: `GET /student/certificates/{certificateB}/pdf` | `404` Não encontrará por usar o id do userID passado e do token em uma comparação. |
-| AT-16 | Estudante B lista certificados e progresso; testar também identificador de A | Listas contêm somente objetos de B. Um ID de A é negado/ocultado, sem campos, PDF ou mudança de estado de A. |
-| AT-17 | `USER` U1: alterar metadados ou excluir M2 em `/media/images/{id}/metadata` e `/media/videos/{id}` | `403` para objeto alheio; metadados, registro e objeto de armazenamento permanecem inalterados. Repetir como A contra mídia privada de U1/U2. |
-| AT-18 | Anônimo, A e B: `GET /media/{id}/stream` para mídia ativa/publicada e para mídia inativa/não publicada | Mídia ativa/publicada: `200` para todos, sem exigir autenticação ou matrícula. Mídia inativa/não publicada: negar o stream e não revelar o conteúdo; validar o status HTTP conforme o contrato do endpoint. |
-| AT-19 | `USER` U1: `POST/PUT/DELETE /institutions/{id}`; `ADMIN` realiza operação equivalente com dados de teste | `USER`: `403` e estado inalterado. `ADMIN`: sucesso somente com payload válido e dados de teste controlados. |
-| AT-20 | `ADMIN` consulta `/admin/users`, consulta um usuário e altera o papel de um usuário de teste; em seguida, testar uma nova requisição desse usuário | Acesso admin permitido. |
-| AT-21 | `USER` U1 consulta `/me/courses` e `/me/media` usando diferentes valores de paginação, `kind` e `status` | Listagens limitadas a U1; parâmetros de consulta não removem a condição de propriedade. A tentativa de acessar ID de mídia de U2 é coberta por AT-17. |
-| AT-22 | Anônimo verifica certificado em `/certificates/verify/{code}` com código válido e inválido | A consulta pública retorna somente atributos explicitamente aprovados para verificação; não revela e-mail, progresso detalhado ou PDF. Confirmar se `userName`, nome do curso, total de seções, data e carga horária são divulgação intencional. Código inválido retorna `404`. |
-| AT-23 | Anônimo e estudante consultam `GET /catalog/courses/{C1}` e inspecionam atividades e campos retornados | A consulta pública do curso deve retornar 200 com os dados públicos, mas sem incluir correctAnswer nas atividades. **Hipótese**: A rota é publica e retornara o gabarito do curso, mesmo o usuário nao devendo ter acesso a ele. |
+| ID | Recorte do catálogo | Subcasos | Bloqueados |
+|--------|----------------------------------------------|--------|----------|
+| AT-01 | Perfil: controles U1/A e requisições sem token | 4 | 0 |
+| AT-02 | Criação de curso e consulta administrativa sem token | 4 | 0 |
+| AT-03 | Token ausente, inválido, expirado e sem sub | 5 | 0 |
+| AT-04 | Funções administrativas com USER e STUDENT | 5 | 0 |
+| AT-05 | Alteração de papel por USER e controle ADMIN | 3 | 0 |
+| AT-06 | Curso próprio, alheio e inexistente | 3 | 0 |
+| AT-07 | PUT/DELETE de curso próprio, alheio e inexistente | 6 | 0 |
+| AT-08 | Criação e edição com campos privilegiados adulterados | 5 | 0 |
+| AT-09 | Atividade em seção própria, alheia e troca de seção | 5 | 3 |
+| AT-10 | Atividade privada: anônimo, outro autor e controles do dono | 12 | 8 |
+| AT-11 | CRUD de atividades por ADMIN em curso alheio | 3 | 3 |
+| AT-12 | Perfil do estudante com userId/role adulterados | 4 | 0 |
+| AT-13 | Matrículas próprias sem registros de B | 3 | 0 |
+| AT-14 | Progresso: consulta, gravação, conclusão e identidade | 9 | 0 |
+| AT-15 | PDF próprio, alheio e inexistente nas duas direções | 6 | 0 |
+| AT-16 | Listas de certificados/progresso com tentativa de trocar identidade | 11 | 0 |
+| AT-17 | Metadados/exclusão de imagem e vídeo próprios, alheios e inexistentes | 16 | 0 |
+| AT-18 | Stream ativo/publicado, inativo, não publicado e inexistente | 11 | 11 |
+| AT-19 | CRUD institucional por papel e lacuna de isolamento | 9 | 1 |
+| AT-20 | Consulta, toggle/persistência de papel, autoalteração e sessões | 10 | 4 |
+| AT-21 | Listas de autoria/mídia: U1/U2, páginas e filtros | 8 | 0 |
+| AT-22 | Verificação de certificado: código válido e inexistente | 2 | 2 |
+| AT-23 | Catálogo público/privado/inexistente e proposta de ocultar gabarito | 5 | 2 |
 
-### Dados de teste e controles positivos
+### Formato e procedimento
 
-- Criar U1 e U2 (`USER`), ADM1 (`ADMIN`), A e B (`STUDENT`) com credenciais independentes.
-- Criar C1 de U1 e C2 de U2, cada um com seção e atividade; configurar mídia própria, mídia de curso publicada e mídia inativa.
-- Criar matrícula, progresso e certificado para A e B em cursos distintos, sem reutilizar IDs.
-- Incluir controles positivos: U1 administra C1/M1; U2 administra C2/M2; A e B consultam os próprios recursos; ADM1 executa as funções administrativas previstas. Eles detectam falsos positivos (negações indevidas).
-- Para cada tentativa negada, registrar resposta HTTP e consultar novamente o banco e os dados de teste por um ator autorizado para confirmar ausência de mutação.
+Cada linha registra ID/subcaso, regra, estado de definição, precondições, ator, token, recurso, método/endpoint, payload, HTTP esperado, dados/efeitos esperados, controle positivo, fontes, ASVS e bloqueio.
+O registro de decisões define os símbolos das fixtures e a substituição dos IDs.
+Payloads de criação têm campos obrigatórios; um 422 por entrada inválida não deve ser confundido com bloqueio de autorização.
+Restaurar as fixtures entre controles positivos e tentativas negativas.
+
+Executar o controle positivo antes da tentativa correspondente.
+Após a requisição, verificar dados retornados e o estado antes/depois por consulta autorizada.
+Percorrer todas as páginas das listas, guardar evidências saneadas e restaurar as cópias após escritas.
+Estados de definição (definido/bloqueado) são diferentes dos estados de execução (aprovado, reprovado, bloqueado, não executado, não aplicável).
+A issue #27 deverá registrar cada subcaso; uma linha bloqueada não pode contar como teste aprovado.
+
+### AT-15: PDF próprio, alheio e inexistente
+
+A e B devem baixar os próprios PDFs sintéticos (200 e conteúdo correto).
+Em ambas as direções, tentar o PDF alheio e um ID inexistente de formato válido: esperar 404, sem bytes de PDF, attachment ou dados do certificado.
+Conferir que os registros/objetos dos dois certificados não foram alterados ou gerados pela tentativa negada.
+O PDF próprio deve estar preparado para separar erro de armazenamento/geração de autorização.
+
+### AT-20: persistência e mudança de sessão
+
+ADM1 consulta/lista usuários e alterna o papel de U2 descartável com PATCH sem corpo; o endpoint da versão faz toggle, não recebe o papel desejado no JSON.
+Confirmar no banco USER → ADMIN e ADMIN → USER, usando ADM1 distinto do alvo.
+A tentativa de ADM1 alterar o próprio papel tem contrato 409.
+Guardar tokens anteriores e obter novas sessões após cada alteração; os resultados das requisições com essas sessões dependem da decisão P09.
+O ASVS 8.3.2 exige efeito imediato ou mitigação específica quando isso não for possível; expirar um token no futuro, isoladamente, não demonstra atendimento [@rel02-asvs-5].
+
+### AT-19: função administrativa e fronteira institucional
+
+POST de instituição usa /institutions; PUT/DELETE usam /institutions/{id}.
+Esses subcasos medem restrição por papel.
+Eles não demonstram isolamento entre I1/I2.
+O subcaso institucional permanece bloqueado até confirmar entidades, vínculos, endpoint e política P11; não declarar 8.4.1 coberto nem excluí-lo silenciosamente.
 
 ## Métricas e critérios de sucesso
 
-| Métrica | Fórmula | Critério de sucesso proposto |
+As metas abaixo foram propostas no planejamento, sem valores observados.
+Os denominadores devem vir dos inventários acordados; excluídos, bloqueados e não executados precisam de justificativa.
+
+| Métrica | Fórmula | Meta proposta |
 |---|---|---|
-| Cobertura de regras | Regras com ao menos um teste positivo e um negativo ÷ regras aplicáveis inventariadas × 100 | **100%** |
-| Cobertura de funções | Pares método HTTP–endpoint sensíveis com autorização testada ÷ pares sensíveis inventariados × 100 | **100%** |
-| Cobertura de objetos | Combinações próprias, alheias e inexistentes previstas e exercitadas ÷ combinações planejadas aplicáveis × 100 | **100%** |
-| Cobertura de campos | Campos sensíveis inventariados com leitura/escrita permitida e negada testadas ÷ campos sensíveis inventariados × 100 | **100%** |
-| Tentativas negadas bloqueadas | Tentativas não autorizadas sem dado/efeito indevido ÷ total de tentativas não autorizadas executadas × 100 | **100%** |
-| Bypasses confirmados | Número de operações/dados não autorizados que foram obtidos ou alterados | **0** |
-| Falsos positivos | Operações legítimas de controle negadas ÷ operações legítimas de controle executadas × 100 | **0%** |
-| Integridade após negação | Tentativas negadas sem mutação persistida ÷ tentativas negadas com estado verificado × 100 | **100%** |
-| Rastreabilidade ASVS | Requisitos ASVS aplicáveis com ao menos um caso associado ÷ requisitos ASVS aplicáveis selecionados × 100 | **100%** |
-| Severidade | Contagem de falhas confirmadas por severidade após validação e análise de impacto | Registrar **100%** das falhas com severidade; **0 críticas/altas abertas** como condição para aceite futuro |
+| Cobertura de regras | Regras com teste positivo e negativo executados ÷ regras aplicáveis inventariadas × 100 | 100% |
+| Cobertura de funções | Pares método–endpoint sensíveis testados ÷ pares sensíveis inventariados × 100 | 100% |
+| Cobertura de objetos | Combinações próprias, alheias e inexistentes exercitadas ÷ combinações planejadas aplicáveis × 100 | 100% |
+| Cobertura de campos | Campos sensíveis com leitura/escrita permitida e negada testadas ÷ campos sensíveis aplicáveis × 100 | 100% |
+| Tentativas negadas bloqueadas | Tentativas indevidas sem dado/efeito indevido ÷ tentativas indevidas executadas × 100 | 100% |
+| Bypasses confirmados | Quantidade de operações/dados indevidos obtidos ou alterados | 0 |
+| Falsos positivos | Operações legítimas negadas ÷ controles legítimos executados × 100 | 0% |
+| Integridade após negação | Negações sem mutação ÷ negações com estado verificado × 100 | 100% |
+| Rastreabilidade planejada ASVS | Requisitos aplicáveis com caso associado ÷ requisitos selecionados aplicáveis × 100 | 100% |
+| Severidade | Falhas confirmadas por classe de impacto | Registrar todas; meta de zero críticas/altas abertas |
 
-### Severidade proposta para triagem
+Rastreabilidade planejada não é conformidade nem validação executada.
+A execução precisa ligar requisito, caso/subcaso, evidência e resultado.
+Denominador zero deve ser reportado como não mensurável/não aplicável conforme o contexto, sem inventar percentual.
+Metas não atingidas devem ser informadas; não é necessário ocultar falhas para concluir o registro experimental.
 
-- **Crítica:** acesso administrativo/sistêmico sem autorização ou alteração ampla de dados/contas.
-- **Alta:** leitura ou alteração não autorizada de dados pessoais, certificados, progresso, papéis ou conteúdo de múltiplos usuários.
-- **Média:** acesso/alteração indevida de escopo limitado, sem evidência de impacto amplo.
-- **Baixa:** exposição de informação de baixo impacto ou falha com efeito muito restrito.
+### Severidade proposta
 
-Classificar somente após reproduzir o resultado no ambiente autorizado, registrar evidência e estimar impacto. Uma hipótese derivada de leitura de código não recebe severidade como se fosse achado confirmado.
+Classificar apenas desvios reproduzidos contra uma política definida: crítica para poder administrativo amplo; alta para leitura/alteração indevida de dados pessoais ou de múltiplos usuários; média para impacto limitado; baixa para efeito restrito.
+Justificar a severidade com impacto e evidência.
+Hipóteses estáticas não recebem severidade como se fossem achados confirmados.
 
 ## Rastreabilidade ao OWASP ASVS
 
-Referência escolhida: **OWASP ASVS 5.0.0**, capítulo V8 Authorization.
+Usar **ASVS 5.0.0**, capítulo V8 [@rel02-asvs-5].
+O campo asvs do CSV liga cada subcaso aos requisitos planejados.
 
-| ASVS 5.0.0 | Aplicação ao planejamento | Casos relacionados |
-|---|---|---|
-| V8.1.1 | Documentar regras de autorização por função e dados/objetos | Matriz; AT-04 a AT-11, AT-19 a AT-22 |
-| V8.1.2 | Documentar restrições de leitura e escrita por campo | Regras de campos; AT-05, AT-08, AT-12, AT-14, AT-22, AT-23 |
-| V8.2.1 | Restringir funções a consumidores com permissão explícita | AT-01 a AT-05, AT-10, AT-11, AT-19, AT-20 |
-| V8.2.2 | Restringir dados específicos e mitigar IDOR/BOLA | AT-06, AT-07, AT-09, AT-13 a AT-18, AT-21 |
-| V8.2.3 | Restringir acesso a propriedades/campos e mitigar BOPLA | AT-05, AT-08, AT-12, AT-14, AT-22, AT-23 |
-| V8.3.1 | Aplicar autorização em camada confiável do servidor, não só no cliente | Todos; chamadas diretas à `educado-api` |
-| V8.3.2 | Aplicar mudanças de permissão de forma efetiva, inclusive em sessões/tokens | AT-05 e AT-20; política de revogação/expiração a confirmar |
-| V8.4.1 | Controles entre instituições/tenants | AT-19 e casos adicionais após confirmar o modelo multi-instituição |
+| Requisito | Planejamento e limite |
+|---|---|
+| 8.1.1 | Matriz, P01–P12 e decisões de função/objeto documentadas |
+| 8.1.2 | Regras de campo, allowlists e AT-05/08/12/14/22/23; parte depende de decisão |
+| 8.2.1 | AT-01–05, AT-10/11, AT-19/20 |
+| 8.2.2 | AT-06/07/09, AT-13–18, AT-21; negações aplicáveis e controles |
+| 8.2.3 | AT-08/12/14 e AT-22/23; campo privilegiado não pode conceder acesso |
+| 8.3.1 | Chamadas diretas à API; a sessão/visibilidade do Web não prova autorização |
+| 8.3.2 | Subcasos de sessão de AT-20 planejados; P09 bloqueia definição final |
+| 8.4.1 | Subcaso institucional de AT-19 bloqueado por P11; CRUD por papel não o substitui |
 
-V8.1.3, V8.1.4, V8.2.4 e V8.4.2 tratam atributos contextuais/adaptativos ou controles administrativos de nível mais amplo e ficam fora do escopo inicial, salvo requisito do produto que os torne aplicáveis. A cobertura não deve ser declarada para requisitos excluídos.
+8.1.3, 8.1.4, 8.2.4 e 8.4.2 ficam fora do recorte inicial, salvo requisito que os torne aplicáveis.
+A seleção não verifica integralmente nenhum nível ASVS.
+Nenhum requisito recebe cobertura executada nesta entrega de definição.
 
-## Hipóteses do código a confirmar (não são vulnerabilidades confirmadas)
+## Observações estáticas e pendências
 
-Na leitura estática usada para definir os cenários, foram observados pontos que justificam testes, mas não provam falha em execução:
+A leitura dos middlewares e serviços descreve pontos de verificação, sem provar seu resultado via HTTP.
+O registro de decisões separa fontes do produto, código e propostas da equipe.
 
-- Há verificações de papel no middleware e nas funções administrativas; há também checagens de propriedade em serviços de curso e de mídia. Os testes devem verificar as rotas e os efeitos completos, não apenas a existência desses helpers.
-- As rotas REST de atividades consultadas não mostram middleware de autorização no próprio arquivo. AT-09 a AT-11 validarão a política esperada de dono do curso/admin e confirmarão como os endpoints se comportam via API.
-- A projeção de atividades no detalhe público do catálogo inclui o atributo `correctAnswer`, e a verificação pública do certificado retorna `userName`, curso, total de seções, data e carga horária. Isso motiva AT-22/AT-23 para confirmar a política de divulgação campo a campo; não é uma conclusão de vulnerabilidade.
-- O stream de mídia tem lógica própria de token e trata estudantes diferentemente de leitores de metadados. AT-18 verificará que qualquer pessoa consegue transmitir mídia ativa e publicada, independentemente de autenticação ou matrícula, e que mídia inativa/não publicada não é transmitida.
-- O mapeamento atual distingue `USER`, `ADMIN` e `STUDENT`. Para esta proposta, `USER` significa autor de conteúdo e estudantes A/B são contas diferentes com papel `STUDENT`.
+- O stream da versão exige token e distingue papéis; a proposta pública original permanece pendente P07.
+- O CRUD de atividades precisa ser verificado no contexto de montagem das rotas e política; não concluir vulnerabilidade apenas por ausência local de middleware.
+- A projeção de catálogo e a verificação pública de certificado motivam comparação dos campos com allowlists ainda a aprovar.
+- O PATCH administrativo alterna papel; persistência e validade das sessões são verificações diferentes.
+- O inventário das entidades consultadas não mostrou vínculo institucional de User/Course; isso não permite declarar isolamento demonstrado ou requisito não aplicável.
 
-Qualquer desvio deve ser reproduzido, comparado ao contrato aprovado, confirmado quanto à ausência/presença de efeito e registrado como resultado somente depois da execução autorizada.
+As decisões P06–P11 exigem fonte, pessoa/data de validação e atualização do catálogo.
+O restante do planejamento pode ser revisado enquanto esses pontos são esclarecidos.
 
-## Pré-requisitos, limites e segurança operacional
+## Pré-requisitos e limites
 
-- Executar **somente em ambiente local ou homologação com autorização explícita**; nunca contra produção, usuários reais ou serviços de terceiros.
-- Usar banco e armazenamento de mídia isolados, contas sintéticas e IDs gerados para teste. Não reutilizar tokens, segredos ou dados pessoais reais.
-- Preparar backups e limpeza dos dados de teste, além de registrar os estados iniciais para provar que tentativas negadas não alteraram dados.
-- Manter alcance limitado aos endpoints e cenários acordados. Não realizar força bruta, varredura indiscriminada ou tentativas contra infraestrutura externa.
-- Confirmar previamente a ocultação de objetos com 404, administração de matrículas/progresso/certificados, escopo de acesso de ADMIN e isolamento por instituição.
-- Este plano não implementa nem executa os testes e não apresenta resultados experimentais.
+Executar apenas em ambiente local/homologação autorizado, com banco/storage isolados e dados descartáveis.
+A issue #26 deve registrar setup, dependências efetivas, contas, tokens e restauração.
+Usar IDs/credenciais sintéticos; não publicar tokens, segredos ou dados reais.
+A issue #27 deve registrar resultados e comunicar achados confirmados pelo canal privado do produto.
+
+O enunciado exige declaração de uso de IA; a equipe deve incluir ferramentas, finalidades e consultas representativas no relatório final.
+O registro de planejamento documenta assistência do Codex na preparação dos artefatos.
+Interpretação de resultados, análise crítica, justificativas acadêmicas e conclusões devem ser elaboradas/revisadas pela equipe conforme o enunciado.
+Esta definição não apresenta execução nem resultados.
 
 ## Fontes consultadas nesta seção
 
-- OWASP. **Application Security Verification Standard (ASVS), versão estável 5.0.0**, V8 Authorization: [requisitos V8](https://github.com/OWASP/ASVS/blob/v5.0.0_release/5.0/en/0x17-V8-Authorization.md) e [release estável](https://github.com/OWASP/ASVS/releases/tag/v5.0.0_release).
-- OWASP. **Authorization Cheat Sheet**: [cheatsheetseries.owasp.org](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html).
-- Código consultado para delimitar as superfícies (sem concluir vulnerabilidade): [middleware de autenticação](../educado-api/src/interface/http/middlewares/auth-jwt.ts), [middleware de papel](../educado-api/src/interface/http/middlewares/require-role.ts), [acesso a cursos](../educado-api/src/application/courses/course-access-service.ts), [acesso a mídias](../educado-api/src/application/media/media-access-service.ts), [rotas de atividades](../educado-api/src/routes/activities/activities.ts), [rotas de estudante](../educado-api/src/routes/student/student.ts) e [rotas administrativas](../educado-api/src/routes/admin/registrations.ts).
+- [OWASP ASVS 5.0.0, V8](https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x17-V8-Authorization.md).
+- [Autoria e ciclo de cursos](https://github.com/ErasmusEgalitarian/educado-docs/blob/1bfc8d23177a171669cf3e491a4996cee21e3310/docs/backlog/ep_02/fe_04.md).
+- [Fontes da API analisada](https://github.com/ErasmusEgalitarian/educado-api/tree/399131a808ed76b3910f9fc1ab3db34ddc0f0d56/src).
+- [Sessão do Web](https://github.com/ErasmusEgalitarian/educado-web/blob/1131060f370f2c57eaeed2cd541f8af6fae8376c/src/shared/api/auth-session.ts).
+- Enunciado local e links por arquivo: registro de escopo e decisões junto ao CSV, na pasta planejamento deste relatório.
 
 
 # Limitações e conclusão
