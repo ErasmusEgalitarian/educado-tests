@@ -29,6 +29,10 @@ relatorios/*/build/
 *.ind
 *.xdv
 
+# Python
+__pycache__/
+*.pyc
+
 # Editores e SO
 .vscode/
 .DS_Store

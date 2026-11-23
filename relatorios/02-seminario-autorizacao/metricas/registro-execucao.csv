@@ -1,0 +1,43 @@
+teste,caso_pai,subcasos,situacao,abrangencia,evidencia,severidade,observacao
+AT-01.1,AT-01,AT-01-N1,aprovado,parcial,educado-security-tests/relatorio-de-execucao.md,-,Status 401 verificado sem assercao de ausencia de dados
+AT-01.2,AT-01,AT-01-N2,aprovado,parcial,educado-security-tests/relatorio-de-execucao.md,-,Status 401 verificado sem assercao de ausencia de dados
+AT-02.1,AT-02,AT-02-N1,ignorado,parcial,educado-security-tests/tests/authentication.spec.ts,-,Teste com skip fixo por NAO IMPLEMENTADO
+AT-02.2,AT-02,AT-02-N2,aprovado,parcial,educado-security-tests/relatorio-de-execucao.md,-,Status 401 verificado sem assercao de efeitos
+AT-03.1,AT-03,AT-03-N2,aprovado,parcial,educado-security-tests/relatorio-de-execucao.md,-,Token malformado recusado com 401
+AT-03.2,AT-03,AT-03-N1,aprovado,parcial,educado-security-tests/relatorio-de-execucao.md,-,Token ausente recusado com 401 sem verificacao de expirado ou sem sub
+AT-04.1,AT-04,AT-04-N1,aprovado,parcial,educado-security-tests/relatorio-de-execucao.md,-,USER negado em /admin/users com 403
+AT-04.2,AT-04,AT-04-N2,aprovado,parcial,educado-security-tests/relatorio-de-execucao.md,-,USER negado em /institutions com 403
+AT-05,AT-05,AT-05-N1,ignorado,completa,educado-security-tests/tests/authorization.spec.ts,-,Depende de CREATOR_USER_ID e nao foi executado
+AT-20.1,AT-20,AT-20-P1,aprovado,parcial,educado-security-tests/relatorio-de-execucao.md,-,Controle administrativo com 200 e validacao de formato limitada
+AT-20.2,AT-20,AT-20-P3;AT-20-P4,ignorado,completa,educado-security-tests/tests/authorization.spec.ts,-,Depende de opt-ins de mutacao e nao foi executado
+AT-06,AT-06,AT-06-N1,aprovado,parcial,educado-security-tests/relatorio-de-execucao.md,-,Aceita 403 ou 404 e nao comprova existencia da fixture alheia
+AT-07,AT-07,AT-07-N1;AT-07-N3,ignorado,completa,educado-security-tests/tests/courses.spec.ts,-,Teste com skip fixo por NAO IMPLEMENTADO
+AT-08,AT-08,AT-08-N1;AT-08-N2;AT-08-N3;AT-08-N4,ignorado,completa,educado-security-tests/tests/courses.spec.ts,-,Teste com skip fixo por NAO IMPLEMENTADO
+AT-21,AT-21,AT-21-P1,aprovado,parcial,educado-security-tests/relatorio-de-execucao.md,-,Status 200 sem verificacao de proprietario ou paginacao
+AT-21.2,AT-21,AT-21-P3,aprovado,parcial,educado-security-tests/relatorio-de-execucao.md,-,Status 200 sem verificacao de proprietario ou paginacao
+AT-09-P2,AT-09,AT-09-P2,ignorado,completa,educado-security-tests/tests/activities.spec.ts,-,Depende de opt-ins de mutacao e nao foi executado
+AT-09-N2,AT-09,AT-09-N2,ignorado,completa,educado-security-tests/tests/activities.spec.ts,-,Depende de opt-ins de mutacao e nao foi executado
+AT-10.1,AT-10,AT-10-N1,reprovado,parcial,test-results/activities-Autorização-de--bf22e-ssa-atividade-não-publicada/error-context.md,alta,HTTP 200 com dados de atividade nao publicada conforme relatorio de execucao
+AT-10.2,AT-10,AT-10-N2,reprovado,parcial,test-results/activities-Autorização-de--fb1d9-ades-de-seção-não-publicada/error-context.md,alta,HTTP 200 com dados de secao nao publicada conforme relatorio de execucao
+AT-10.3,AT-10,AT-10-N3,ignorado,completa,educado-security-tests/tests/activities.spec.ts,-,Depende de opt-ins de mutacao e nao foi executado
+AT-11-C1,AT-11,AT-11-C1,ignorado,completa,educado-security-tests/tests/activities.spec.ts,-,Depende de opt-ins de mutacao e nao foi executado
+AT-11-C2,AT-11,AT-11-C2,ignorado,completa,educado-security-tests/tests/activities.spec.ts,-,Depende de opt-ins de mutacao e nao foi executado
+AT-11-C3,AT-11,AT-11-C3,ignorado,completa,educado-security-tests/tests/activities.spec.ts,-,Depende de opt-ins de mutacao e nao foi executado
+AT-13,AT-13,AT-13-P2,ignorado,parcial,educado-security-tests/tests/students.spec.ts,-,Depende de token de estudante e nao foi executado
+AT-14,AT-14,AT-14-N1,ignorado,parcial,educado-security-tests/tests/students.spec.ts,-,Depende de token de estudante e nao foi executado
+AT-15,AT-15,AT-15-N1,ignorado,parcial,educado-security-tests/tests/students.spec.ts,-,Depende de certificado de estudante e nao foi executado
+AT-16,AT-16,AT-16-P3,ignorado,parcial,educado-security-tests/tests/students.spec.ts,-,Depende de token de estudante B e nao foi executado
+AT-17.1,AT-17,AT-17-N1,aprovado,parcial,educado-security-tests/relatorio-de-execucao.md,-,Aceita 403 ou 404 sem comprovar propriedade da fixture
+AT-17.2,AT-17,AT-17-N2,ignorado,completa,educado-security-tests/tests/media.spec.ts,-,Teste com skip fixo por NAO IMPLEMENTADO
+AT-18.1,AT-18,AT-18-C1,ignorado,parcial,educado-security-tests/tests/media.spec.ts,-,Politica P07 pendente e midia publica nao configurada
+AT-18.2,AT-18,AT-18-N1;AT-18-N2,ignorado,parcial,educado-security-tests/tests/media.spec.ts,-,Politica P07 pendente e midia privada nao configurada
+AT-18.3,AT-18,AT-18-C3,ignorado,parcial,educado-security-tests/tests/media.spec.ts,-,Politica P07 pendente e token de estudante ausente
+AT-19.1,AT-19,AT-04-N2,aprovado,parcial,educado-security-tests/relatorio-de-execucao.md,-,Repeticao de /institutions com outro criador
+AT-19.2,AT-19,AT-04-N4,ignorado,parcial,educado-security-tests/tests/public-resources.spec.ts,-,Depende de token de estudante e nao foi executado
+AT-19.3,AT-19,AT-19-N1;AT-19-N2;AT-19-N3,ignorado,completa,educado-security-tests/tests/public-resources.spec.ts,-,Depende de opt-ins de mutacao e nao foi executado
+AT-19-P1,AT-19,AT-19-P1,aprovado,parcial,educado-security-tests/relatorio-de-execucao.md,-,Controle administrativo com 200 e array validado
+AT-19-P2,AT-19,AT-19-P2,ignorado,completa,educado-security-tests/tests/public-resources.spec.ts,-,Depende de opt-ins de mutacao e nao foi executado
+AT-22.1,AT-22,AT-22-C1,ignorado,parcial,educado-security-tests/tests/public-resources.spec.ts,-,Politica P08 pendente com skip fixo
+AT-22.2,AT-22,AT-22-N1,aprovado,parcial,educado-security-tests/relatorio-de-execucao.md,-,Codigo inexistente retornou 404 sem verificacao de allowlist
+AT-23,AT-23,AT-23-C1,reprovado,parcial,test-results/public-resources-Instituiç-2e202-ico-não-deve-expor-gabarito/error-context.md,alta,HTTP 200 com correctAnswer no catalogo publico conforme relatorio de execucao
+AT-23-C2,AT-23,AT-23-C2,ignorado,parcial,educado-security-tests/tests/public-resources.spec.ts,-,Depende de token de estudante e nao foi executado
