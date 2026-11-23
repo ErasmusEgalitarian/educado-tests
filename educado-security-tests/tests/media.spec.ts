@@ -26,8 +26,8 @@ test.describe('Autorização de mídia', () => {
       'NAO IMPLEMENTADO: requer staging autorizado e verificacao antes/depois do registro e arquivo.');
   });
 
-  // AT-18: somente leitura, mas pode transferir arquivos.
-  test('AT-18.1 - Mídia pública deve permitir stream', async ({ request }) => {
+  // AT-18: qualquer pessoa pode transmitir mídia ativa e publicada.
+  test('AT-18.1 - Anônimo pode transmitir mídia ativa e publicada', async ({ request }) => {
     test.skip(!process.env.PUBLIC_MEDIA_ID);
 
     const response = await request.get(
@@ -37,15 +37,26 @@ test.describe('Autorização de mídia', () => {
     expect([200, 206]).toContain(response.status());
   });
 
-  test('AT-18.2 - Mídia privada não deve permitir stream anônimo', async ({ request }) => {
-    test.skip(true, 'BLOQUEADO: resposta ainda nao foi confirmada.');
+  test('AT-18.2 - Mídia inativa ou não publicada retorna 403', async ({ request }) => {
     test.skip(!process.env.PRIVATE_MEDIA_ID);
 
     const response = await request.get(
       `/media/${process.env.PRIVATE_MEDIA_ID}/stream`
     );
 
-    expect([401, 403, 404]).toContain(response.status());
+    expect(response.status()).toBe(403);
+  });
+
+  test('AT-18.3 - Estudante sem matrícula pode transmitir mídia ativa e publicada', async ({ request }) => {
+    test.skip(!process.env.STUDENT_A_TOKEN || !process.env.PUBLIC_MEDIA_ID);
+
+    const response = await authenticatedGet(
+      request,
+      `/media/${process.env.PUBLIC_MEDIA_ID}/stream`,
+      'studentA'
+    );
+
+    expect([200, 206]).toContain(response.status());
   });
 
 });

@@ -54,19 +54,23 @@ export async function authenticatedRequest(
 
 /**
  * BLOQUEIO DE SEGURANÇA:
- * Operações que alteram dados só podem ser habilitadas
- * em staging ou localhost.
+ * Operações que alteram dados só podem ser habilitadas na API local.
  */
 export function canRunMutation(): boolean {
-  const url = process.env.API_URL ?? '';
+  const configuredUrl = process.env.API_URL;
+  let isLoopback = false;
 
-  const allowedEnvironment =
-    url.includes('staging') ||
-    url.includes('localhost') ||
-    url.includes('127.0.0.1');
+  if (configuredUrl) {
+    try {
+      const hostname = new URL(configuredUrl).hostname;
+      isLoopback = ['localhost', '127.0.0.1', '::1', '[::1]'].includes(hostname);
+    } catch {
+      isLoopback = false;
+    }
+  }
 
   return (
-    allowedEnvironment &&
+    isLoopback &&
     process.env.RUN_MUTATION_TESTS === 'true' &&
     process.env.ALLOW_MUTATIONS === 'true'
   );
@@ -79,7 +83,7 @@ export function requireMutationEnvironment(): void {
   if (!canRunMutation()) {
     throw new Error(
       'OPERAÇÃO BLOQUEADA: este teste pode modificar o banco. ' +
-      'Utilize staging, dados descartáveis e autorização explícita.'
+      'Utilize apenas API local, dados descartáveis e autorização explícita.'
     );
   }
 }
