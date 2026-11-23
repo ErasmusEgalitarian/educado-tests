@@ -1,0 +1,36 @@
+# Local environment files. Keep only the documented template in version control.
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Local credentials, certificates, and browser authentication state.
+secrets/
+credentials/
+playwright/.auth/
+**/storage-state*.json
+**/auth-state*.json
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+
+# Playwright output can contain response bodies, headers, and traces.
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Local dependencies, build output, and logs.
+node_modules/
+coverage/
+dist/
+*.log
+
+# Local database exports and files.
+*.dump
+*.backup
+*.sqlite
+*.sqlite3
+*.db

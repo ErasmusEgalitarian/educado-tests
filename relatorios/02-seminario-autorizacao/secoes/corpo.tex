@@ -1,0 +1,1956 @@
+\section{Introdução}\label{introduuxe7uxe3o}
+
+Este relatório apresenta a primeira entrega do seminário de testes de
+características de qualidade da disciplina FGA0314, Testes de Software.
+O tema escolhido pela equipe é \textbf{testes de autorização e controle
+de acesso}, aplicado às APIs REST e à interface Web do projeto Educado
+{[}1{]}.
+
+Autorização é a subcaracterística de segurança que decide se um sujeito
+já identificado pode executar uma operação sobre um recurso. Falhas
+nesse controle ocupam a primeira posição do OWASP Top 10:2025 {[}2{]}, o
+que justifica tratá-la como objeto de teste próprio, separado da
+autenticação.
+
+O documento está organizado da seguinte forma: a Seção 2 fundamenta os
+conceitos de autorização e os modelos de controle de acesso; a Seção 3
+apresenta as normas e referências usadas para avaliá-la; a Seção 4
+descreve as técnicas de teste; a Seção 5 compara ferramentas de apoio; a
+Seção 6 define métricas e uma proposta de aplicação ao Educado; a Seção
+7 discute limitações e conclui.
+
+Esta entrega é de pesquisa e planejamento. Nenhum teste foi executado no
+Educado e nenhum resultado experimental é apresentado. Observações sobre
+o código do projeto são tratadas como hipóteses de teste, não como
+vulnerabilidades confirmadas.
+
+\section{Fundamentação de
+autorização}\label{fundamentauxe7uxe3o-de-autorizauxe7uxe3o}
+
+\subsection{O que é autorização?}\label{o-que-uxe9-autorizauxe7uxe3o}
+
+Autorização é o processo de decidir se uma solicitação deve ser
+permitida ou negada de acordo com uma política de acesso. Ela responde a
+perguntas como ``este usuário pode consultar este prontuário?'' ou
+``este serviço pode excluir este registro?''. O conceito não se confunde
+com \textbf{identificação}, que associa uma entidade a um identificador,
+nem com \textbf{autenticação}, que verifica se quem apresenta esse
+identificador consegue demonstrar que é seu titular. Assim, informar um
+nome de usuário identifica, apresentar uma credencial válida autentica e
+avaliar o que a identidade autenticada pode fazer autoriza. A
+autenticação pode fornecer dados confiáveis para a decisão, mas não
+concede, por si só, acesso a todos os recursos {[}3{]}.
+
+Uma decisão de acesso relaciona cinco elementos. O \textbf{sujeito} é a
+entidade que solicita o acesso, como uma pessoa, processo ou serviço. O
+\textbf{recurso} é o objeto protegido, por exemplo uma página, arquivo,
+registro, campo ou função administrativa. A \textbf{operação} expressa a
+ação pretendida, como ler, criar, alterar, aprovar ou excluir. A
+\textbf{política} estabelece as condições sob as quais essa combinação é
+permitida. Por fim, a \textbf{decisão de acesso} é o resultado da
+avaliação --- normalmente permitir ou negar --- que deve ser
+efetivamente aplicado pelo mecanismo de controle. Logo, autorizar não
+significa apenas reconhecer um perfil geral: significa avaliar um
+sujeito, uma operação e um recurso concretos no contexto da política
+aplicável {[}3{]}.
+
+\subsection{Princípios de
+proteção}\label{princuxedpios-de-proteuxe7uxe3o}
+
+Quatro princípios orientam um projeto de autorização seguro. O
+\textbf{menor privilégio} determina que cada sujeito receba somente as
+permissões necessárias para executar sua tarefa e apenas pelo tempo
+necessário. Isso reduz tanto a superfície disponível a um invasor quanto
+o dano causado por erro ou comprometimento de uma conta. A
+\textbf{negação por padrão} exige que uma solicitação seja recusada
+quando nenhuma regra a autorizar explicitamente; uma funcionalidade nova
+ou uma combinação imprevista de condições não deve se tornar pública por
+omissão {[}4{]}, {[}5{]}.
+
+A \textbf{mediação completa} requer que toda tentativa de acesso seja
+verificada, e não apenas a primeira ação de uma sessão. Uma tela
+escondida, uma resposta anterior em cache ou a aprovação de acesso a um
+recurso do mesmo tipo não substituem a verificação do objeto e da
+operação atuais. Em aplicações Web, isso implica validar a autorização
+no lado confiável do servidor em cada requisição, inclusive nas APIs,
+sem depender de botões ocultos ou de verificações em JavaScript {[}4{]},
+{[}5{]}.
+
+A \textbf{separação de responsabilidades} evita concentrar poderes
+incompatíveis em uma única pessoa ou função. Uma operação sensível pode
+exigir condições independentes ou participação de sujeitos distintos;
+por exemplo, quem cadastra um pagamento não deveria também aprová-lo.
+Essa separação reduz fraude e abuso e pode ser expressa como restrições
+de papéis ou como etapas diferentes de um fluxo. Ela complementa o menor
+privilégio: além de limitar a quantidade de permissões, limita
+combinações perigosas delas {[}4{]}, {[}6{]}.
+
+\subsection{Modelos de controle de
+acesso}\label{modelos-de-controle-de-acesso}
+
+No \textbf{controle de acesso baseado em papéis} (\emph{Role-Based
+Access Control}, RBAC), permissões são associadas a papéis que
+representam funções organizacionais, como estudante, professor ou
+administrador, e os sujeitos recebem um ou mais desses papéis. O modelo
+simplifica a administração e favorece menor privilégio e separação de
+responsabilidades, mas papéis excessivamente amplos podem continuar
+concedendo acesso indevido {[}6{]}.
+
+O \textbf{controle por propriedade} acrescenta uma relação entre sujeito
+e recurso. Estar autenticado e poder usar a função ``editar'' não basta:
+a aplicação confirma se o registro pertence ao solicitante ou está sob
+sua responsabilidade. Por exemplo, um estudante pode alterar a própria
+entrega, mas não a de outro estudante apenas trocando um identificador
+na URL. A propriedade deve ser verificada no servidor e pode coexistir
+com RBAC --- um professor, por exemplo, pode acessar entregas somente
+das turmas pelas quais é responsável {[}2{]}.
+
+No \textbf{controle de acesso baseado em atributos}
+(\emph{Attribute-Based Access Control}, ABAC), a política avalia
+atributos do sujeito, do recurso, da operação e, quando necessário, do
+ambiente. Uma regra pode permitir a leitura quando o sujeito pertence ao
+mesmo departamento do documento, possui credencial ativa e realiza a
+solicitação durante determinado período. O ABAC representa condições
+mais contextuais e granulares que papéis isolados, embora exija
+atributos confiáveis e políticas cuidadosamente administradas {[}3{]}.
+
+\subsection{Por que é importante em aplicações
+Web?}\label{por-que-uxe9-importante-em-aplicauxe7uxf5es-web}
+
+Aplicações Web expõem recursos e operações por rotas, formulários e APIs
+acessíveis a clientes que não são confiáveis. O navegador mostra somente
+a interface prevista, mas um solicitante pode alterar URLs,
+identificadores, métodos HTTP e corpos de requisição. Por isso,
+autenticar a sessão ou esconder controles visuais não protege os objetos
+subjacentes. A autorização precisa acompanhar cada ponto de entrada e
+aplicar as mesmas regras de negócio a páginas, APIs e recursos
+estáticos. A OWASP mantém falhas de controle de acesso na primeira
+posição de seu levantamento de riscos para aplicações Web, o que
+evidencia a relevância prática do problema {[}2{]}.
+
+\subsection{Quais problemas podem
+ocorrer?}\label{quais-problemas-podem-ocorrer}
+
+Uma falha pode causar \textbf{exposição indevida}, quando alguém lê
+dados pessoais, documentos ou informações de outra conta;
+\textbf{alteração indevida}, quando modifica registros que não controla;
+ou \textbf{exclusão indevida}, quando destrói dados por uma operação que
+deveria estar restrita. Esses impactos comprometem, respectivamente,
+confidencialidade, integridade e disponibilidade, além de poderem gerar
+consequências legais e operacionais.
+
+Também pode ocorrer \textbf{escalonamento horizontal de privilégios}, no
+qual um usuário acessa recursos de outro usuário de nível semelhante, ou
+\textbf{escalonamento vertical}, no qual obtém capacidades superiores,
+como as de moderador ou administrador. No caso mais grave, a falha
+permite executar operações administrativas: criar contas privilegiadas,
+alterar políticas, aprovar transações, exportar bases ou remover
+conteúdos. Referências diretas inseguras a objetos, endpoints sem
+verificação e confiança em controles do cliente são caminhos comuns para
+esses resultados {[}2{]}, {[}5{]}. Portanto, a autorização é a barreira
+que transforma identidade autenticada em acesso limitado, justificável e
+coerente com as responsabilidades de cada sujeito.
+
+\section{Normas e referências para avaliação de
+autorização}\label{normas-e-referuxeancias-para-avaliauxe7uxe3o-de-autorizauxe7uxe3o}
+
+\subsection{Qualidade do produto e
+conscientização}\label{qualidade-do-produto-e-conscientizauxe7uxe3o}
+
+A ISO/\allowbreak{}IEC 25010:2023, segunda edição, integra a família SQuaRE e define
+um modelo de qualidade de produto com nove características, subdivididas
+em subcaracterísticas. O modelo orienta a especificação de requisitos,
+os objetivos de teste e os critérios de aceitação durante o ciclo de
+vida {[}7{]}. Para este seminário, a autorização é examinada no âmbito
+da segurança: restringir a leitura protege a confidencialidade, enquanto
+restringir alterações e exclusões protege a integridade. Essa relação
+orienta a avaliação, mas precisa ser traduzida em regras concretas sobre
+sujeitos, recursos e operações; a norma não constitui, por si só, um
+roteiro de testes de endpoints.
+
+O OWASP Top 10:2025 é uma referência de \textbf{conscientização} sobre
+riscos de aplicações Web {[}8{]}. A categoria \textbf{A01 --- Broken
+Access Control} reúne situações em que usuários ultrapassam suas
+permissões, como acessar registros alheios, alcançar funções
+administrativas ou contornar verificações manipulando requisições. Suas
+recomendações incluem negação por padrão, verificação em código
+confiável no servidor e controle da propriedade dos registros {[}9{]}. A
+categoria ajuda a justificar prioridades, mas sua posição no ranking não
+demonstra que o Educado tenha essas vulnerabilidades. Também não fornece
+cobertura suficiente para declarar uma aplicação segura: \textbf{ASVS e
+WSTG oferecem requisitos e procedimentos mais diretamente testáveis}.
+
+\subsection{Requisitos selecionados do
+ASVS}\label{requisitos-selecionados-do-asvs}
+
+O OWASP Application Security Verification Standard \textbf{5.0.0},
+capítulo \textbf{V8 --- Authorization}, permite especificar o
+comportamento esperado. Selecionam-se os requisitos abaixo; o prefixo da
+versão evita ambiguidades entre edições {[}10{]}.
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Requisito
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Nível
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Verificação selecionada
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{v5.0.0-8.1.1} & 1 & Documentar regras de acesso a funções e
+dados, considerando permissões e atributos dos recursos. \\
+\texttt{v5.0.0-8.1.2} & 2 & Documentar restrições de leitura e escrita
+por campo. \\
+\texttt{v5.0.0-8.2.1} & 1 & Restringir funções a sujeitos com permissão
+explícita. \\
+\texttt{v5.0.0-8.2.2} & 1 & Restringir cada objeto aos sujeitos
+autorizados. \\
+\texttt{v5.0.0-8.2.3} & 2 & Restringir campos específicos conforme as
+permissões. \\
+\texttt{v5.0.0-8.3.1} & 1 & Aplicar as regras em camada confiável, sem
+depender do cliente. \\
+\end{longtable}
+}
+
+Os itens de documentação permitem definir o oráculo dos testes: uma
+matriz de sujeitos, operações, objetos e campos com decisões esperadas.
+Os demais orientam verificações positivas e negativas contra essa
+matriz. A seleção combina requisitos dos níveis 1 e 2; não equivale à
+verificação integral de qualquer nível do ASVS.
+
+\subsection{Procedimentos do WSTG}\label{procedimentos-do-wstg}
+
+O OWASP Web Security Testing Guide \textbf{4.2}, seção 4.5, descreve
+quatro procedimentos de autorização. Neste mapeamento, os
+identificadores incluem a versão \texttt{v42} para preservar a
+rastreabilidade.
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{WSTG-v42-ATHZ-01 --- Directory Traversal/\allowbreak{}File Include:}
+  investigar parâmetros que referenciam arquivos e tentativas de acesso
+  fora dos limites permitidos; aplica-se quando existirem
+  funcionalidades de arquivos ou inclusão {[}11{]}.
+\item
+  \textbf{WSTG-v42-ATHZ-02 --- Bypassing Authorization Schema:} repetir
+  requisições sem autenticação, após logout e com outras identidades ou
+  papéis, procurando desvios horizontais e verticais; relaciona-se aos
+  requisitos \texttt{8.2.1}, \texttt{8.2.2} e \texttt{8.3.1} {[}12{]}.
+\item
+  \textbf{WSTG-v42-ATHZ-03 --- Privilege Escalation:} manipular
+  parâmetros de grupo ou perfil e verificar obtenção de capacidades
+  indevidas; relaciona-se a \texttt{8.2.1} e, quando a alteração envolve
+  campos protegidos, a \texttt{8.2.3} {[}13{]}.
+\item
+  \textbf{WSTG-v42-ATHZ-04 --- Insecure Direct Object References:}
+  substituir referências de objetos usando contas com permissões
+  conhecidas e verificar acesso indevido; operacionaliza especialmente
+  \texttt{8.2.2} {[}14{]}.
+\end{itemize}
+
+Essas relações são uma proposta de organização do seminário, não uma
+equivalência oficial ou exaustiva entre os documentos. No planejamento,
+cada caso deve registrar precondições, identidade, recurso, operação e
+resultado esperado. A avaliação deve considerar os dados retornados e os
+efeitos persistidos, além do código HTTP: uma mensagem de erro não basta
+se a operação proibida ocorrer.
+
+\subsection{APIs e classificação das
+fraquezas}\label{apis-e-classificauxe7uxe3o-das-fraquezas}
+
+O \textbf{OWASP API Security Top 10:2023} detalha três dimensões
+complementares. \textbf{API1 --- Broken Object Level Authorization}
+trata da permissão sobre o objeto solicitado: poder chamar uma função
+não autoriza consultar qualquer registro {[}15{]}. \textbf{API3 ---
+Broken Object Property Level Authorization} trata das propriedades desse
+objeto, tanto na exposição de campos quanto na alteração indevida;
+corresponde ao foco de \texttt{8.2.3} {[}16{]}. \textbf{API5 --- Broken
+Function Level Authorization} trata do acesso à própria função, como
+executar uma operação administrativa com um perfil comum; corresponde ao
+foco de \texttt{8.2.1} {[}17{]}. Assim, testar somente a troca de
+identificadores deixa descobertas as permissões sobre campos e funções.
+
+Como vocabulário de classificação, adota-se o catálogo \textbf{CWE 5.0},
+preservado em arquivo versionado {[}18{]}. \textbf{CWE-862} identifica
+ausência de verificação de autorização; \textbf{CWE-863}, uma
+verificação existente, porém incorreta; \textbf{CWE-639}, acesso a dados
+de outro usuário pela alteração de uma chave controlável pelo
+solicitante {[}19{]}, {[}20{]}, {[}21{]}. O último se relaciona a
+cenários de API1 e ATHZ-04, sem tornar BOLA, IDOR e CWE-639 sinônimos
+universais. A classificação deve acompanhar a causa demonstrada,
+evitando atribuir automaticamente todas as categorias a um mesmo caso.
+
+\subsection{Comparação e uso
+conjunto}\label{comparauxe7uxe3o-e-uso-conjunto}
+
+A tabela sintetiza o papel das referências apresentadas.
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Referência e versão
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Objetivo
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Escopo
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Uso na avaliação
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+ISO/\allowbreak{}IEC 25010:2023 & Organizar a qualidade & Produtos de software e TIC
+& Definir objetivos e critérios de qualidade. \\
+OWASP Top 10:2025 & Conscientizar sobre riscos & Aplicações Web; A01 &
+Justificar prioridade para autorização. \\
+ASVS 5.0.0, V8 & Especificar requisitos verificáveis & Documentação e
+controles de autorização & Definir resultados esperados e cobertura. \\
+WSTG 4.2, seção 4.5 & Orientar procedimentos & Testes de segurança Web &
+Estruturar tentativas de contorno. \\
+API Security Top 10:2023 & Evidenciar riscos de APIs & Objetos,
+propriedades e funções & Diversificar cenários de autorização. \\
+CWE 5.0: 862, 863 e 639 & Classificar fraquezas & Causas e mecanismos de
+falha & Padronizar a descrição de eventuais achados. \\
+\end{longtable}
+}
+
+Para a futura aplicação ao Educado, propõe-se encadear objetivo de
+qualidade, risco, requisito, procedimento e classificação. A política
+real do projeto deverá determinar quais combinações são permitidas e
+quais casos se aplicam. Esta entrega estabelece referências para esse
+planejamento, sem executar testes nem afirmar resultados experimentais.
+
+\section{Técnicas de teste de autorização e controle de
+acesso}\label{tuxe9cnicas-de-teste-de-autorizauxe7uxe3o-e-controle-de-acesso}
+
+\subsection{Modelo de teste e matriz de
+decisão}\label{modelo-de-teste-e-matriz-de-decisuxe3o}
+
+O teste começa por uma matriz com \textbf{sujeito}, \textbf{recurso},
+\textbf{operação} e \textbf{resultado esperado}. Por exemplo, para um
+estudante (\texttt{S1}), um professor (\texttt{S2}) e um administrador
+(\texttt{S3}):
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Sujeito
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Recurso
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Operação
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Resultado esperado
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Anônimo & Perfil de estudante & Ler & Negar (401 ou redirecionamento
+para login) \\
+\texttt{S1} & Sua própria entrega & Ler/\allowbreak{}alterar & Permitir \\
+\texttt{S1} & Entrega de outro estudante & Ler/\allowbreak{}alterar & Negar (403 ou
+resposta indistinguível) \\
+\texttt{S2} & Entrega de estudante de sua turma & Ler/\allowbreak{}avaliar &
+Permitir \\
+\texttt{S2} & Função de administração & Excluir usuário & Negar \\
+\texttt{S3} & Usuário e política & Administrar & Permitir, com controles
+adicionais para operações críticas \\
+\end{longtable}
+}
+
+A matriz diferencia permissão funcional de propriedade. O caso registra
+precondições, usuário, token ou sessão, recurso, requisição, resultado
+esperado e evidência (status, corpo, efeito persistido e logs). Um
+\texttt{403} isolado não basta: é necessário verificar que o dado não
+foi retornado nem alterado. Toda execução deve usar dados descartáveis
+em ambiente local ou de homologação {[}5{]}, {[}22{]}.
+
+\subsection{Acesso anônimo e navegação
+forçada}\label{acesso-anuxf4nimo-e-navegauxe7uxe3o-foruxe7ada}
+
+\textbf{Objetivo:} confirmar que recursos protegidos exigem autenticação
+e autorização no servidor. \textbf{Procedimento:} sem cookies, tokens ou
+cabeçalhos de autenticação, acessar diretamente páginas, APIs e arquivos
+previsíveis; depois repetir com conta autenticada, mas sem o papel
+necessário. Testar a rota mesmo quando o menu não a apresenta.
+\textbf{Falha detectada:} conteúdo privado entregue a anônimos, endpoint
+que aceita uma sessão insuficiente ou confiança no redirecionamento e no
+controle visual do cliente. \textbf{Vantagem:} é simples, barato e
+encontra rotas esquecidas. \textbf{Limitação:} não cobre relações entre
+objetos ou regras condicionais.
+
+O frontend pode esconder um botão, mas o usuário consegue construir a
+requisição fora do navegador. A decisão confiável é a aplicada pelo
+servidor em cada requisição {[}5{]}.
+
+\subsection{Escalonamento horizontal, BOLA/\allowbreak{}IDOR e adulteração de
+identificadores}\label{escalonamento-horizontal-bolaidor-e-adulterauxe7uxe3o-de-identificadores}
+
+\textbf{Objetivo:} verificar se um usuário com a mesma função acessa
+apenas os próprios objetos. \textbf{Procedimento:} criar dois usuários
+do mesmo nível, obter um recurso de cada um e substituir, em URL, query,
+corpo ou caminho, o identificador pelo do outro. Repetir para leitura,
+atualização e exclusão, usando IDs sequenciais e UUIDs. \textbf{Falha
+detectada:} BOLA/\allowbreak{}IDOR, quando o servidor aceita a referência ao objeto
+sem conferir a relação entre sujeito e recurso. \textbf{Vantagem:}
+reproduz falha de alto impacto com alteração pequena e observável.
+\textbf{Limitação:} exige dados de usuários distintos e pode não revelar
+autorização contextual.
+
+Testar também IDs em exportações e anexos; identificador difícil não é
+autorização. O resultado para o objeto alheio é uma negativa
+consistente, sem vazamento de existência, metadados ou efeitos {[}2{]},
+{[}23{]}.
+
+\subsection{Escalonamento vertical e fluxos
+administrativos}\label{escalonamento-vertical-e-fluxos-administrativos}
+
+\textbf{Objetivo:} impedir que um usuário comum execute operações
+reservadas a papéis superiores. \textbf{Procedimento:} comparar as
+matrizes de estudante, professor e administrador; repetir requisições
+administrativas com o token de menor privilégio; tentar acessar rotas de
+gestão, alterar papéis e excluir contas. Para cada negativa, verificar
+que não houve mudança no banco ou em fila. \textbf{Falha detectada:}
+escalonamento vertical, endpoint administrativo sem verificação de
+papel, papel amplo demais ou separação de responsabilidades ausente.
+\textbf{Vantagem:} testa o impacto mais severo. \textbf{Limitação:}
+aprovações múltiplas e expiração exigem cenários longos.
+
+Testar a alteração do próprio papel e a criação de outro administrador,
+além da operação final. Alterar o papel enviado ou guardado no cliente
+(campo \texttt{role}, \texttt{localStorage} ou token não assinado) e
+confirmar que o servidor o ignora. Ações críticas podem exigir
+reautenticação ou segunda autoridade {[}5{]}.
+
+\subsection{Método HTTP e autorização por
+campo}\label{muxe9todo-http-e-autorizauxe7uxe3o-por-campo}
+
+\textbf{Objetivo:} verificar que a autorização permanece correta quando
+a forma da requisição muda. \textbf{Procedimento:} para recurso somente
+de leitura, trocar \texttt{GET} por \texttt{POST}, \texttt{PUT},
+\texttt{PATCH} ou \texttt{DELETE}; testar
+\texttt{X-HTTP-Method-Override} e variantes de rota. Adicionar ao JSON
+campos como \texttt{role}, \texttt{ownerId}, \texttt{approved} ou
+\texttt{status} e tentar alterá-los com operação permitida.
+\textbf{Falha detectada:} autorização aplicada a uma rota ou método, mas
+não a outro, e \emph{mass assignment} que permite ao cliente controlar
+atributos reservados. \textbf{Vantagem:} encontra inconsistências entre
+controladores e mapeamentos. \textbf{Limitação:} requer conhecer o
+contrato.
+
+O resultado esperado é validar cada combinação de operação e campo no
+servidor, aceitando apenas atributos permitidos para aquele sujeito. Não
+se deve confundir filtragem visual do formulário com uma lista de campos
+autorizados {[}24{]}.
+
+\subsection{Testes manuais, automatizados e orientados por
+OpenAPI}\label{testes-manuais-automatizados-e-orientados-por-openapi}
+
+Testes manuais exploram fluxos novos, interpretam regras de negócio e
+confirmam evidências. Testes automatizados repetem a matriz para
+usuários e identificadores, detectam regressões e comparam status, corpo
+e efeitos. Testes orientados por OpenAPI geram casos de rotas, métodos,
+parâmetros e esquemas documentados. Sua limitação é estrutural: um
+contrato incompleto não descreve autorização, propriedade ou transições
+de negócio, e a geração não substitui cenários com contas relacionadas
+{[}25{]}.
+
+Uma estratégia equilibrada automatiza casos de alto risco, usa a
+especificação como inventário e reserva exploração manual para regras
+contextuais. Cada falha deve preservar requisição e resposta
+sanitizadas, usuário de teste e estado inicial, sem expor segredos.
+Ferramentas devem ficar em ambientes locais ou de homologação, com
+autorização explícita e taxa controlada. O objetivo é demonstrar a
+decisão de acesso e seu impacto, não contornar controles em sistemas de
+terceiros.
+
+\section{Ferramentas para testes de
+autorização}\label{ferramentas-para-testes-de-autorizauxe7uxe3o}
+
+Testar autorização exige observar a aplicação como cliente externo, por
+requisições em uma suíte ou pelo comportamento da interface. Este texto
+compara cinco alternativas --- OWASP ZAP com Access Control Testing,
+Playwright com \texttt{APIRequestContext}, Vitest, Schemathesis e Burp
+Suite Community com Autorize --- quanto a funcionamento, licença,
+automação, CI, múltiplos usuários, vantagens e limitações, priorizando
+opções open source alinhadas ao Educado {[}1{]}.
+
+\subsection{OWASP ZAP e o add-on Access Control
+Testing}\label{owasp-zap-e-o-add-on-access-control-testing}
+
+O OWASP ZAP é um proxy DAST sob Apache 2.0 {[}26{]}. O add-on Access
+Control Testing define usuários e autenticação, cadastra regras por
+contexto e tenta acessar cada URL como cada usuário, sinalizando
+violações {[}27{]}. A automação usa Automation Framework, API, CLI e
+Docker; o CI é viável com GitHub Action {[}26{]}. Múltiplos usuários são
+nativos. As vantagens são cobertura ampla e detecção automatizada. As
+limitações incluem configuração de contexto, dependência de exploração
+prévia em SPAs e falsos positivos ou negativos {[}27{]}.
+
+\subsection{Playwright com
+APIRequestContext}\label{playwright-com-apirequestcontext}
+
+O Playwright é uma biblioteca de automação de navegadores e testes de
+API sob Apache 2.0 {[}28{]}. O \texttt{APIRequestContext} dispara HTTP
+sem abrir página, em contextos isolados com cookies e cabeçalhos
+próprios {[}29{]}, permitindo comparar perfis: um estudante recebe
+\texttt{403} ao alterar recurso alheio; um professor autorizado recebe
+\texttt{200}. A automação ocorre por CLI, com CI por ações oficiais
+{[}28{]}. Múltiplos usuários decorrem de contextos isolados e do estado
+de autenticação. As vantagens são API e interface na mesma ferramenta e
+controle por requisição. As limitações são a ausência de descoberta
+automática e a manutenção manual.
+
+\subsection{Vitest para guards e comportamentos do
+frontend}\label{vitest-para-guards-e-comportamentos-do-frontend}
+
+O Vitest é um executor de testes unitários e de componentes sobre Vite,
+sob licença MIT {[}30{]}. Roda em jsdom e simula funções, módulos e
+requisições, sendo adequado para guards de rota, renderização por perfil
+e mensagens de negação {[}30{]}. A automação ocorre por
+\texttt{npm\ test} ou \texttt{vitest\ run}, e o CI executa o script.
+Múltiplos usuários são simulados por mocks. As vantagens são velocidade,
+integração com o \texttt{educado-web} e baixo custo de regressão. As
+limitações são decisivas: não prova autorização no servidor, mocks podem
+divergir da API e a ferramenta não substitui um teste de segurança.
+
+\subsection{Schemathesis para operações descritas por
+OpenAPI}\label{schemathesis-para-operauxe7uxf5es-descritas-por-openapi}
+
+O Schemathesis gera testes baseados em propriedades a partir de OpenAPI,
+GraphQL ou gRPC, sob licença MIT {[}31{]}. Ele produz entradas válidas e
+inválidas, verifica erros de servidor e violações de contrato e, com
+verificações personalizadas, compara respostas entre credenciais para
+detectar autorização quebrada em nível de objeto {[}31{]}. A automação
+ocorre por CLI ou \texttt{pytest}, com CI por ação oficial {[}31{]}.
+Múltiplos usuários dependem de autenticação configurada e de
+verificações próprias. As vantagens são geração automática e achados
+reproduzíveis. As limitações são a exigência de especificação completa,
+verificações manuais e efeitos colaterais nos dados.
+
+\subsection{Burp Suite Community e
+Autorize}\label{burp-suite-community-e-autorize}
+
+O Burp Suite Community é proprietário e gratuito, voltado ao teste
+manual, sem o scanner da versão Professional {[}32{]}. O Autorize é uma
+extensão open source que repete requisições com baixo privilégio ou sem
+autenticação e compara respostas, apoiando a detecção de IDOR {[}33{]}.
+A automação limita-se à interceptação, sem CI oficial, mas há suporte a
+vários perfis. Vantagens: uso exploratório; limitações: heurísticas,
+ajuste manual e ausência de pipeline.
+
+\subsection{Comparação}\label{comparauxe7uxe3o}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Ferramenta
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Licença
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Automação/\allowbreak{}CI
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Múltiplos usuários
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Limitação
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+ZAP + Access Control Testing & Apache 2.0 & CLI, API, Docker e GitHub
+Action & Sim, nativo & Configuração e falsos positivos \\
+Playwright + APIRequestContext & Apache 2.0 & CLI e ações de CI & Sim,
+contextos isolados & Não descobre falhas \\
+Vitest & MIT & \texttt{vitest\ run} no pipeline & Simulado por mocks &
+Não valida o servidor \\
+Schemathesis & MIT & CLI, \texttt{pytest} e ação de CI & Configurável &
+Depende da especificação \\
+Burp Community + Autorize & Proprietária e open source & Manual; sem CI
+oficial & Sim, vários perfis & Heurístico \\
+\end{longtable}
+}
+
+\subsection{Recomendação}\label{recomendauxe7uxe3o}
+
+A estratégia principal combina Playwright e OWASP ZAP. O Playwright
+cobre cenários conhecidos e repetíveis, comparando respostas entre
+perfis na API e na interface {[}29{]}. O ZAP percorre a aplicação e
+confronta o acesso de cada usuário com as regras declaradas, encontrando
+rotas esquecidas {[}27{]}. O Vitest complementa o frontend com guards e
+mensagens de negação, sem provar a segurança do backend {[}30{]}.
+Schemathesis é útil quando houver OpenAPI confiável {[}31{]}, e
+Burp/\allowbreak{}Autorize fica como alternativa manual não prioritária {[}33{]}.
+Nenhuma ferramenta foi instalada ou executada.
+
+\section{Métricas e proposta de
+aplicação}\label{muxe9tricas-e-proposta-de-aplicauxe7uxe3o}
+
+\subsection{Objetivo e fronteira}\label{objetivo-e-fronteira}
+
+Avaliar se a API REST do Educado restringe funções, objetos e campos
+conforme a identidade, o papel e a relação do solicitante com cada
+recurso. O recorte cobre autorização horizontal, vertical e por campo,
+com controles de autenticação nos endpoints protegidos. A interface Web
+é fonte complementar; a decisão de acesso deve ser verificada
+diretamente na API, na camada confiável {[}10{]}.
+
+A definição da issue \#25 usa a API no commit
+\href{https://github.com/ErasmusEgalitarian/educado-api/tree/399131a808ed76b3910f9fc1ab3db34ddc0f0d56}{399131a}
+e o Web em
+\href{https://github.com/ErasmusEgalitarian/educado-web/tree/1131060f370f2c57eaeed2cd541f8af6fae8376c}{1131060}.
+A documentação do produto foi consultada em
+\href{https://github.com/ErasmusEgalitarian/educado-docs/tree/1bfc8d23177a171669cf3e491a4996cee21e3310}{1bfc8d2}.
+Essas versões identificam a leitura estática; a preparação deve
+registrar o commit e as dependências realmente executados. Havia
+alterações locais somente nas dependências da API, que não foram
+incorporadas à definição.
+
+O enunciado \texttt{26-2-Seminario.pdf} admite planejamento no seminário
+e prevê resultados no relatório final; a data/\allowbreak{}horário e a rubrica final
+específica devem ser confirmados no Aprender. O registro
+\texttt{planejamento/\allowbreak{}escopo-e-decisoes.md}, na pasta deste relatório,
+identifica a cópia consultada por hash, páginas, fontes permanentes,
+fixtures e decisões. O arquivo
+\texttt{planejamento/\allowbreak{}casos-autorizacao.csv} detalha as requisições. Esta
+seção define o planejamento e os critérios;
+\texttt{05-resultados-metricas.md} consolida os resultados observados de
+\#27.
+
+\subsubsection{Atores e dados}\label{atores-e-dados}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Ator
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Identificação
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Finalidade
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Anônimo & Sem token & Distinguir acesso público de acesso protegido \\
+Criadores & U1 e U2, papel USER & Administrar conteúdo próprio e tentar
+acesso entre proprietários \\
+Administrador & ADM1, papel ADMIN & Controlar funções administrativas
+explicitamente previstas \\
+Estudantes & A e B, papel STUDENT & Testar isolamento entre contas do
+mesmo papel \\
+\end{longtable}
+}
+
+C1/S1/Q1 e C2/S2/Q2 são cursos, seções e atividades de U1/U2. A e B têm
+matrícula/\allowbreak{}progresso/\allowbreak{}certificado em cursos diferentes CA/\allowbreak{}CB. Imagens e
+vídeos possuem objetos sintéticos próprios no armazenamento. IDs
+inexistentes devem ter formato válido e ausência conferida no setup.
+Nenhum caso deve usar dado real; escritas e exclusões usam cópias
+restauráveis.
+
+\subsection{Política e matriz de
+autorização}\label{poluxedtica-e-matriz-de-autorizauxe7uxe3o}
+
+A matriz distingue regras documentadas no recorte de propostas que
+precisam de validação. Uma função administrativa existente não concede
+automaticamente todas as operações sobre dados de estudantes. Os
+requisitos ASVS selecionados orientam a restrição por função, objeto e
+campo; as regras específicas do produto e os contratos da versão
+precisam ser explicitados {[}10{]}.
+
+\subsubsection{Legenda}\label{legenda}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Próprio:} recurso associado à identidade do token; não à
+  identidade enviada no corpo.
+\item
+  \textbf{Autoria:} curso/\allowbreak{}seção/\allowbreak{}atividade administrados pelo criador.
+\item
+  \textbf{Público limitado:} somente campos e estados aprovados para
+  divulgação.
+\item
+  \textbf{Pendente:} regra ou resposta ainda não validada; casos
+  dependentes não são liberados para classificação.
+\item
+  \textbf{Documentada:} regra apoiada nas fontes do registro; não
+  significa teste executado ou aprovado.
+\end{itemize}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Recurso
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Anônimo
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+USER U1/U2
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+ADMIN
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+STUDENT A/\allowbreak{}B
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Perfil & Negado nas rotas protegidas & Ler/\allowbreak{}alterar perfil próprio &
+Perfil próprio; usuários pelas funções admin previstas & Perfil próprio,
+sem assumir a outra identidade \\
+Cursos & Catálogo de cursos publicados/\allowbreak{}ativos & Autoria própria; outro
+autor negado & Consulta/\allowbreak{}desativação administrativa documentadas; demais
+poderes transversais a confirmar & Catálogo/\allowbreak{}conteúdo elegível; sem
+autoria presumida \\
+Atividades & Leitura privada e escrita: contrato pendente P06 &
+Operações próprias; negações e associação de seção a validar em P06 &
+CRUD em curso alheio depende de P06 & Conteúdo elegível; política de
+gabarito depende de P10 \\
+Metadados/\allowbreak{}exclusão de mídia & Negado nas rotas protegidas & Somente
+mídias próprias & Acesso previsto no contrato inventariado & Sem acesso
+às mídias privadas de outros proprietários \\
+Stream & Proposta pública depende de P07 & Acesso público/\allowbreak{}privado
+depende de P07 & Prévia e exceções dependem de P07 & Estados e condições
+dependem de P07 \\
+Instituições & Negado & Negado & CRUD administrativo & Negado;
+fronteiras institucionais dependem de P11 \\
+Usuários/\allowbreak{}papéis & Negado & Sem administração de papéis/\allowbreak{}terceiros &
+Funções admin explícitas; própria troca de papel é recusada & Sem
+administração de papéis/\allowbreak{}terceiros \\
+Matrícula/\allowbreak{}progresso & Negado & Sem acesso pessoal de estudante presumido
+& Operações sobre dados de estudantes não concedidas por esta matriz;
+P08 & Somente registros da própria identidade \\
+Certificados & Verificação/\allowbreak{}listagem/\allowbreak{}emissão pública dependem de P08 &
+Sem acesso pessoal de estudante presumido & Administração de templates
+não implica acesso irrestrito; P08 & Listar/\allowbreak{}baixar próprios; terceiros
+negados \\
+\end{longtable}
+}
+
+As fontes de produto descrevem autoria, matrículas, certificados e
+governança. Detalhes e links fixados por commit estão no registro de
+decisões. A leitura de um endpoint como público é evidência da
+implementação, não aprovação da divulgação.
+
+\subsubsection{Campos e regras
+identificadas}\label{campos-e-regras-identificadas}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Regra
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Restrição ou decisão
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Casos
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+P01/P02 & Identidade válida e permissão explícita para funções
+administrativas & AT-01--05, AT-19/20 \\
+P03 & Propriedade na autoria; curso alheio 403 e inexistente 404 no
+contrato da versão & AT-06--09, AT-21/23 \\
+P04 & Matrícula/\allowbreak{}progresso/\allowbreak{}certificado do próprio estudante; ocultação
+com 404 nos recursos definidos & AT-12--16 \\
+P05 & ownerId, userId e role não podem transferir
+propriedade/\allowbreak{}identidade/\allowbreak{}privilégio & AT-08/12/14 \\
+P12 & Metadados/\allowbreak{}exclusão e listagens de mídia restritos à relação
+prevista & AT-17/21 \\
+P13 & Mídia ou código de certificado confirmado como inexistente: 404
+sem dados privados & AT-18-N7 e AT-22-N1 definidos; não concede acesso a
+recursos existentes \\
+P06 & Decidir negações de atividade e alcance transversal do ADMIN &
+AT-09--11 bloqueados quando dependentes \\
+P07 & Definir publicação, stream público/\allowbreak{}privado e prévia do autor &
+AT-18 de mídia existente bloqueado \\
+P08 & Aprovar campos públicos/\allowbreak{}rotas legadas de certificado e poderes
+sobre dados de estudantes & AT-22 bloqueado quando dependente \\
+P09 & Definir efeito das mudanças de papel sobre token antigo e nova
+sessão & Subcasos de sessão de AT-20 bloqueados \\
+P10 & Aprovar exposição/\allowbreak{}ocultação do gabarito e feedback após submissão
+& Subcasos de campos de AT-23 bloqueados \\
+P11 & Confirmar modelo institucional e suas fronteiras de autorização &
+Subcaso institucional de AT-19 bloqueado \\
+\end{longtable}
+}
+
+A equipe informou nesta revisão que não havia decisões aprovadas
+adicionais para essas pendências. Campos internos e credenciais não
+devem aparecer nas respostas. Campos extras podem ser ignorados com
+sucesso legítimo ou rejeitados sem mutação; os dois ramos de avaliação
+estão definidos no CSV, sem permitir sucesso com identidade/\allowbreak{}privilégio
+alheios.
+
+\subsection{Contrato esperado de respostas
+HTTP}\label{contrato-esperado-de-respostas-http}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Situação
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Contrato selecionado
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Verificação adicional
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Rota protegida sem token, assinatura inválida, expirada ou sem sub & 401
+& Sem dado privado nem efeito de negócio \\
+Identidade válida com papel insuficiente em função admin & 403 & Sem
+consulta/\allowbreak{}mutação administrativa indevida \\
+Curso de autoria alheio em /courses & 403 & Sem conteúdo privado ou
+mutação \\
+Curso inexistente com ID válido & 404 & Ausência do objeto não demonstra
+autorização \\
+Certificado PDF alheio ou inexistente na rota do estudante & 404 & Sem
+bytes de PDF, attachment ou campos do certificado \\
+Stream de mídia ou verificação de certificado com identificador válido
+confirmado como inexistente & 404 (P13) & Sem conteúdo da mídia nem
+dados de certificado; independente de P07/P08 \\
+Progresso de curso sem matrícula do solicitante & 404 & Sem progresso de
+outro estudante nem alteração \\
+Autoalteração de papel pelo próprio ADMIN & 409 & Papel persistido
+permanece inalterado \\
+Atividade, mídia pública ou divulgação ainda sem política & Pendente
+conforme P06--P11 & Não aceitar 403/404 ou 200 por conveniência após
+observar a resposta \\
+\end{longtable}
+}
+
+Os códigos são contratos selecionados com apoio na documentação de
+segurança e no código da versão; precisam ser comparados ao
+comportamento real. Nos endpoints com ocultação, comparar objeto alheio
+e inexistente quanto à estrutura relevante, ignorando valores de
+requestId/\allowbreak{}timestamp. Não há escolha automática entre 403 e 404 para
+todos os recursos. Um código de erro isolado não prova bloqueio:
+comparar resposta, estado no banco e objeto armazenado, quando
+aplicável.
+
+\subsection{Catálogo de casos
+planejados}\label{catuxe1logo-de-casos-planejados}
+
+O catálogo contém \textbf{149 subcasos: 117 definidos e 32 bloqueados},
+associados aos \textbf{23 IDs originais}. Esses números descrevem a
+preparação; não são cobertura executada nem taxa de aprovação. A
+definição pode avançar antes do ambiente, mas cada execução ainda
+depende de setup, credenciais sintéticas e autorização do ambiente.
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1111}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.6389}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1111}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1389}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+ID
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Recorte do catálogo
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Subcasos
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Bloqueados
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+AT-01 & Perfil: controles U1/A e requisições sem token & 4 & 0 \\
+AT-02 & Criação de curso e consulta administrativa sem token & 4 & 0 \\
+AT-03 & Token ausente, inválido, expirado e sem sub & 5 & 0 \\
+AT-04 & Funções administrativas com USER e STUDENT & 5 & 0 \\
+AT-05 & Alteração de papel por USER e controle ADMIN & 3 & 0 \\
+AT-06 & Curso próprio, alheio e inexistente & 3 & 0 \\
+AT-07 & PUT/\allowbreak{}DELETE de curso próprio, alheio e inexistente & 6 & 0 \\
+AT-08 & Criação e edição com campos privilegiados adulterados & 5 & 0 \\
+AT-09 & Atividade em seção própria, alheia e troca de seção & 5 & 3 \\
+AT-10 & Atividade privada: anônimo, outro autor e controles do dono & 12
+& 8 \\
+AT-11 & CRUD de atividades por ADMIN em curso alheio & 3 & 3 \\
+AT-12 & Perfil do estudante com userId/\allowbreak{}role adulterados & 4 & 0 \\
+AT-13 & Matrículas próprias sem registros de B & 3 & 0 \\
+AT-14 & Progresso: consulta, gravação, conclusão e identidade & 9 & 0 \\
+AT-15 & PDF próprio, alheio e inexistente nas duas direções & 6 & 0 \\
+AT-16 & Listas de certificados/\allowbreak{}progresso com tentativa de trocar
+identidade & 11 & 0 \\
+AT-17 & Metadados/\allowbreak{}exclusão de imagem e vídeo próprios, alheios e
+inexistentes & 16 & 0 \\
+AT-18 & Stream ativo/\allowbreak{}publicado, inativo, não publicado e inexistente &
+11 & 10 \\
+AT-19 & CRUD institucional por papel e lacuna de isolamento & 9 & 1 \\
+AT-20 & Consulta, toggle/\allowbreak{}persistência de papel, autoalteração e sessões
+& 10 & 4 \\
+AT-21 & Listas de autoria/\allowbreak{}mídia: U1/U2, páginas e filtros & 8 & 0 \\
+AT-22 & Verificação de certificado: código válido e inexistente & 2 &
+1 \\
+AT-23 & Catálogo público/\allowbreak{}privado/\allowbreak{}inexistente e proposta de ocultar
+gabarito & 5 & 2 \\
+\end{longtable}
+}
+
+\subsubsection{Formato e procedimento}\label{formato-e-procedimento}
+
+Cada linha registra ID/\allowbreak{}subcaso, regra, estado de definição,
+precondições, ator, token, recurso, método/\allowbreak{}endpoint, payload, HTTP
+esperado, dados/\allowbreak{}efeitos esperados, controle positivo, fontes, ASVS e
+bloqueio. O registro de decisões define os símbolos das fixtures e a
+substituição dos IDs. Payloads de criação têm campos obrigatórios; um
+422 por entrada inválida não deve ser confundido com bloqueio de
+autorização. Restaurar as fixtures entre controles positivos e
+tentativas negativas.
+
+Executar o controle positivo antes da tentativa correspondente. Após a
+requisição, verificar dados retornados e o estado antes/\allowbreak{}depois por
+consulta autorizada. Percorrer todas as páginas das listas, guardar
+evidências saneadas e restaurar as cópias após escritas. Estados de
+definição (definido/\allowbreak{}bloqueado) são diferentes dos estados de execução
+(aprovado, reprovado, bloqueado, não executado, não aplicável). A issue
+\#27 registrou a suíte executada; o mapeamento teste→subcaso está em
+\texttt{metricas/\allowbreak{}registro-execucao.csv}. Uma linha bloqueada ou ignorada
+não pode contar como teste aprovado.
+
+AT-18-N7 e AT-22-N1 têm o contrato de inexistência definido por P13, sem
+depender da política de acesso a recursos existentes. Seus controles
+positivos AT-18-C1 e AT-22-C1 continuam pendentes de P07/P08. Enquanto
+esses controles não puderem ser validados e executados, registrar
+bloqueio operacional em \#27; a definição de 404 não autoriza divulgar
+dados nem comprova autorização por si só.
+
+\subsubsection{AT-15: PDF próprio, alheio e
+inexistente}\label{at-15-pdf-pruxf3prio-alheio-e-inexistente}
+
+A e B devem baixar os próprios PDFs sintéticos (200 e conteúdo correto).
+Em ambas as direções, tentar o PDF alheio e um ID inexistente de formato
+válido: esperar 404, sem bytes de PDF, attachment ou dados do
+certificado. Conferir que os registros/\allowbreak{}objetos dos dois certificados não
+foram alterados ou gerados pela tentativa negada. O PDF próprio deve
+estar preparado para separar erro de armazenamento/\allowbreak{}geração de
+autorização.
+
+\subsubsection{AT-20: persistência e mudança de
+sessão}\label{at-20-persistuxeancia-e-mudanuxe7a-de-sessuxe3o}
+
+ADM1 consulta/\allowbreak{}lista usuários e alterna o papel de U2 descartável com
+PATCH sem corpo; o endpoint da versão faz toggle, não recebe o papel
+desejado no JSON. Confirmar no banco USER → ADMIN e ADMIN → USER, usando
+ADM1 distinto do alvo. A tentativa de ADM1 alterar o próprio papel tem
+contrato 409. Guardar tokens anteriores e obter novas sessões após cada
+alteração; os resultados das requisições com essas sessões dependem da
+decisão P09. O ASVS 8.3.2 exige efeito imediato ou mitigação específica
+quando isso não for possível; expirar um token no futuro, isoladamente,
+não demonstra atendimento {[}10{]}.
+
+\subsubsection{AT-19: função administrativa e fronteira
+institucional}\label{at-19-funuxe7uxe3o-administrativa-e-fronteira-institucional}
+
+POST de instituição usa /institutions; PUT/\allowbreak{}DELETE usam
+/institutions/\{id\}. Esses subcasos medem restrição por papel. Eles não
+demonstram isolamento entre I1/I2. O subcaso institucional permanece
+bloqueado até confirmar entidades, vínculos, endpoint e política P11;
+não declarar 8.4.1 coberto nem excluí-lo silenciosamente.
+
+\subsection{Métricas e critérios de
+sucesso}\label{muxe9tricas-e-crituxe9rios-de-sucesso}
+
+As metas abaixo foram propostas no planejamento; os resultados
+observados com \#25 e \#27 estão na seção
+\texttt{05-resultados-metricas.md}. Os denominadores vêm dos inventários
+acordados; excluídos, bloqueados e não executados são justificados na
+seção de resultados.
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Métrica
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Fórmula
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Meta proposta
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Cobertura de regras & Regras com teste positivo e negativo executados ÷
+regras aplicáveis inventariadas × 100 & 100\% \\
+Cobertura de funções & Pares método--endpoint sensíveis testados ÷ pares
+sensíveis inventariados × 100 & 100\% \\
+Cobertura de objetos & Combinações próprias, alheias e inexistentes
+exercitadas ÷ combinações planejadas aplicáveis × 100 & 100\% \\
+Cobertura de campos & Campos sensíveis com leitura/\allowbreak{}escrita permitida e
+negada testadas ÷ campos sensíveis aplicáveis × 100 & 100\% \\
+Tentativas negadas bloqueadas & Tentativas indevidas sem dado/\allowbreak{}efeito
+indevido ÷ tentativas indevidas executadas × 100 & 100\% \\
+Bypasses confirmados & Quantidade de operações/\allowbreak{}dados indevidos obtidos
+ou alterados & 0 \\
+Falsos positivos & Operações legítimas negadas ÷ controles legítimos
+executados × 100 & 0\% \\
+Integridade após negação & Negações sem mutação ÷ negações com estado
+verificado × 100 & 100\% \\
+Rastreabilidade planejada ASVS & Requisitos selecionados com caso
+documentado ÷ requisitos selecionados aplicáveis × 100 & 100\% \\
+Rastreabilidade executada ASVS & Requisitos com requisição executada e
+evidência ÷ requisitos selecionados aplicáveis × 100 & Informativa; não
+substitui a planejada \\
+Severidade & Falhas confirmadas por classe de impacto & Registrar todas;
+meta de zero críticas/\allowbreak{}altas abertas \\
+\end{longtable}
+}
+
+Rastreabilidade planejada não é conformidade nem validação executada. A
+seção de resultados liga requisito, caso/\allowbreak{}subcaso, evidência e resultado
+por execução. Denominador zero deve ser reportado como não
+mensurável/\allowbreak{}não aplicável conforme o contexto, sem inventar percentual.
+Metas não atingidas devem ser informadas; não é necessário ocultar
+falhas para concluir o registro experimental.
+
+\subsubsection{Severidade proposta}\label{severidade-proposta}
+
+Classificar apenas desvios reproduzidos contra uma política definida:
+crítica para poder administrativo amplo; alta para leitura/\allowbreak{}alteração
+indevida de dados pessoais ou de múltiplos usuários; média para impacto
+limitado; baixa para efeito restrito. Justificar a severidade com
+impacto e evidência. Hipóteses estáticas não recebem severidade como se
+fossem achados confirmados.
+
+\subsection{Rastreabilidade ao OWASP
+ASVS}\label{rastreabilidade-ao-owasp-asvs}
+
+Usar \textbf{ASVS 5.0.0}, capítulo V8 {[}10{]}. O campo asvs do CSV liga
+cada subcaso aos requisitos planejados.
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Requisito
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Planejamento e limite
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+8.1.1 & Matriz, P01--P13 e decisões de função/\allowbreak{}objeto documentadas \\
+8.1.2 & Regras de campo, allowlists e AT-05/08/12/14/22/23; parte
+depende de decisão \\
+8.2.1 & AT-01--05, AT-10/11, AT-19/20 \\
+8.2.2 & AT-06/07/09/10, AT-13--18, AT-21; negações aplicáveis e
+controles \\
+8.2.3 & AT-08/12/14 e AT-22/23; campo privilegiado não pode conceder
+acesso \\
+8.3.1 & Chamadas diretas à API; a sessão/\allowbreak{}visibilidade do Web não prova
+autorização \\
+8.3.2 & Subcasos de sessão de AT-20 planejados; P09 bloqueia definição
+final \\
+8.4.1 & Subcaso institucional de AT-19 bloqueado por P11; CRUD por papel
+não o substitui \\
+\end{longtable}
+}
+
+8.1.3, 8.1.4, 8.2.4 e 8.4.2 ficam fora do recorte inicial, salvo
+requisito que os torne aplicáveis. A seleção não verifica integralmente
+nenhum nível ASVS. A cobertura executada e suas evidências são
+consolidadas em \texttt{05-resultados-metricas.md}; 8.1.1 e 8.1.2
+permanecem documentais.
+
+\subsection{Observações estáticas e
+pendências}\label{observauxe7uxf5es-estuxe1ticas-e-penduxeancias}
+
+A leitura dos middlewares e serviços descreve pontos de verificação, sem
+provar seu resultado via HTTP. O registro de decisões separa fontes do
+produto, código e propostas da equipe.
+
+\begin{itemize}
+\tightlist
+\item
+  O stream da versão exige token e distingue papéis; a proposta pública
+  original permanece pendente P07.
+\item
+  O CRUD de atividades precisa ser verificado no contexto de montagem
+  das rotas e política; não concluir vulnerabilidade apenas por ausência
+  local de middleware.
+\item
+  A projeção de catálogo e a verificação pública de certificado motivam
+  comparação dos campos com allowlists ainda a aprovar.
+\item
+  O PATCH administrativo alterna papel; persistência e validade das
+  sessões são verificações diferentes.
+\item
+  O inventário das entidades consultadas não mostrou vínculo
+  institucional de User/\allowbreak{}Course; isso não permite declarar isolamento
+  demonstrado ou requisito não aplicável.
+\end{itemize}
+
+As decisões P06--P11 exigem fonte, pessoa/\allowbreak{}data de validação e
+atualização do catálogo. O restante do planejamento pode ser revisado
+enquanto esses pontos são esclarecidos.
+
+\subsection{Pré-requisitos e limites}\label{pruxe9-requisitos-e-limites}
+
+Executar apenas em ambiente local/\allowbreak{}homologação autorizado, com
+banco/\allowbreak{}storage isolados e dados descartáveis. A issue \#26 registrou
+setup, dependências efetivas, contas, tokens e restauração. Usar
+IDs/\allowbreak{}credenciais sintéticos; não publicar tokens, segredos ou dados
+reais. A issue \#27 registrou resultados; a comunicação de achados
+confirmados pelo canal privado do produto permanece responsabilidade da
+equipe.
+
+O enunciado exige declaração de uso de IA; a equipe deve incluir
+ferramentas, finalidades e consultas representativas no relatório final.
+O registro de planejamento documenta assistência do Codex na preparação
+dos artefatos. Interpretação de resultados, análise crítica,
+justificativas acadêmicas e conclusões devem ser elaboradas/\allowbreak{}revisadas
+pela equipe conforme o enunciado. Esta seção define os critérios; os
+resultados observados e as limitações da execução estão em
+\texttt{05-resultados-metricas.md}.
+
+\subsection{Fontes consultadas nesta
+seção}\label{fontes-consultadas-nesta-seuxe7uxe3o}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x17-V8-Authorization.md}{OWASP
+  ASVS 5.0.0, V8}.
+\item
+  \href{https://github.com/ErasmusEgalitarian/educado-docs/blob/1bfc8d23177a171669cf3e491a4996cee21e3310/docs/backlog/ep_02/fe_04.md}{Autoria
+  e ciclo de cursos}.
+\item
+  \href{https://github.com/ErasmusEgalitarian/educado-api/tree/399131a808ed76b3910f9fc1ab3db34ddc0f0d56/src}{Fontes
+  da API analisada}.
+\item
+  \href{https://github.com/ErasmusEgalitarian/educado-web/blob/1131060f370f2c57eaeed2cd541f8af6fae8376c/src/shared/api/auth-session.ts}{Sessão
+  do Web}.
+\item
+  Enunciado local e links por arquivo: registro de escopo e decisões
+  junto ao CSV, na pasta planejamento deste relatório.
+\end{itemize}
+
+\section{Resultados observados das
+métricas}\label{resultados-observados-das-muxe9tricas}
+
+Os valores abaixo vêm do catálogo de \#25 e do registro de \#27. Nenhum
+percentual é inferido de planejamento, hipótese ou teste ignorado.
+
+\subsection{Fontes e regra de
+contagem}\label{fontes-e-regra-de-contagem}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Fonte
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Uso
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{planejamento/\allowbreak{}casos-autorizacao.csv} & Inventário de 149
+subcasos, regras, ASVS e estado de definição \\
+\texttt{metricas/\allowbreak{}registro-execucao.csv} & Associação entre 42 testes da
+suíte e subcasos; situação e evidência \\
+\texttt{educado-security-tests/\allowbreak{}relatorio-de-execucao.md} & Contagens por
+AT, falhas observadas e limitações \\
+\texttt{metricas/\allowbreak{}calcular.py} & Cálculo reproduzível; gera este arquivo
+e \texttt{metricas/\allowbreak{}metricas-obsv.json} \\
+\end{longtable}
+}
+
+Cada execução de teste registrada conta uma tentativa; AT-04.2 e AT-19.1
+são repetições distintas do mesmo par. A cobertura de funções usa pares
+método--endpoint únicos, com \texttt{\{...\}} normalizado para
+\texttt{\{\}}. Aplicam-se apenas subcasos \texttt{definido} aos
+denominadores de regras, funções, objetos e campos; os 32 subcasos
+\texttt{bloqueado} e os testes \texttt{ignorado} não contam como
+aprovados nem como cobertura exercitada. Denominador zero é informado
+como não mensurável, sem converter ausência de verificação em sucesso.
+
+\subsection{Inventários e volume
+executado}\label{inventuxe1rios-e-volume-executado}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+Item & Inventário aplicável & Executado \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Subcasos & 117 definidos de 149 planejados & 17 \\
+Regras & 7 aplicáveis; 6 pendentes & 3 \\
+Pares método--endpoint & 42 & 14 \\
+Combinações de objeto & 19 & 6 \\
+Campos sensíveis & correctAnswer, ownerId, role, userId & nenhum \\
+\end{longtable}
+}
+
+Regras aplicáveis: P01, P02, P03, P04, P05, P12, P13. Pendentes sem
+oráculo aprovado: P06, P07, P08, P09, P10, P11. Testes descobertos: 42;
+aprovados: 15; reprovados: 3; ignorados: 24. AT-12 não teve teste
+descoberto; 132 dos 149 subcasos planejados não receberam execução
+registrada, inclusive os 32 bloqueados.
+
+\subsection{Meta proposta × valor
+observado}\label{meta-proposta-valor-observado}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Métrica
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Meta
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Numerador
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Denominador
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Observado
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Interpretação
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+cobertura\_regras & 100\% & 3 & 7 & 42,9\% & Regras com controle
+positivo aprovado e tentativa negativa executada; todas as execuções são
+parciais. \\
+cobertura\_regras\_validada & 100\% & 0 & 7 & 0,0\% & Contagem rigorosa
+com verificação de dados e efeitos nos dois lados. \\
+cobertura\_funcoes & 100\% & 14 & 42 & 33,3\% & Pares método--endpoint
+únicos efetivamente exercitados; repetições não aumentam o numerador. \\
+cobertura\_objetos & 100\% & 6 & 19 & 31,6\% & Combinações família de
+endpoint × próprio/\allowbreak{}alheio/\allowbreak{}inexistente efetivamente exercitadas. \\
+cobertura\_campos & 100\% & 0 & 4 & 0,0\% & Campos sensíveis com leitura
+ou escrita permitida e negada executadas. \\
+negacoes\_bloqueadas & 100\% & 0 & 14 & 0,0\% & Sem verificação de
+dado/\allowbreak{}efeito nas aprovações parciais; 0 não significa negação
+incorreta. \\
+bypasses & 0 & 3 & --- & 3 & Três acessos indevidos confirmados no
+registro de execução; nenhuma escrita indevida foi executada. \\
+falsos\_positivos & 0\% & 0 & 4 & 0,0\% & Controles legítimos executados
+e aprovados com verificação parcial de dados. \\
+integridade\_pos\_negacao & 100\% & 0 & 0 & não mensurável & Nenhuma
+negação executada registrou estado antes/\allowbreak{}depois; denominador zero não
+vira 100\%. \\
+rastreabilidade\_planejada & 100\% & 8 & 8 & 100,0\% & Todos os
+requisitos selecionados têm rastreio documental; 8.1.1 e 8.1.2 são
+documentais. \\
+rastreabilidade\_executada & informativa & 4 & 8 & 50,0\% & Requisitos
+com ao menos uma requisição executada e evidência referenciada. \\
+severidade & zero críticas/\allowbreak{}altas abertas & 3 & --- & 3 & Falhas
+confirmadas no registro de execução; ausência de teste não conta como
+ausência de falha. \\
+\end{longtable}
+}
+
+Das 14 tentativas negativas executadas, 11 tiveram status de negação
+esperado, mas nenhuma verificou dado ou efeito. Os 4 controles legítimos
+executados falharam em nenhum caso. As três falhas são desvios válidos
+para contagem de falhas, não ausência comprovada em casos não
+executados.
+
+\subsection{Falhas confirmadas e
+severidade}\label{falhas-confirmadas-e-severidade}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Teste
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Subcasos
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Severidade
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Evidência
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Desvio
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+AT-10.1 & AT-10-N1 & alta &
+\texttt{test-results/\allowbreak{}activities-Autorização-de-\/-bf22e-ssa-atividade-não-publicada/\allowbreak{}error-context.md}
+& HTTP 200 com dados de atividade nao publicada conforme relatorio de
+execucao \\
+AT-10.2 & AT-10-N2 & alta &
+\texttt{test-results/\allowbreak{}activities-Autorização-de-\/-fb1d9-ades-de-seção-não-publicada/\allowbreak{}error-context.md}
+& HTTP 200 com dados de secao nao publicada conforme relatorio de
+execucao \\
+AT-23 & AT-23-C1 & alta &
+\texttt{test-results/\allowbreak{}public-resources-Instituiç-2e202-ico-não-deve-expor-gabarito/\allowbreak{}error-context.md}
+& HTTP 200 com correctAnswer no catalogo publico conforme relatorio de
+execucao \\
+\end{longtable}
+}
+
+Severidade agregada: alta: 3. A classificação usa o impacto descrito no
+registro de \#27; nenhuma falha é atribuída a teste não executado.
+
+\subsection{Matriz ASVS: planejamento → execução →
+evidência}\label{matriz-asvs-planejamento-execuuxe7uxe3o-eviduxeancia}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Requisito
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Subcasos planejados
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Executados
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Aprovados
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Reprovados
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Ignorados
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Evidência
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Interpretação
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+8.1.1 & documental & 0 & 0 & 0 & 0 &
+\texttt{relatorios/02-seminario-autorizacao/\allowbreak{}fontes/05-metricas-educado.md\#6-rastreabilidade-ao-owasp-asvs}
+& Regra documentada; não há requisição HTTP que prove atendimento. \\
+8.1.2 & documental & 0 & 0 & 0 & 0 &
+\texttt{relatorios/02-seminario-autorizacao/\allowbreak{}fontes/05-metricas-educado.md\#6-rastreabilidade-ao-owasp-asvs}
+& Campos sensíveis inventariados; escrita/\allowbreak{}leitura negada não
+executada. \\
+8.2.1 & 74 & 13 & 11 & 2 & 15 &
+\texttt{educado-security-tests/\allowbreak{}relatorio-de-execucao.md},
+\texttt{test-results/\allowbreak{}activities-Autorização-de-\/-bf22e-ssa-atividade-não-publicada/\allowbreak{}error-context.md},
+\texttt{test-results/\allowbreak{}activities-Autorização-de-\/-fb1d9-ades-de-seção-não-publicada/\allowbreak{}error-context.md}
+& Execução parcial por papel; parte depende de P06/P07. \\
+8.2.2 & 108 & 6 & 4 & 2 & 16 &
+\texttt{educado-security-tests/\allowbreak{}relatorio-de-execucao.md},
+\texttt{test-results/\allowbreak{}activities-Autorização-de-\/-bf22e-ssa-atividade-não-publicada/\allowbreak{}error-context.md},
+\texttt{test-results/\allowbreak{}activities-Autorização-de-\/-fb1d9-ades-de-seção-não-publicada/\allowbreak{}error-context.md}
+& Execução parcial; duas leituras não publicadas falharam. \\
+8.2.3 & 20 & 2 & 1 & 1 & 3 &
+\texttt{educado-security-tests/\allowbreak{}relatorio-de-execucao.md},
+\texttt{test-results/\allowbreak{}public-resources-Instituiç-2e202-ico-não-deve-expor-gabarito/\allowbreak{}error-context.md}
+& Exposição de gabarito observada; demais campos não testados. \\
+8.3.1 & 113 & 14 & 12 & 2 & 18 &
+\texttt{educado-security-tests/\allowbreak{}relatorio-de-execucao.md},
+\texttt{test-results/\allowbreak{}activities-Autorização-de-\/-bf22e-ssa-atividade-não-publicada/\allowbreak{}error-context.md},
+\texttt{test-results/\allowbreak{}activities-Autorização-de-\/-fb1d9-ades-de-seção-não-publicada/\allowbreak{}error-context.md}
+& Chamadas diretas à API; respostas parciais não provam allowlist. \\
+8.3.2 & 4 & 0 & 0 & 0 & 0 & sem execução & Subcasos de sessão bloqueados
+por P09. \\
+8.4.1 & 1 & 0 & 0 & 0 & 0 & sem execução & Subcaso institucional
+bloqueado por P11; CRUD por papel não substitui tenant. \\
+\end{longtable}
+}
+
+Rastreabilidade planejada: 8/8 requisitos selecionados têm rastreio
+documental; 6/8 têm subcasos no catálogo e 2 são documentais (8.1.1 e
+8.1.2). Rastreabilidade executada: 4/8 (50,0\%), requisitos 8.2.1,
+8.2.2, 8.2.3, 8.3.1. A seleção parcial não verifica nível ASVS nem
+permite afirmar conformidade integral.
+
+\subsection{Alcance efetivo de revogação e
+isolamento}\label{alcance-efetivo-de-revogauxe7uxe3o-e-isolamento}
+
+AT-20 executou apenas a consulta administrativa e a criação/\allowbreak{}leitura de
+curso. O PATCH de papel, a persistência USER/\allowbreak{}ADMIN e o comportamento do
+token anterior e da nova sessão não foram executados; 8.3.2 permanece
+sem validação executada. AT-19 executou restrições por papel em
+instituições; a fronteira entre I1 e I2 depende de P11 e não foi
+especificada. 8.4.1 permanece sem validação executada; nenhum requisito
+recebeu cobertura apenas por ser citado.
+
+\subsection{Limitações}\label{limitauxe7uxf5es}
+
+\begin{itemize}
+\tightlist
+\item
+  O relatório de \#27 não informa commit da API, BASE\_URL, timestamp
+  por teste nem duração por requisição.
+\item
+  Os arquivos playwright-report e test-results não estão versionados;
+  três falhas têm apenas o caminho do error-context no registro.
+\item
+  Nenhum teste executado verificou estado antes/\allowbreak{}depois; integridade
+  after denial permanece não mensurável.
+\item
+  A asserção de AT-10 foi alterada após a rodada de 42 testes; repetir a
+  suíte é necessário para validar a nova forma.
+\item
+  P06--P11 permanecem sem decisão aprovada; casos bloqueados não entram
+  em denominadores de regras aplicáveis.
+\item
+  A revisão por colega dos cálculos ainda não foi registrada; a PR deve
+  solicitar essa conferência.
+\end{itemize}
+
+\subsection{Fontes consultadas nesta
+seção}\label{fontes-consultadas-nesta-seuxe7uxe3o-1}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x17-V8-Authorization.md}{OWASP
+  ASVS 5.0.0, V8}.
+\item
+  Registros locais listados na tabela de fontes; nenhum segredo ou token
+  é reproduzido.
+\end{itemize}
+
+\section{Discussão, limitações e
+conclusão}\label{discussuxe3o-limitauxe7uxf5es-e-conclusuxe3o}
+
+\subsection{Síntese da execução}\label{suxedntese-da-execuuxe7uxe3o}
+
+A rodada de \#27 foi executada em 22/11/2026 com Playwright, a partir de
+\texttt{educado-security-tests}, com o ambiente e as fixtures sintéticas
+preparados em \#26. Foram descobertos 42 testes: 15 aprovados, 3
+reprovados e 24 ignorados, em 5,8 s; AT-12 não teve teste descoberto.
+Esses testes exercitaram 17 dos 149 subcasos planejados; os 132
+restantes, inclusive os 32 bloqueados por políticas pendentes, não têm
+execução registrada. Os valores desta seção vêm de
+\texttt{05-resultados-metricas.md}, gerado por
+\texttt{metricas/\allowbreak{}calcular.py} a partir de
+\texttt{metricas/\allowbreak{}registro-execucao.csv} e
+\texttt{educado-security-tests/\allowbreak{}relatorio-de-execucao.md}.
+
+\subsection{Discussão dos resultados}\label{discussuxe3o-dos-resultados}
+
+\subsubsection{Observado × metas}\label{observado-metas}
+
+Nenhuma meta de cobertura proposta na Seção 6 foi atingida. A cobertura
+de regras ficou em 3/7 (42,9\%), a de funções em 14/42 pares
+método--endpoint (33,3\%), a de objetos em 6/19 combinações (31,6\%) e a
+de campos sensíveis em 0/4. A meta de zero bypasses também não foi
+atingida: três leituras indevidas foram observadas, todas classificadas
+como alta severidade. A rastreabilidade ASVS planejada chegou a 8/8, mas
+a executada ficou em 4/8 (8.2.1, 8.2.2, 8.2.3 e 8.3.1); 8.3.2 e 8.4.1
+não receberam validação executada.
+
+Esses números medem o alcance desta rodada, não o nível de segurança do
+Educado. A baixa cobertura decorre principalmente de testes ignorados
+por dependência de tokens de estudante, de opt-ins de mutação
+desativados e de políticas P06--P11 sem decisão aprovada, conforme a
+coluna \texttt{observacao} do registro.
+
+\subsubsection{Controles negativos e
+positivos}\label{controles-negativos-e-positivos}
+
+Das 14 tentativas negativas executadas, 11 receberam o status de negação
+esperado: requisições sem token ou com token malformado foram recusadas
+com 401 (AT-01, AT-03) e USER foi negado em \texttt{/admin/\allowbreak{}users} e
+\texttt{/institutions} com 403 (AT-04, AT-19.1). Nenhuma dessas negações
+verificou ausência de dados no corpo nem estado antes/\allowbreak{}depois; por isso,
+\texttt{negacoes\_bloqueadas} foi registrada como 0/14 e
+\texttt{integridade\_pos\_negacao} como não mensurável. Isso não indica
+que as negações falharam, mas impede afirmar que bloquearam dado ou
+efeito.
+
+AT-06 e AT-17.1 aceitam 403 ou 404 sem comprovar a existência da fixture
+alheia. Logo, não distinguem negação por propriedade de recurso
+inexistente e não servem como evidência de proteção contra acesso direto
+a objeto alheio.
+
+Os 4 controles legítimos executados (AT-19-P1, AT-20.1, AT-21 e AT-21.2)
+foram permitidos, sem falso positivo observado. A verificação foi
+parcial: status e formato da resposta, sem conferência de proprietário,
+paginação ou conteúdo.
+
+\subsubsection{Falhas observadas}\label{falhas-observadas}
+
+As três reprovações são leituras sem autorização, sem escrita indevida
+executada:
+
+\begin{itemize}
+\tightlist
+\item
+  AT-10.1 e AT-10.2: acesso anônimo retornou HTTP 200 com dados de
+  atividade e de seção não publicadas.
+\item
+  AT-23: o catálogo público retornou HTTP 200 com duas ocorrências de
+  \texttt{correctAnswer}.
+\end{itemize}
+
+O comportamento observado contraria a regra de não leitura do catálogo
+de casos e a proposta original de ocultar o gabarito antes da submissão.
+As decisões formais sobre atividades (P06) e campos públicos (P10)
+continuam pendentes; a classificação como falha usa a política proposta
+pela equipe, não uma política aprovada pelos mantenedores. A asserção de
+AT-10 foi alinhada depois da rodada, então a suíte precisa ser repetida
+para confirmar o resultado com a nova forma. A exposição do gabarito
+pode comprometer avaliações; o uso dessas respostas para concluir cursos
+ou obter certificados é um impacto possível, mas não foi testado.
+
+\subsubsection{Hipóteses de teste}\label{hipuxf3teses-de-teste}
+
+As observações estáticas da Seção 6 foram tratadas como hipóteses; o
+quadro abaixo separa o que a execução permite afirmar.
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Hipótese ou expectativa
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Situação
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Base
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Rotas protegidas recusam requisição sem token ou com token malformado &
+Confirmada parcialmente (status) & AT-01, AT-02.2, AT-03 \\
+USER não acessa funções administrativas & Confirmada parcialmente
+(status) & AT-04, AT-19.1 \\
+Conteúdo não publicado não é legível anonimamente & Contrariada pela
+execução & AT-10.1, AT-10.2 \\
+O catálogo público não expõe \texttt{correctAnswer} & Contrariada pela
+execução & AT-23 \\
+Objetos de outro criador ficam inacessíveis & Não avaliada: resposta
+403/404 sem fixture comprovada & AT-06, AT-17.1 \\
+Ausência local de middleware no CRUD de atividades indica falha & Não
+avaliada: testes de mutação ignorados & AT-09, AT-11 \\
+Mudança de papel tem efeito imediato na sessão & Não avaliada: bloqueada
+por P09 & AT-20 \\
+Instituições isolam dados entre si & Não avaliada: bloqueada por P11 &
+AT-19 \\
+Estudantes só acessam matrícula, progresso e certificado próprios & Não
+avaliada: sem token de estudante & AT-13 a AT-16 \\
+\end{longtable}
+}
+
+Nenhuma hipótese foi refutada nesta rodada: os casos que poderiam
+refutá-las foram ignorados ou não comprovaram suas precondições.
+
+\subsection{Limitações}\label{limitauxe7uxf5es-1}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Versão e ambiente:} a saída de \#27 não informa commit da API,
+  \texttt{API\_URL}, timestamp por teste nem duração por requisição. Os
+  commits de \texttt{escopo-e-decisoes.md} identificam a leitura
+  estática, não a versão executada.
+\item
+  \textbf{Evidências:} \texttt{playwright-report} e
+  \texttt{test-results} não estão versionados; as três falhas têm apenas
+  o caminho do \texttt{error-context}. Os \texttt{trace.zip} são
+  tratados como evidência privada.
+\item
+  \textbf{Dados:} foram usadas contas e fixtures sintéticas de \#26; o
+  comportamento com dados reais ou em produção não foi avaliado.
+\item
+  \textbf{Asserções parciais:} as aprovações verificam status, sem
+  conferir dados e efeitos; nenhuma negação registrou estado
+  antes/\allowbreak{}depois.
+\item
+  \textbf{Políticas:} P06--P11 seguem sem validação aprovada; 32
+  subcasos bloqueados ficam fora dos denominadores aplicáveis.
+\item
+  \textbf{Escopo:} o recorte cobre AT-01 a AT-23 sobre a API REST; não
+  cobre todas as rotas nem a interface Web. OWASP ZAP e Vitest,
+  previstos na Seção 5, não foram usados nesta rodada.
+\item
+  \textbf{Conformidade:} a seleção parcial de requisitos V8 não verifica
+  nível ASVS nem permite afirmar conformidade.
+\item
+  \textbf{Revisão:} a conferência dos cálculos por colega ainda precisa
+  ser registrada no PR correspondente.
+\end{itemize}
+
+\subsection{Recomendações}\label{recomendauxe7uxf5es}
+
+Recomendações são propostas da equipe; nenhuma descreve comportamento já
+existente no Educado.
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Prioridade
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Recomendação
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Evidência
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Depende de
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Alta & Remover \texttt{correctAnswer} e demais campos de gabarito da
+resposta do catálogo público, usando lista explícita de campos
+permitidos & AT-23 & Decisão P10 e implementação na
+\texttt{educado-api} \\
+Alta & Exigir publicação ou autoria antes de retornar atividades e
+seções, inclusive em rotas de leitura & AT-10.1, AT-10.2 & Decisão P06 e
+implementação na \texttt{educado-api} \\
+Alta & Comunicar as três falhas pelo canal privado do projeto, com
+evidências saneadas & AT-10, AT-23 & Equipe \\
+Alta & Repetir a suíte com a asserção revista de AT-10, registrando
+commit da API, \texttt{API\_URL} e horário &
+\texttt{relatorio-de-execucao.md} & Ambiente de \#26 \\
+Média & Verificar ausência de dados e estado antes/\allowbreak{}depois em toda
+negação & Métricas \texttt{negacoes\_bloqueadas} e
+\texttt{integridade\_pos\_negacao} & Ajuste da suíte \\
+Média & Provisionar tokens de estudante e habilitar mutações em banco
+descartável para executar AT-05, AT-09, AT-11, AT-13 a AT-16 e AT-19.3 &
+24 testes ignorados & Fixtures de \#26 \\
+Média & Decidir P06--P11 e implementar o teste de AT-12 & 32 subcasos
+bloqueados; AT-12 sem teste & Mantenedores e equipe \\
+Baixa & Complementar com varredura OWASP ZAP e testes Vitest na
+interface & Seção 5 & Execuções futuras \\
+\end{longtable}
+}
+
+\subsection{Conclusão}\label{conclusuxe3o}
+
+O objetivo do seminário era testar sistematicamente a autorização da API
+do Educado a partir de uma matriz de sujeito, recurso, operação e
+resultado esperado. A equipe transformou o planejamento em catálogo
+verificável, ambiente reproduzível, suíte automatizada e métricas
+calculadas a partir do registro de execução. As referências estudadas se
+complementaram: o OWASP Top 10 indicou a relevância do risco, o ASVS
+forneceu requisitos verificáveis, o WSTG orientou os procedimentos e o
+CWE serviu para classificar as falhas {[}2{]}, {[}10{]}.
+
+A primeira rodada encontrou três leituras indevidas de alta severidade,
+que expõem conteúdo não publicado e gabaritos de atividades. Os
+controles de autenticação e de papel administrativo responderam como
+esperado nos casos executados, mas com verificação limitada ao status. A
+cobertura obtida, entre 31,6\% e 42,9\% nas métricas de regras, funções
+e objetos, ficou abaixo das metas e não permite concluir que a
+autorização do Educado esteja correta nos casos não executados.
+
+O principal resultado é ter tornado visível o que foi verificado, o que
+falhou e o que permanece sem verificação, sem converter teste ignorado
+em aprovação. A continuidade depende de corrigir AT-10 e AT-23, decidir
+P06--P11, repetir a suíte com metadados de execução e ampliar as
+asserções de dados e efeitos antes de qualquer afirmação mais ampla de
+cobertura.
+
+\section*{Referências}\label{bibliography}
+\addcontentsline{toc}{section}{Referências}
+
+\protect\phantomsection\label{refs}
+\begin{CSLReferences}{0}{0}
+\hypertarget{ref-educado-repos}{}
+\CSLLeftMargin{{[}1{]} }%
+\CSLRightInline{ErasmusEgalitarian, {``Repositórios do projeto Educado:
+educado-api, educado-web, educado-app e educado-docs''}. GitHub, 2026.
+Acesso em: 12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://github.com/ErasmusEgalitarian}}
+
+\hypertarget{ref-owasp-top10-2025}{}
+\CSLLeftMargin{{[}2{]} }%
+\CSLRightInline{OWASP Foundation, {``A01:2025 Broken Access Control''}.
+Acesso em: 12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://top10.owasp.org/2025/A01_2025-Broken_Access_Control/index.html}}
+
+\hypertarget{ref-nist-sp800-162}{}
+\CSLLeftMargin{{[}3{]} }%
+\CSLRightInline{V. C. Hu \emph{et al.}, {``Guide to Attribute Based
+Access Control ({ABAC}) Definition and Considerations''}, National
+Institute of Standards; Technology, NIST Special Publication 800-162,
+2014. doi:
+\href{https://doi.org/10.6028/NIST.SP.800-162}{10.6028/NIST.SP.800-162}.}
+
+\hypertarget{ref-saltzer-schroeder-1975}{}
+\CSLLeftMargin{{[}4{]} }%
+\CSLRightInline{J. H. Saltzer e M. D. Schroeder, {``The Protection of
+Information in Computer Systems''}, \emph{Proceedings of the IEEE}, v.
+63, n. 9, p. 1278--1308, 1975, doi:
+\href{https://doi.org/10.1109/PROC.1975.9939}{10.1109/PROC.1975.9939}.}
+
+\hypertarget{ref-owasp-authorization}{}
+\CSLLeftMargin{{[}5{]} }%
+\CSLRightInline{OWASP Foundation, {``Authorization Cheat Sheet''}.
+Acesso em: 12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html}}
+
+\hypertarget{ref-ferraiolo-kuhn-1992}{}
+\CSLLeftMargin{{[}6{]} }%
+\CSLRightInline{D. F. Ferraiolo e D. R. Kuhn, {``Role-Based Access
+Controls''}, em \emph{Proceedings of the 15th National Computer Security
+Conference}, Baltimore, MD, 1992, p. 554--563. Acesso em: 12 de novembro
+de 2026. {[}Online{]}. Disponível em:
+\url{https://csrc.nist.gov/CSRC/media/Publications/conference-paper/1992/10/13/role-based-access-controls/documents/ferraiolo-kuhn-92.pdf}}
+
+\hypertarget{ref-rel02-iso25010-2023}{}
+\CSLLeftMargin{{[}7{]} }%
+\CSLRightInline{ISO/\allowbreak{}IEC, {``Systems and software engineering --- Systems
+and software Quality Requirements and Evaluation ({SQuaRE}) --- Product
+quality model''}, International Organization for Standardization,
+ISO/\allowbreak{}IEC 25010:2023, 2023. Acesso em: 12 de novembro de 2026.
+{[}Online{]}. Disponível em:
+\url{https://www.iso.org/standard/78176.html}}
+
+\hypertarget{ref-rel02-top10-2025}{}
+\CSLLeftMargin{{[}8{]} }%
+\CSLRightInline{OWASP Foundation, {``{OWASP Top 10:2025}''}. 2025.
+Acesso em: 12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://top10.owasp.org/2025/}}
+
+\hypertarget{ref-rel02-top10-a01-2025}{}
+\CSLLeftMargin{{[}9{]} }%
+\CSLRightInline{OWASP Foundation, {``{OWASP Top 10:2025} --- {A01:2025
+Broken Access Control}''}. 2025. Acesso em: 12 de novembro de 2026.
+{[}Online{]}. Disponível em:
+\url{https://top10.owasp.org/2025/A01_2025-Broken_Access_Control/index.html}}
+
+\hypertarget{ref-rel02-asvs-5}{}
+\CSLLeftMargin{{[}10{]} }%
+\CSLRightInline{OWASP Foundation, {``{Application Security Verification
+Standard 5.0.0} --- {V8 Authorization}''}. 2025. Acesso em: 12 de
+novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x17-V8-Authorization.md}}
+
+\hypertarget{ref-rel02-wstg42-athz01}{}
+\CSLLeftMargin{{[}11{]} }%
+\CSLRightInline{OWASP Foundation, {``{Web Security Testing Guide 4.2}
+--- Testing Directory Traversal File Include''}. 2020. Acesso em: 12 de
+novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://wstg.owasp.org/v4.2/4-Web_Application_Security_Testing/05-Authorization_Testing/01-Testing_Directory_Traversal_File_Include/}}
+
+\hypertarget{ref-rel02-wstg42-athz02}{}
+\CSLLeftMargin{{[}12{]} }%
+\CSLRightInline{OWASP Foundation, {``{Web Security Testing Guide 4.2}
+--- Testing for Bypassing Authorization Schema''}. 2020. Acesso em: 12
+de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://wstg.owasp.org/v4.2/4-Web_Application_Security_Testing/05-Authorization_Testing/02-Testing_for_Bypassing_Authorization_Schema/}}
+
+\hypertarget{ref-rel02-wstg42-athz03}{}
+\CSLLeftMargin{{[}13{]} }%
+\CSLRightInline{OWASP Foundation, {``{Web Security Testing Guide 4.2}
+--- Testing for Privilege Escalation''}. 2020. Acesso em: 12 de novembro
+de 2026. {[}Online{]}. Disponível em:
+\url{https://wstg.owasp.org/v4.2/4-Web_Application_Security_Testing/05-Authorization_Testing/03-Testing_for_Privilege_Escalation/}}
+
+\hypertarget{ref-rel02-wstg42-athz04}{}
+\CSLLeftMargin{{[}14{]} }%
+\CSLRightInline{OWASP Foundation, {``{Web Security Testing Guide 4.2}
+--- Testing for Insecure Direct Object References''}. 2020. Acesso em:
+12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://wstg.owasp.org/v4.2/4-Web_Application_Security_Testing/05-Authorization_Testing/04-Testing_for_Insecure_Direct_Object_References/}}
+
+\hypertarget{ref-rel02-api1-2023}{}
+\CSLLeftMargin{{[}15{]} }%
+\CSLRightInline{OWASP Foundation, {``{OWASP API Security Top 10:2023}
+--- {API1:2023 Broken Object Level Authorization}''}. 2023. Acesso em:
+12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://api-security.owasp.org/editions/2023/en/0xa1-broken-object-level-authorization/}}
+
+\hypertarget{ref-rel02-api3-2023}{}
+\CSLLeftMargin{{[}16{]} }%
+\CSLRightInline{OWASP Foundation, {``{OWASP API Security Top 10:2023}
+--- {API3:2023 Broken Object Property Level Authorization}''}. 2023.
+Acesso em: 12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://api-security.owasp.org/editions/2023/en/0xa3-broken-object-property-level-authorization/}}
+
+\hypertarget{ref-rel02-api5-2023}{}
+\CSLLeftMargin{{[}17{]} }%
+\CSLRightInline{OWASP Foundation, {``{OWASP API Security Top 10:2023}
+--- {API5:2023 Broken Function Level Authorization}''}. 2023. Acesso em:
+12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://api-security.owasp.org/editions/2023/en/0xa5-broken-function-level-authorization/}}
+
+\hypertarget{ref-rel02-cwe5}{}
+\CSLLeftMargin{{[}18{]} }%
+\CSLRightInline{MITRE, {``{Common Weakness Enumeration (CWE)}, Version
+5.0''}. 2026. Acesso em: 12 de novembro de 2026. {[}Online{]}.
+Disponível em: \url{https://cwe.mitre.org/data/xml/cwec_v5.0.xml.zip}}
+
+\hypertarget{ref-rel02-cwe862}{}
+\CSLLeftMargin{{[}19{]} }%
+\CSLRightInline{MITRE, {``{CWE-862: Missing Authorization}''}. 2026.
+Acesso em: 12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://cwe.mitre.org/data/definitions/862.html}}
+
+\hypertarget{ref-rel02-cwe863}{}
+\CSLLeftMargin{{[}20{]} }%
+\CSLRightInline{MITRE, {``{CWE-863: Incorrect Authorization}''}. 2026.
+Acesso em: 12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://cwe.mitre.org/data/definitions/863.html}}
+
+\hypertarget{ref-rel02-cwe639}{}
+\CSLLeftMargin{{[}21{]} }%
+\CSLRightInline{MITRE, {``{CWE-639: Authorization Bypass Through
+User-Controlled Key}''}. 2026. Acesso em: 12 de novembro de 2026.
+{[}Online{]}. Disponível em:
+\url{https://cwe.mitre.org/data/definitions/639.html}}
+
+\hypertarget{ref-owasp-wstg}{}
+\CSLLeftMargin{{[}22{]} }%
+\CSLRightInline{OWASP Foundation, {``Web Security Testing Guide:
+Authorization Testing''}. Acesso em: 12 de novembro de 2026.
+{[}Online{]}. Disponível em:
+\url{https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/05-Authorization_Testing/}}
+
+\hypertarget{ref-owasp-api1}{}
+\CSLLeftMargin{{[}23{]} }%
+\CSLRightInline{OWASP Foundation, {``API1:2023 Broken Object Level
+Authorization''}. Acesso em: 12 de novembro de 2026. {[}Online{]}.
+Disponível em:
+\url{https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/}}
+
+\hypertarget{ref-owasp-api3}{}
+\CSLLeftMargin{{[}24{]} }%
+\CSLRightInline{OWASP Foundation, {``API3:2023 Broken Object Property
+Level Authorization''}. Acesso em: 12 de novembro de 2026. {[}Online{]}.
+Disponível em:
+\url{https://owasp.org/API-Security/editions/2023/en/0xa3-broken-object-property-level-authorization/}}
+
+\hypertarget{ref-openapi-spec}{}
+\CSLLeftMargin{{[}25{]} }%
+\CSLRightInline{OpenAPI Initiative, {``OpenAPI Specification''}. Acesso
+em: 12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://spec.openapis.org/oas/latest.html}}
+
+\hypertarget{ref-zap}{}
+\CSLLeftMargin{{[}26{]} }%
+\CSLRightInline{ZAP by Checkmarx, {``OWASP ZAP''}. Acesso em: 12 de
+novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://www.zaproxy.org/}}
+
+\hypertarget{ref-zap-access-control}{}
+\CSLLeftMargin{{[}27{]} }%
+\CSLRightInline{ZAP by Checkmarx, {``Access Control Testing''}. Acesso
+em: 12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://www.zaproxy.org/docs/desktop/addons/access-control-testing/}}
+
+\hypertarget{ref-playwright}{}
+\CSLLeftMargin{{[}28{]} }%
+\CSLRightInline{Microsoft, {``Playwright documentation''}. Acesso em: 12
+de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://playwright.dev/docs/intro}}
+
+\hypertarget{ref-playwright-api-request}{}
+\CSLLeftMargin{{[}29{]} }%
+\CSLRightInline{Microsoft, {``{APIRequestContext}''}. Acesso em: 12 de
+novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://playwright.dev/docs/api/class-apirequestcontext}}
+
+\hypertarget{ref-vitest}{}
+\CSLLeftMargin{{[}30{]} }%
+\CSLRightInline{Vitest contributors, {``Vitest: Getting Started''}.
+Acesso em: 12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://vitest.dev/guide/}}
+
+\hypertarget{ref-schemathesis}{}
+\CSLLeftMargin{{[}31{]} }%
+\CSLRightInline{Schemathesis contributors, {``Schemathesis
+documentation''}. Acesso em: 12 de novembro de 2026. {[}Online{]}.
+Disponível em: \url{https://schemathesis.readthedocs.io/en/stable/}}
+
+\hypertarget{ref-burp-community}{}
+\CSLLeftMargin{{[}32{]} }%
+\CSLRightInline{PortSwigger, {``Burp Suite Community Edition''}. Acesso
+em: 12 de novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://portswigger.net/burp/communitydownload}}
+
+\hypertarget{ref-autorize}{}
+\CSLLeftMargin{{[}33{]} }%
+\CSLRightInline{B. Tawily, {``Autorize: automatic authorization
+enforcement detection extension for Burp Suite''}. Acesso em: 12 de
+novembro de 2026. {[}Online{]}. Disponível em:
+\url{https://github.com/PortSwigger/autorize}}
+
+\end{CSLReferences}

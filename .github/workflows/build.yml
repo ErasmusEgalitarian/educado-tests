@@ -21,7 +21,10 @@ jobs:
       - uses: actions/checkout@v4
       - id: lista
         run: |
-          lista=$(find relatorios -mindepth 1 -maxdepth 1 -type d -printf '%f\n' \
+          # Só entram na matrix pastas que já têm main.tex. Relatórios em
+          # Markdown, ainda sem estrutura LaTeX, não devem quebrar o CI.
+          lista=$(find relatorios -mindepth 1 -maxdepth 1 -type d \
+                  -exec test -f '{}/main.tex' \; -printf '%f\n' \
                   | sort | jq -R -s -c 'split("\n") | map(select(length > 0))')
           echo "relatorios=$lista" >> "$GITHUB_OUTPUT"
           echo "Encontrados: $lista"

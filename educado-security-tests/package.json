@@ -1,0 +1,18 @@
+{
+  "name": "educado-security-tests",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:auth": "playwright test tests/authentication.spec.ts",
+    "test:authorization": "playwright test tests/authorization.spec.ts",
+    "test:html": "playwright test --reporter=html",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "@types/node": "^26.6.6",
+    "dotenv": "^16.4.7",
+    "typescript": "^5.9.0"
+  }
+}

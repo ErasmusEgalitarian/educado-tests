@@ -1,0 +1,410 @@
+{
+  "fontes": {
+    "catalogo": "relatorios/02-seminario-autorizacao/planejamento/casos-autorizacao.csv",
+    "ledger": "relatorios/02-seminario-autorizacao/metricas/registro-execucao.csv",
+    "relatorio": "educado-security-tests/relatorio-de-execucao.md",
+    "suíte": "educado-security-tests/tests"
+  },
+  "contagens": {
+    "subcasos_planejados": 149,
+    "subcasos_definidos": 117,
+    "subcasos_bloqueados": 32,
+    "testes_descobertos": 42,
+    "testes_aprovados": 15,
+    "testes_reprovados": 3,
+    "testes_ignorados": 24,
+    "subcasos_executados": 17,
+    "subcasos_so_ignorados": 132,
+    "regras_aplicaveis": [
+      "P01",
+      "P02",
+      "P03",
+      "P04",
+      "P05",
+      "P12",
+      "P13"
+    ],
+    "regras_pendentes": [
+      "P06",
+      "P07",
+      "P08",
+      "P09",
+      "P10",
+      "P11"
+    ],
+    "regras_exercitadas": [
+      "P02",
+      "P03",
+      "P12"
+    ],
+    "regras_validadas": [],
+    "pares_metodo_endpoint_aplicaveis": [
+      "DELETE /activities/{}",
+      "DELETE /courses/{}",
+      "DELETE /institutions/{}",
+      "DELETE /media/images/{}",
+      "DELETE /media/videos/{}",
+      "GET /activities/section/{}",
+      "GET /activities/{}",
+      "GET /admin/users",
+      "GET /admin/users/{}",
+      "GET /catalog/courses/{}",
+      "GET /certificates/verify/{}",
+      "GET /courses/{}",
+      "GET /institutions",
+      "GET /institutions/{}",
+      "GET /me/courses?page=1&limit=1&status=all",
+      "GET /me/courses?page=2&limit=1&status=inactive",
+      "GET /me/media?page=1&limit=1&kind=image&status=ACTIVE",
+      "GET /me/media?page=2&limit=1&kind=video&status=INACTIVE",
+      "GET /me/profile",
+      "GET /media/{}/stream",
+      "GET /student/certificates",
+      "GET /student/certificates/{}/pdf",
+      "GET /student/certificates?userId={}",
+      "GET /student/enrollments",
+      "GET /student/enrollments?userId={}",
+      "GET /student/profile",
+      "GET /student/progress/courses",
+      "GET /student/progress/courses/{}",
+      "GET /student/progress/courses/{}?userId={}",
+      "GET /student/progress/courses?userId={}",
+      "PATCH /admin/users/{}/role",
+      "POST /activities",
+      "POST /courses",
+      "POST /institutions",
+      "POST /student/progress/courses/{}/sections/{}",
+      "PUT /activities/{}",
+      "PUT /courses/{}",
+      "PUT /institutions/{}",
+      "PUT /media/images/{}/metadata",
+      "PUT /media/videos/{}/metadata",
+      "PUT /student/profile",
+      "PUT /student/progress/courses/{}/complete"
+    ],
+    "pares_executados": [
+      "GET /activities/section/{}",
+      "GET /activities/{}",
+      "GET /admin/users",
+      "GET /catalog/courses/{}",
+      "GET /certificates/verify/{}",
+      "GET /courses/{}",
+      "GET /institutions",
+      "GET /me/courses?page=1&limit=1&status=all",
+      "GET /me/media?page=1&limit=1&kind=image&status=ACTIVE",
+      "GET /me/profile",
+      "GET /student/enrollments",
+      "GET /student/profile",
+      "POST /institutions",
+      "PUT /media/images/{}/metadata"
+    ],
+    "combinacoes_objeto_aplicaveis": [
+      "activities:inexistente",
+      "activities:próprio",
+      "admin:inexistente",
+      "admin:próprio",
+      "catalog:inexistente",
+      "catalog:próprio",
+      "certificates:inexistente",
+      "courses:alheio",
+      "courses:inexistente",
+      "courses:próprio",
+      "institutions:inexistente",
+      "institutions:próprio",
+      "me:próprio",
+      "media:alheio",
+      "media:inexistente",
+      "media:próprio",
+      "student:alheio",
+      "student:inexistente",
+      "student:próprio"
+    ],
+    "combinacoes_objeto_executadas": [
+      "admin:próprio",
+      "certificates:inexistente",
+      "courses:alheio",
+      "institutions:próprio",
+      "me:próprio",
+      "media:alheio"
+    ],
+    "campos_sensiveis": [
+      "correctAnswer",
+      "ownerId",
+      "role",
+      "userId"
+    ],
+    "campos_completicos": [],
+    "negacoes_executadas": 14,
+    "negacoes_com_status_esperado": 11,
+    "controles_positivos_executados": 4,
+    "severidade": {
+      "alta": 3
+    },
+    "asvs_no_catalogo": [
+      "8.2.1",
+      "8.2.2",
+      "8.2.3",
+      "8.3.1",
+      "8.3.2",
+      "8.4.1"
+    ],
+    "asvs_documentais": [
+      "8.1.1",
+      "8.1.2"
+    ],
+    "asvs_executados": [
+      "8.2.1",
+      "8.2.2",
+      "8.2.3",
+      "8.3.1"
+    ]
+  },
+  "metricas": [
+    {
+      "id": "cobertura_regras",
+      "meta": "100%",
+      "numerador": 3,
+      "denominador": 7,
+      "observado": "42,9%",
+      "situacao": "medido",
+      "interpretacao": "Regras com controle positivo aprovado e tentativa negativa executada; todas as execuções são parciais."
+    },
+    {
+      "id": "cobertura_regras_validada",
+      "meta": "100%",
+      "numerador": 0,
+      "denominador": 7,
+      "observado": "0,0%",
+      "situacao": "medido",
+      "interpretacao": "Contagem rigorosa com verificação de dados e efeitos nos dois lados."
+    },
+    {
+      "id": "cobertura_funcoes",
+      "meta": "100%",
+      "numerador": 14,
+      "denominador": 42,
+      "observado": "33,3%",
+      "situacao": "medido",
+      "interpretacao": "Pares método–endpoint únicos efetivamente exercitados; repetições não aumentam o numerador."
+    },
+    {
+      "id": "cobertura_objetos",
+      "meta": "100%",
+      "numerador": 6,
+      "denominador": 19,
+      "observado": "31,6%",
+      "situacao": "medido",
+      "interpretacao": "Combinações família de endpoint × próprio/alheio/inexistente efetivamente exercitadas."
+    },
+    {
+      "id": "cobertura_campos",
+      "meta": "100%",
+      "numerador": 0,
+      "denominador": 4,
+      "observado": "0,0%",
+      "situacao": "medido",
+      "interpretacao": "Campos sensíveis com leitura ou escrita permitida e negada executadas."
+    },
+    {
+      "id": "negacoes_bloqueadas",
+      "meta": "100%",
+      "numerador": 0,
+      "denominador": 14,
+      "observado": "0,0%",
+      "situacao": "medido",
+      "interpretacao": "Sem verificação de dado/efeito nas aprovações parciais; 0 não significa negação incorreta."
+    },
+    {
+      "id": "bypasses",
+      "meta": "0",
+      "numerador": 3,
+      "denominador": null,
+      "observado": "3",
+      "situacao": "medido",
+      "interpretacao": "Três acessos indevidos confirmados no registro de execução; nenhuma escrita indevida foi executada."
+    },
+    {
+      "id": "falsos_positivos",
+      "meta": "0%",
+      "numerador": 0,
+      "denominador": 4,
+      "observado": "0,0%",
+      "situacao": "medido",
+      "interpretacao": "Controles legítimos executados e aprovados com verificação parcial de dados."
+    },
+    {
+      "id": "integridade_pos_negacao",
+      "meta": "100%",
+      "numerador": 0,
+      "denominador": 0,
+      "observado": "não mensurável",
+      "situacao": "não mensurável",
+      "interpretacao": "Nenhuma negação executada registrou estado antes/depois; denominador zero não vira 100%."
+    },
+    {
+      "id": "rastreabilidade_planejada",
+      "meta": "100%",
+      "numerador": 8,
+      "denominador": 8,
+      "observado": "100,0%",
+      "situacao": "medido",
+      "interpretacao": "Todos os requisitos selecionados têm rastreio documental; 8.1.1 e 8.1.2 são documentais."
+    },
+    {
+      "id": "rastreabilidade_executada",
+      "meta": "informativa",
+      "numerador": 4,
+      "denominador": 8,
+      "observado": "50,0%",
+      "situacao": "medido",
+      "interpretacao": "Requisitos com ao menos uma requisição executada e evidência referenciada."
+    },
+    {
+      "id": "severidade",
+      "meta": "zero críticas/altas abertas",
+      "numerador": 3,
+      "denominador": null,
+      "observado": "3",
+      "situacao": "medido",
+      "interpretacao": "Falhas confirmadas no registro de execução; ausência de teste não conta como ausência de falha."
+    }
+  ],
+  "falhas": [
+    {
+      "teste": "AT-10.1",
+      "subcasos": [
+        "AT-10-N1"
+      ],
+      "severidade": "alta",
+      "evidencia": "test-results/activities-Autorização-de--bf22e-ssa-atividade-não-publicada/error-context.md",
+      "observacao": "HTTP 200 com dados de atividade nao publicada conforme relatorio de execucao"
+    },
+    {
+      "teste": "AT-10.2",
+      "subcasos": [
+        "AT-10-N2"
+      ],
+      "severidade": "alta",
+      "evidencia": "test-results/activities-Autorização-de--fb1d9-ades-de-seção-não-publicada/error-context.md",
+      "observacao": "HTTP 200 com dados de secao nao publicada conforme relatorio de execucao"
+    },
+    {
+      "teste": "AT-23",
+      "subcasos": [
+        "AT-23-C1"
+      ],
+      "severidade": "alta",
+      "evidencia": "test-results/public-resources-Instituiç-2e202-ico-não-deve-expor-gabarito/error-context.md",
+      "observacao": "HTTP 200 com correctAnswer no catalogo publico conforme relatorio de execucao"
+    }
+  ],
+  "matriz_asvs": [
+    {
+      "requisito": "8.1.1",
+      "subcasos_planejados": "documental",
+      "testes_executados": 0,
+      "aprovados": 0,
+      "reprovados": 0,
+      "ignorados": 0,
+      "evidencias": [
+        "relatorios/02-seminario-autorizacao/fontes/05-metricas-educado.md#6-rastreabilidade-ao-owasp-asvs"
+      ],
+      "interpretacao": "Regra documentada; não há requisição HTTP que prove atendimento."
+    },
+    {
+      "requisito": "8.1.2",
+      "subcasos_planejados": "documental",
+      "testes_executados": 0,
+      "aprovados": 0,
+      "reprovados": 0,
+      "ignorados": 0,
+      "evidencias": [
+        "relatorios/02-seminario-autorizacao/fontes/05-metricas-educado.md#6-rastreabilidade-ao-owasp-asvs"
+      ],
+      "interpretacao": "Campos sensíveis inventariados; escrita/leitura negada não executada."
+    },
+    {
+      "requisito": "8.2.1",
+      "subcasos_planejados": 74,
+      "testes_executados": 13,
+      "aprovados": 11,
+      "reprovados": 2,
+      "ignorados": 15,
+      "evidencias": [
+        "educado-security-tests/relatorio-de-execucao.md",
+        "test-results/activities-Autorização-de--bf22e-ssa-atividade-não-publicada/error-context.md",
+        "test-results/activities-Autorização-de--fb1d9-ades-de-seção-não-publicada/error-context.md"
+      ],
+      "interpretacao": "Execução parcial por papel; parte depende de P06/P07."
+    },
+    {
+      "requisito": "8.2.2",
+      "subcasos_planejados": 108,
+      "testes_executados": 6,
+      "aprovados": 4,
+      "reprovados": 2,
+      "ignorados": 16,
+      "evidencias": [
+        "educado-security-tests/relatorio-de-execucao.md",
+        "test-results/activities-Autorização-de--bf22e-ssa-atividade-não-publicada/error-context.md",
+        "test-results/activities-Autorização-de--fb1d9-ades-de-seção-não-publicada/error-context.md"
+      ],
+      "interpretacao": "Execução parcial; duas leituras não publicadas falharam."
+    },
+    {
+      "requisito": "8.2.3",
+      "subcasos_planejados": 20,
+      "testes_executados": 2,
+      "aprovados": 1,
+      "reprovados": 1,
+      "ignorados": 3,
+      "evidencias": [
+        "educado-security-tests/relatorio-de-execucao.md",
+        "test-results/public-resources-Instituiç-2e202-ico-não-deve-expor-gabarito/error-context.md"
+      ],
+      "interpretacao": "Exposição de gabarito observada; demais campos não testados."
+    },
+    {
+      "requisito": "8.3.1",
+      "subcasos_planejados": 113,
+      "testes_executados": 14,
+      "aprovados": 12,
+      "reprovados": 2,
+      "ignorados": 18,
+      "evidencias": [
+        "educado-security-tests/relatorio-de-execucao.md",
+        "test-results/activities-Autorização-de--bf22e-ssa-atividade-não-publicada/error-context.md",
+        "test-results/activities-Autorização-de--fb1d9-ades-de-seção-não-publicada/error-context.md"
+      ],
+      "interpretacao": "Chamadas diretas à API; respostas parciais não provam allowlist."
+    },
+    {
+      "requisito": "8.3.2",
+      "subcasos_planejados": 4,
+      "testes_executados": 0,
+      "aprovados": 0,
+      "reprovados": 0,
+      "ignorados": 0,
+      "evidencias": [],
+      "interpretacao": "Subcasos de sessão bloqueados por P09."
+    },
+    {
+      "requisito": "8.4.1",
+      "subcasos_planejados": 1,
+      "testes_executados": 0,
+      "aprovados": 0,
+      "reprovados": 0,
+      "ignorados": 0,
+      "evidencias": [],
+      "interpretacao": "Subcaso institucional bloqueado por P11; CRUD por papel não substitui tenant."
+    }
+  ],
+  "limitacoes": [
+    "O relatório de #27 não informa commit da API, BASE_URL, timestamp por teste nem duração por requisição.",
+    "Os arquivos playwright-report e test-results não estão versionados; três falhas têm apenas o caminho do error-context no registro.",
+    "Nenhum teste executado verificou estado antes/depois; integridade after denial permanece não mensurável.",
+    "A asserção de AT-10 foi alterada após a rodada de 42 testes; repetir a suíte é necessário para validar a nova forma.",
+    "P06–P11 permanecem sem decisão aprovada; casos bloqueados não entram em denominadores de regras aplicáveis.",
+    "A revisão por colega dos cálculos ainda não foi registrada; a PR deve solicitar essa conferência."
+  ]
+}

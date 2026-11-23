@@ -29,7 +29,15 @@ relatorios/*/build/
 *.ind
 *.xdv
 
+# Python
+__pycache__/
+*.pyc
+
 # Editores e SO
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Evidencias locais e autenticação do ambiente de testes
+relatorios/*/ambiente/*.local.json
+relatorios/*/ambiente/.env.local

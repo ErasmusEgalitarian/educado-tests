@@ -16,7 +16,8 @@ RAIZ="$PWD"
 
 FLAGS=(-pdf -outdir=build -interaction=nonstopmode -halt-on-error -file-line-error)
 
-listar() { find relatorios -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort; }
+# Só lista pastas que já têm main.tex; relatórios em Markdown não são compiláveis.
+listar() { find relatorios -mindepth 1 -maxdepth 1 -type d -exec test -f '{}/main.tex' \; -printf '%f\n' | sort; }
 
 compilar() {
   local nome="$1"
