@@ -1,13 +1,16 @@
-"""Confere o contrato documental da issue #25, sem executar testes HTTP."""
+"""Confere o contrato de #25 e a conferência observacional de #28, sem executar testes HTTP."""
 
 import collections
 import csv
 import json
 from pathlib import Path
 import re
+import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "metricas"))
+from calcular import OUT_JSON, OUT_MD, build, render
 COLUMNS = (
     "id caso_pai regra_id status_definicao precondicoes ator token_estado "
     "recurso_estado metodo endpoint payload http_esperado dados_esperados "
@@ -107,6 +110,17 @@ def main():
     )
     keys = set(re.findall(r"^@\w+\{([^,]+),", bibliography, re.M))
     require(set(re.findall(r"@([\w-]+)", section)) <= keys, "Citação sem chave BibTeX")
+
+    observed = build()
+    require(
+        json.loads(OUT_JSON.read_text(encoding="utf-8")) == observed,
+        "metricas-obsv.json desatualizado; execute metricas/calcular.py",
+    )
+    require(
+        OUT_MD.read_text(encoding="utf-8") == render(observed),
+        "05-resultados-metricas.md desatualizado; execute metricas/calcular.py",
+    )
+    counts = observed["contagens"]
     print("CSV UTF-8 válido: 18 colunas; 23 casos originais; IDs e controles consistentes")
     print(summary)
     pending_controls = sum(
@@ -116,7 +130,13 @@ def main():
     )
     print(f"{pending_controls} contratos de inexistência definidos com controle operacional pendente")
     print("Payloads, fixtures, regras, fontes, totalizações e citações conferidos")
-    print("Validação documental; nenhum resultado experimental foi produzido")
+    print(
+        "Registro de execução conferido: "
+        f"{counts['testes_descobertos']} testes, {counts['testes_aprovados']} aprovados, "
+        f"{counts['testes_reprovados']} reprovados e {counts['testes_ignorados']} ignorados"
+    )
+    print("Artefatos de métricas conferidos com catálogo, ledger e relatório de #27")
+    print("Validação documental e observacional concluída sem executar testes HTTP")
 
 
 if __name__ == "__main__":

@@ -640,8 +640,9 @@ específica devem ser confirmados no Aprender. O registro
 identifica a cópia consultada por hash, páginas, fontes permanentes,
 fixtures e decisões. O arquivo
 \texttt{planejamento/\allowbreak{}casos-autorizacao.csv} detalha as requisições. Esta
-seção apresenta planejamento e observações estáticas, sem resultados
-experimentais.
+seção define o planejamento e os critérios;
+\texttt{05-resultados-metricas.md} consolida os resultados observados de
+\#27.
 
 \subsubsection{Atores e dados}\label{atores-e-dados}
 
@@ -955,8 +956,9 @@ consulta autorizada. Percorrer todas as páginas das listas, guardar
 evidências saneadas e restaurar as cópias após escritas. Estados de
 definição (definido/\allowbreak{}bloqueado) são diferentes dos estados de execução
 (aprovado, reprovado, bloqueado, não executado, não aplicável). A issue
-\#27 deverá registrar cada subcaso; uma linha bloqueada não pode contar
-como teste aprovado.
+\#27 registrou a suíte executada; o mapeamento teste→subcaso está em
+\texttt{metricas/\allowbreak{}registro-execucao.csv}. Uma linha bloqueada ou ignorada
+não pode contar como teste aprovado.
 
 AT-18-N7 e AT-22-N1 têm o contrato de inexistência definido por P13, sem
 depender da política de acesso a recursos existentes. Seus controles
@@ -1001,9 +1003,11 @@ não declarar 8.4.1 coberto nem excluí-lo silenciosamente.
 \subsection{Métricas e critérios de
 sucesso}\label{muxe9tricas-e-crituxe9rios-de-sucesso}
 
-As metas abaixo foram propostas no planejamento, sem valores observados.
-Os denominadores devem vir dos inventários acordados; excluídos,
-bloqueados e não executados precisam de justificativa.
+As metas abaixo foram propostas no planejamento; os resultados
+observados com \#25 e \#27 estão na seção
+\texttt{05-resultados-metricas.md}. Os denominadores vêm dos inventários
+acordados; excluídos, bloqueados e não executados são justificados na
+seção de resultados.
 
 {\def\LTcaptype{none} % do not increment counter
 \begin{longtable}[]{@{}
@@ -1038,19 +1042,22 @@ Falsos positivos & Operações legítimas negadas ÷ controles legítimos
 executados × 100 & 0\% \\
 Integridade após negação & Negações sem mutação ÷ negações com estado
 verificado × 100 & 100\% \\
-Rastreabilidade planejada ASVS & Requisitos aplicáveis com caso
-associado ÷ requisitos selecionados aplicáveis × 100 & 100\% \\
+Rastreabilidade planejada ASVS & Requisitos selecionados com caso
+documentado ÷ requisitos selecionados aplicáveis × 100 & 100\% \\
+Rastreabilidade executada ASVS & Requisitos com requisição executada e
+evidência ÷ requisitos selecionados aplicáveis × 100 & Informativa; não
+substitui a planejada \\
 Severidade & Falhas confirmadas por classe de impacto & Registrar todas;
 meta de zero críticas/\allowbreak{}altas abertas \\
 \end{longtable}
 }
 
 Rastreabilidade planejada não é conformidade nem validação executada. A
-execução precisa ligar requisito, caso/\allowbreak{}subcaso, evidência e resultado.
-Denominador zero deve ser reportado como não mensurável/\allowbreak{}não aplicável
-conforme o contexto, sem inventar percentual. Metas não atingidas devem
-ser informadas; não é necessário ocultar falhas para concluir o registro
-experimental.
+seção de resultados liga requisito, caso/\allowbreak{}subcaso, evidência e resultado
+por execução. Denominador zero deve ser reportado como não
+mensurável/\allowbreak{}não aplicável conforme o contexto, sem inventar percentual.
+Metas não atingidas devem ser informadas; não é necessário ocultar
+falhas para concluir o registro experimental.
 
 \subsubsection{Severidade proposta}\label{severidade-proposta}
 
@@ -1100,8 +1107,9 @@ não o substitui \\
 
 8.1.3, 8.1.4, 8.2.4 e 8.4.2 ficam fora do recorte inicial, salvo
 requisito que os torne aplicáveis. A seleção não verifica integralmente
-nenhum nível ASVS. Nenhum requisito recebe cobertura executada nesta
-entrega de definição.
+nenhum nível ASVS. A cobertura executada e suas evidências são
+consolidadas em \texttt{05-resultados-metricas.md}; 8.1.1 e 8.1.2
+permanecem documentais.
 
 \subsection{Observações estáticas e
 pendências}\label{observauxe7uxf5es-estuxe1ticas-e-penduxeancias}
@@ -1138,19 +1146,21 @@ enquanto esses pontos são esclarecidos.
 \subsection{Pré-requisitos e limites}\label{pruxe9-requisitos-e-limites}
 
 Executar apenas em ambiente local/\allowbreak{}homologação autorizado, com
-banco/\allowbreak{}storage isolados e dados descartáveis. A issue \#26 deve registrar
+banco/\allowbreak{}storage isolados e dados descartáveis. A issue \#26 registrou
 setup, dependências efetivas, contas, tokens e restauração. Usar
 IDs/\allowbreak{}credenciais sintéticos; não publicar tokens, segredos ou dados
-reais. A issue \#27 deve registrar resultados e comunicar achados
-confirmados pelo canal privado do produto.
+reais. A issue \#27 registrou resultados; a comunicação de achados
+confirmados pelo canal privado do produto permanece responsabilidade da
+equipe.
 
 O enunciado exige declaração de uso de IA; a equipe deve incluir
 ferramentas, finalidades e consultas representativas no relatório final.
 O registro de planejamento documenta assistência do Codex na preparação
 dos artefatos. Interpretação de resultados, análise crítica,
 justificativas acadêmicas e conclusões devem ser elaboradas/\allowbreak{}revisadas
-pela equipe conforme o enunciado. Esta definição não apresenta execução
-nem resultados.
+pela equipe conforme o enunciado. Esta seção define os critérios; os
+resultados observados e as limitações da execução estão em
+\texttt{05-resultados-metricas.md}.
 
 \subsection{Fontes consultadas nesta
 seção}\label{fontes-consultadas-nesta-seuxe7uxe3o}
@@ -1174,18 +1184,333 @@ seção}\label{fontes-consultadas-nesta-seuxe7uxe3o}
   junto ao CSV, na pasta planejamento deste relatório.
 \end{itemize}
 
-\section{Limitações e conclusão}\label{limitauxe7uxf5es-e-conclusuxe3o}
+\section{Resultados observados das
+métricas}\label{resultados-observados-das-muxe9tricas}
+
+Os valores abaixo vêm do catálogo de \#25 e do registro de \#27. Nenhum
+percentual é inferido de planejamento, hipótese ou teste ignorado.
+
+\subsection{Fontes e regra de
+contagem}\label{fontes-e-regra-de-contagem}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Fonte
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Uso
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{planejamento/\allowbreak{}casos-autorizacao.csv} & Inventário de 149
+subcasos, regras, ASVS e estado de definição \\
+\texttt{metricas/\allowbreak{}registro-execucao.csv} & Associação entre 42 testes da
+suíte e subcasos; situação e evidência \\
+\texttt{educado-security-tests/\allowbreak{}relatorio-de-execucao.md} & Contagens por
+AT, falhas observadas e limitações \\
+\texttt{metricas/\allowbreak{}calcular.py} & Cálculo reproduzível; gera este arquivo
+e \texttt{metricas/\allowbreak{}metricas-obsv.json} \\
+\end{longtable}
+}
+
+Cada execução de teste registrada conta uma tentativa; AT-04.2 e AT-19.1
+são repetições distintas do mesmo par. A cobertura de funções usa pares
+método--endpoint únicos, com \texttt{\{...\}} normalizado para
+\texttt{\{\}}. Aplicam-se apenas subcasos \texttt{definido} aos
+denominadores de regras, funções, objetos e campos; os 32 subcasos
+\texttt{bloqueado} e os testes \texttt{ignorado} não contam como
+aprovados nem como cobertura exercitada. Denominador zero é informado
+como não mensurável, sem converter ausência de verificação em sucesso.
+
+\subsection{Inventários e volume
+executado}\label{inventuxe1rios-e-volume-executado}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+Item & Inventário aplicável & Executado \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Subcasos & 117 definidos de 149 planejados & 17 \\
+Regras & 7 aplicáveis; 6 pendentes & 3 \\
+Pares método--endpoint & 42 & 14 \\
+Combinações de objeto & 19 & 6 \\
+Campos sensíveis & correctAnswer, ownerId, role, userId & nenhum \\
+\end{longtable}
+}
+
+Regras aplicáveis: P01, P02, P03, P04, P05, P12, P13. Pendentes sem
+oráculo aprovado: P06, P07, P08, P09, P10, P11. Testes descobertos: 42;
+aprovados: 15; reprovados: 3; ignorados: 24. AT-12 não teve teste
+descoberto; 132 dos 149 subcasos planejados não receberam execução
+registrada, inclusive os 32 bloqueados.
+
+\subsection{Meta proposta × valor
+observado}\label{meta-proposta-valor-observado}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Métrica
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Meta
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Numerador
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Denominador
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Observado
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Interpretação
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+cobertura\_regras & 100\% & 3 & 7 & 42,9\% & Regras com controle
+positivo aprovado e tentativa negativa executada; todas as execuções são
+parciais. \\
+cobertura\_regras\_validada & 100\% & 0 & 7 & 0,0\% & Contagem rigorosa
+com verificação de dados e efeitos nos dois lados. \\
+cobertura\_funcoes & 100\% & 14 & 42 & 33,3\% & Pares método--endpoint
+únicos efetivamente exercitados; repetições não aumentam o numerador. \\
+cobertura\_objetos & 100\% & 6 & 19 & 31,6\% & Combinações família de
+endpoint × próprio/\allowbreak{}alheio/\allowbreak{}inexistente efetivamente exercitadas. \\
+cobertura\_campos & 100\% & 0 & 4 & 0,0\% & Campos sensíveis com leitura
+ou escrita permitida e negada executadas. \\
+negacoes\_bloqueadas & 100\% & 0 & 14 & 0,0\% & Sem verificação de
+dado/\allowbreak{}efeito nas aprovações parciais; 0 não significa negação
+incorreta. \\
+bypasses & 0 & 3 & --- & 3 & Três acessos indevidos confirmados no
+registro de execução; nenhuma escrita indevida foi executada. \\
+falsos\_positivos & 0\% & 0 & 4 & 0,0\% & Controles legítimos executados
+e aprovados com verificação parcial de dados. \\
+integridade\_pos\_negacao & 100\% & 0 & 0 & não mensurável & Nenhuma
+negação executada registrou estado antes/\allowbreak{}depois; denominador zero não
+vira 100\%. \\
+rastreabilidade\_planejada & 100\% & 8 & 8 & 100,0\% & Todos os
+requisitos selecionados têm rastreio documental; 8.1.1 e 8.1.2 são
+documentais. \\
+rastreabilidade\_executada & informativa & 4 & 8 & 50,0\% & Requisitos
+com ao menos uma requisição executada e evidência referenciada. \\
+severidade & zero críticas/\allowbreak{}altas abertas & 3 & --- & 3 & Falhas
+confirmadas no registro de execução; ausência de teste não conta como
+ausência de falha. \\
+\end{longtable}
+}
+
+Das 14 tentativas negativas executadas, 11 tiveram status de negação
+esperado, mas nenhuma verificou dado ou efeito. Os 4 controles legítimos
+executados falharam em nenhum caso. As três falhas são desvios válidos
+para contagem de falhas, não ausência comprovada em casos não
+executados.
+
+\subsection{Falhas confirmadas e
+severidade}\label{falhas-confirmadas-e-severidade}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Teste
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Subcasos
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Severidade
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Evidência
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Desvio
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+AT-10.1 & AT-10-N1 & alta &
+\texttt{test-results/\allowbreak{}activities-Autorização-de-\/-bf22e-ssa-atividade-não-publicada/\allowbreak{}error-context.md}
+& HTTP 200 com dados de atividade nao publicada conforme relatorio de
+execucao \\
+AT-10.2 & AT-10-N2 & alta &
+\texttt{test-results/\allowbreak{}activities-Autorização-de-\/-fb1d9-ades-de-seção-não-publicada/\allowbreak{}error-context.md}
+& HTTP 200 com dados de secao nao publicada conforme relatorio de
+execucao \\
+AT-23 & AT-23-C1 & alta &
+\texttt{test-results/\allowbreak{}public-resources-Instituiç-2e202-ico-não-deve-expor-gabarito/\allowbreak{}error-context.md}
+& HTTP 200 com correctAnswer no catalogo publico conforme relatorio de
+execucao \\
+\end{longtable}
+}
+
+Severidade agregada: alta: 3. A classificação usa o impacto descrito no
+registro de \#27; nenhuma falha é atribuída a teste não executado.
+
+\subsection{Matriz ASVS: planejamento → execução →
+evidência}\label{matriz-asvs-planejamento-execuuxe7uxe3o-eviduxeancia}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Requisito
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Subcasos planejados
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Executados
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Aprovados
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Reprovados
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Ignorados
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Evidência
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Interpretação
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+8.1.1 & documental & 0 & 0 & 0 & 0 &
+\texttt{relatorios/02-seminario-autorizacao/\allowbreak{}fontes/05-metricas-educado.md\#6-rastreabilidade-ao-owasp-asvs}
+& Regra documentada; não há requisição HTTP que prove atendimento. \\
+8.1.2 & documental & 0 & 0 & 0 & 0 &
+\texttt{relatorios/02-seminario-autorizacao/\allowbreak{}fontes/05-metricas-educado.md\#6-rastreabilidade-ao-owasp-asvs}
+& Campos sensíveis inventariados; escrita/\allowbreak{}leitura negada não
+executada. \\
+8.2.1 & 74 & 13 & 11 & 2 & 15 &
+\texttt{educado-security-tests/\allowbreak{}relatorio-de-execucao.md},
+\texttt{test-results/\allowbreak{}activities-Autorização-de-\/-bf22e-ssa-atividade-não-publicada/\allowbreak{}error-context.md},
+\texttt{test-results/\allowbreak{}activities-Autorização-de-\/-fb1d9-ades-de-seção-não-publicada/\allowbreak{}error-context.md}
+& Execução parcial por papel; parte depende de P06/P07. \\
+8.2.2 & 108 & 6 & 4 & 2 & 16 &
+\texttt{educado-security-tests/\allowbreak{}relatorio-de-execucao.md},
+\texttt{test-results/\allowbreak{}activities-Autorização-de-\/-bf22e-ssa-atividade-não-publicada/\allowbreak{}error-context.md},
+\texttt{test-results/\allowbreak{}activities-Autorização-de-\/-fb1d9-ades-de-seção-não-publicada/\allowbreak{}error-context.md}
+& Execução parcial; duas leituras não publicadas falharam. \\
+8.2.3 & 20 & 2 & 1 & 1 & 3 &
+\texttt{educado-security-tests/\allowbreak{}relatorio-de-execucao.md},
+\texttt{test-results/\allowbreak{}public-resources-Instituiç-2e202-ico-não-deve-expor-gabarito/\allowbreak{}error-context.md}
+& Exposição de gabarito observada; demais campos não testados. \\
+8.3.1 & 113 & 14 & 12 & 2 & 18 &
+\texttt{educado-security-tests/\allowbreak{}relatorio-de-execucao.md},
+\texttt{test-results/\allowbreak{}activities-Autorização-de-\/-bf22e-ssa-atividade-não-publicada/\allowbreak{}error-context.md},
+\texttt{test-results/\allowbreak{}activities-Autorização-de-\/-fb1d9-ades-de-seção-não-publicada/\allowbreak{}error-context.md}
+& Chamadas diretas à API; respostas parciais não provam allowlist. \\
+8.3.2 & 4 & 0 & 0 & 0 & 0 & sem execução & Subcasos de sessão bloqueados
+por P09. \\
+8.4.1 & 1 & 0 & 0 & 0 & 0 & sem execução & Subcaso institucional
+bloqueado por P11; CRUD por papel não substitui tenant. \\
+\end{longtable}
+}
+
+Rastreabilidade planejada: 8/8 requisitos selecionados têm rastreio
+documental; 6/8 têm subcasos no catálogo e 2 são documentais (8.1.1 e
+8.1.2). Rastreabilidade executada: 4/8 (50,0\%), requisitos 8.2.1,
+8.2.2, 8.2.3, 8.3.1. A seleção parcial não verifica nível ASVS nem
+permite afirmar conformidade integral.
+
+\subsection{Alcance efetivo de revogação e
+isolamento}\label{alcance-efetivo-de-revogauxe7uxe3o-e-isolamento}
+
+AT-20 executou apenas a consulta administrativa e a criação/\allowbreak{}leitura de
+curso. O PATCH de papel, a persistência USER/\allowbreak{}ADMIN e o comportamento do
+token anterior e da nova sessão não foram executados; 8.3.2 permanece
+sem validação executada. AT-19 executou restrições por papel em
+instituições; a fronteira entre I1 e I2 depende de P11 e não foi
+especificada. 8.4.1 permanece sem validação executada; nenhum requisito
+recebeu cobertura apenas por ser citado.
 
 \subsection{Limitações}\label{limitauxe7uxf5es}
 
-O trabalho se limita à pesquisa e ao planejamento. As técnicas,
-ferramentas e métricas descritas não foram aplicadas ao Educado nesta
-entrega, então nenhuma afirmação deste documento deve ser lida como
-resultado de teste. A matriz de autorização proposta parte da leitura do
-código e da documentação do projeto e precisa ser validada contra o
-comportamento real da \texttt{educado-api}, que é onde a decisão de
-acesso efetivamente acontece. A execução futura deve ocorrer apenas em
-ambiente local ou de homologação autorizado, com dados descartáveis.
+\begin{itemize}
+\tightlist
+\item
+  O relatório de \#27 não informa commit da API, BASE\_URL, timestamp
+  por teste nem duração por requisição.
+\item
+  Os arquivos playwright-report e test-results não estão versionados;
+  três falhas têm apenas o caminho do error-context no registro.
+\item
+  Nenhum teste executado verificou estado antes/\allowbreak{}depois; integridade
+  after denial permanece não mensurável.
+\item
+  A asserção de AT-10 foi alterada após a rodada de 42 testes; repetir a
+  suíte é necessário para validar a nova forma.
+\item
+  P06--P11 permanecem sem decisão aprovada; casos bloqueados não entram
+  em denominadores de regras aplicáveis.
+\item
+  A revisão por colega dos cálculos ainda não foi registrada; a PR deve
+  solicitar essa conferência.
+\end{itemize}
+
+\subsection{Fontes consultadas nesta
+seção}\label{fontes-consultadas-nesta-seuxe7uxe3o-1}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x17-V8-Authorization.md}{OWASP
+  ASVS 5.0.0, V8}.
+\item
+  Registros locais listados na tabela de fontes; nenhum segredo ou token
+  é reproduzido.
+\end{itemize}
+
+\section{Limitações e conclusão}\label{limitauxe7uxf5es-e-conclusuxe3o}
+
+\subsection{Limitações}\label{limitauxe7uxf5es-1}
+
+A execução de \#27 registrou 42 testes Playwright: 15 aprovados, 3
+reprovados e 24 ignorados; AT-12 não teve teste descoberto. Os 24 testes
+ignorados não contam como aprovação nem como cobertura executada. A
+cobertura ficou em 3/7 regras aplicáveis, 14/42 pares método--endpoint,
+6/19 combinações de objeto e 4/8 requisitos ASVS selecionados; os
+detalhes e as evidências estão em \texttt{05-resultados-metricas.md}.
+
+A saída não informa commit da API, \texttt{BASE\_URL}, timestamp por
+teste nem duração por requisição, e os arquivos
+\texttt{playwright-report} e \texttt{test-results} não estão
+versionados. As três falhas confirmadas --- AT-10.1, AT-10.2 e AT-23 ---
+são leituras indevidas; nenhuma escrita não autorizada foi executada.
+Nenhuma negação verificou estado antes/\allowbreak{}depois, então integridade após
+negação e ausência de dados/\allowbreak{}efeitos em respostas aprovadas permanecem
+não mensuráveis, e não devem ser lidas como sucesso.
+
+As decisões P06--P11 continuam sem validação aprovada, e a asserção de
+AT-10 foi alinhada após a rodada informada. Os resultados não provam
+conformidade com nível ASVS, não substituem revisão por pares e não
+autorizam concluir que casos não executados estejam corretos. Execuções
+futuras devem ocorrer apenas em ambiente local ou de homologação
+autorizado, com dados descartáveis e registro de versões.
 
 \subsection{Conclusão}\label{conclusuxe3o}
 
@@ -1194,11 +1519,18 @@ explicitada como uma matriz de sujeito, recurso, operação e resultado
 esperado. As referências estudadas se complementam: o OWASP Top 10
 indica a relevância do risco, o ASVS fornece requisitos verificáveis, o
 WSTG descreve procedimentos de teste e o CWE classifica as fraquezas
-encontradas {[}2{]}. Para o Educado, a equipe propõe combinar
-Playwright, para cenários conhecidos e repetíveis entre perfis, com o
-OWASP ZAP, para a varredura de rotas, usando Vitest apenas como
-complemento no frontend. A próxima etapa do seminário é executar o plano
-em ambiente controlado e medir os resultados com as métricas definidas.
+encontradas {[}2{]}. A suíte de \#27 confirmou três desvios de alto
+impacto e mostrou lacunas amplas de execução; o valor está em ligar cada
+resultado a regra, subcaso e evidência, sem transformar ausência de
+verificação em aprovação.
+
+A combinação de Playwright para cenários repetíveis entre perfis, OWASP
+ZAP para varredura de rotas e Vitest como complemento no frontend
+permanece adequada {[}10{]}. A próxima etapa é resolver P06--P11,
+repetir a suíte com a asserção revista de AT-10, versionar metadados de
+execução e evidências saneadas, verificar estado antes/\allowbreak{}depois nas
+negações e submeter os cálculos a revisão por colega antes de ampliar
+qualquer afirmação de cobertura.
 
 \section*{Referências}\label{bibliography}
 \addcontentsline{toc}{section}{Referências}

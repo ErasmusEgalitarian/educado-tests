@@ -4,6 +4,8 @@
 # então secoes/corpo.tex e referencias.bib são versionados.
 set -euo pipefail
 cd "$(dirname "$0")"
+python3 metricas/calcular.py
+python3 planejamento/validar.py
 cat bibliografia/*.bib > referencias.bib.tmp
 # remove entradas com chave repetida (mesma fonte citada em mais de uma seção)
 awk '/^@/{split($0,a,"{");k=a[2];skip=(k in seen);seen[k]=1} !skip' referencias.bib.tmp > referencias.bib

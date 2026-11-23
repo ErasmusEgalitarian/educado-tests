@@ -14,7 +14,7 @@ Havia alterações locais somente nas dependências da API, que não foram incor
 O enunciado `26-2-Seminario.pdf` admite planejamento no seminário e prevê resultados no relatório final; a data/horário e a rubrica final específica devem ser confirmados no Aprender.
 O registro `planejamento/escopo-e-decisoes.md`, na pasta deste relatório, identifica a cópia consultada por hash, páginas, fontes permanentes, fixtures e decisões.
 O arquivo `planejamento/casos-autorizacao.csv` detalha as requisições.
-Esta seção apresenta planejamento e observações estáticas, sem resultados experimentais.
+Esta seção define o planejamento e os critérios; `05-resultados-metricas.md` consolida os resultados observados de #27.
 
 ### Atores e dados
 
@@ -144,7 +144,7 @@ Executar o controle positivo antes da tentativa correspondente.
 Após a requisição, verificar dados retornados e o estado antes/depois por consulta autorizada.
 Percorrer todas as páginas das listas, guardar evidências saneadas e restaurar as cópias após escritas.
 Estados de definição (definido/bloqueado) são diferentes dos estados de execução (aprovado, reprovado, bloqueado, não executado, não aplicável).
-A issue #27 deverá registrar cada subcaso; uma linha bloqueada não pode contar como teste aprovado.
+A issue #27 registrou a suíte executada; o mapeamento teste→subcaso está em `metricas/registro-execucao.csv`. Uma linha bloqueada ou ignorada não pode contar como teste aprovado.
 
 AT-18-N7 e AT-22-N1 têm o contrato de inexistência definido por P13, sem depender da política de acesso a recursos existentes.
 Seus controles positivos AT-18-C1 e AT-22-C1 continuam pendentes de P07/P08.
@@ -174,8 +174,8 @@ O subcaso institucional permanece bloqueado até confirmar entidades, vínculos,
 
 ## 5. Métricas e critérios de sucesso
 
-As metas abaixo foram propostas no planejamento, sem valores observados.
-Os denominadores devem vir dos inventários acordados; excluídos, bloqueados e não executados precisam de justificativa.
+As metas abaixo foram propostas no planejamento; os resultados observados com #25 e #27 estão na seção `05-resultados-metricas.md`.
+Os denominadores vêm dos inventários acordados; excluídos, bloqueados e não executados são justificados na seção de resultados.
 
 | Métrica | Fórmula | Meta proposta |
 |---|---|---|
@@ -187,11 +187,12 @@ Os denominadores devem vir dos inventários acordados; excluídos, bloqueados e 
 | Bypasses confirmados | Quantidade de operações/dados indevidos obtidos ou alterados | 0 |
 | Falsos positivos | Operações legítimas negadas ÷ controles legítimos executados × 100 | 0% |
 | Integridade após negação | Negações sem mutação ÷ negações com estado verificado × 100 | 100% |
-| Rastreabilidade planejada ASVS | Requisitos aplicáveis com caso associado ÷ requisitos selecionados aplicáveis × 100 | 100% |
+| Rastreabilidade planejada ASVS | Requisitos selecionados com caso documentado ÷ requisitos selecionados aplicáveis × 100 | 100% |
+| Rastreabilidade executada ASVS | Requisitos com requisição executada e evidência ÷ requisitos selecionados aplicáveis × 100 | Informativa; não substitui a planejada |
 | Severidade | Falhas confirmadas por classe de impacto | Registrar todas; meta de zero críticas/altas abertas |
 
 Rastreabilidade planejada não é conformidade nem validação executada.
-A execução precisa ligar requisito, caso/subcaso, evidência e resultado.
+A seção de resultados liga requisito, caso/subcaso, evidência e resultado por execução.
 Denominador zero deve ser reportado como não mensurável/não aplicável conforme o contexto, sem inventar percentual.
 Metas não atingidas devem ser informadas; não é necessário ocultar falhas para concluir o registro experimental.
 
@@ -219,7 +220,7 @@ O campo asvs do CSV liga cada subcaso aos requisitos planejados.
 
 8.1.3, 8.1.4, 8.2.4 e 8.4.2 ficam fora do recorte inicial, salvo requisito que os torne aplicáveis.
 A seleção não verifica integralmente nenhum nível ASVS.
-Nenhum requisito recebe cobertura executada nesta entrega de definição.
+A cobertura executada e suas evidências são consolidadas em `05-resultados-metricas.md`; 8.1.1 e 8.1.2 permanecem documentais.
 
 ## 7. Observações estáticas e pendências
 
@@ -238,14 +239,14 @@ O restante do planejamento pode ser revisado enquanto esses pontos são esclarec
 ## 8. Pré-requisitos e limites
 
 Executar apenas em ambiente local/homologação autorizado, com banco/storage isolados e dados descartáveis.
-A issue #26 deve registrar setup, dependências efetivas, contas, tokens e restauração.
+A issue #26 registrou setup, dependências efetivas, contas, tokens e restauração.
 Usar IDs/credenciais sintéticos; não publicar tokens, segredos ou dados reais.
-A issue #27 deve registrar resultados e comunicar achados confirmados pelo canal privado do produto.
+A issue #27 registrou resultados; a comunicação de achados confirmados pelo canal privado do produto permanece responsabilidade da equipe.
 
 O enunciado exige declaração de uso de IA; a equipe deve incluir ferramentas, finalidades e consultas representativas no relatório final.
 O registro de planejamento documenta assistência do Codex na preparação dos artefatos.
 Interpretação de resultados, análise crítica, justificativas acadêmicas e conclusões devem ser elaboradas/revisadas pela equipe conforme o enunciado.
-Esta definição não apresenta execução nem resultados.
+Esta seção define os critérios; os resultados observados e as limitações da execução estão em `05-resultados-metricas.md`.
 
 ## Fontes consultadas nesta seção
 
